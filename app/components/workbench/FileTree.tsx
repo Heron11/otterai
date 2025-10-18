@@ -163,9 +163,9 @@ function Folder({ folder: { depth, name }, collapsed, selected = false, onClick 
   return (
     <NodeButton
       className={classNames('group', {
-        'bg-transparent text-bolt-elements-item-contentDefault hover:text-bolt-elements-item-contentActive hover:bg-bolt-elements-item-backgroundActive':
+        'bg-transparent text-bolt-elements-item-contentDefault hover:text-[#e86b47] hover:bg-white/10 dark:hover:bg-white/5':
           !selected,
-        'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent': selected,
+        'bg-[#e86b47]/10 text-[#e86b47] dark:bg-[#e86b47]/15': selected,
       })}
       depth={depth}
       iconClasses={classNames({
@@ -190,22 +190,22 @@ function File({ file: { depth, name }, onClick, selected, unsavedChanges = false
   return (
     <NodeButton
       className={classNames('group', {
-        'bg-transparent hover:bg-bolt-elements-item-backgroundActive text-bolt-elements-item-contentDefault': !selected,
-        'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent': selected,
+        'bg-transparent hover:bg-white/10 dark:hover:bg-white/5 text-bolt-elements-item-contentDefault': !selected,
+        'bg-[#e86b47]/10 text-[#e86b47] dark:bg-[#e86b47]/15': selected,
       })}
       depth={depth}
       iconClasses={classNames('i-ph:file-duotone scale-98', {
-        'group-hover:text-bolt-elements-item-contentActive': !selected,
+        'group-hover:text-[#e86b47]': !selected,
       })}
       onClick={onClick}
     >
       <div
         className={classNames('flex items-center', {
-          'group-hover:text-bolt-elements-item-contentActive': !selected,
+          'group-hover:text-[#e86b47]': !selected,
         })}
       >
         <div className="flex-1 truncate pr-2">{name}</div>
-        {unsavedChanges && <span className="i-ph:circle-fill scale-68 shrink-0 text-orange-500" />}
+        {unsavedChanges && <span className="i-ph:circle-fill scale-68 shrink-0 text-[#e86b47]" />}
       </div>
     </NodeButton>
   );

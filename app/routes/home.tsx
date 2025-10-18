@@ -225,86 +225,119 @@ export default function HomePage() {
             <div className="absolute top-0 right-0 w-1/2 h-full overflow-hidden">
             <div className="absolute top-0 right-8 left-0 bottom-0 flex flex-col gap-2 overflow-hidden justify-center">
               {/* User message 1 - will be cut off at top */}
-              <div className="flex justify-end">
-                <div className="max-w-[60%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
+              <div className="flex justify-end gap-2 items-end">
+                <div className="max-w-[70%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
                   <p className="text-sm leading-relaxed">
-                    Maybe add some animations?
+                    Add authentication with Google and GitHub
                   </p>
+                </div>
+                <div className="w-7 h-7 mb-1 flex-shrink-0 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-[#e86b47]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </div>
               </div>
 
               {/* AI message 1 */}
-              <div className="flex justify-start">
-                <div className="max-w-[75%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
+              <div className="flex justify-start gap-2 items-end">
+                <img src="/lightmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 dark:hidden" />
+                <img src="/darkmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 hidden dark:block" />
+                <div className="max-w-[85%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
                   <p className="text-sm leading-relaxed">
-                    You're welcome! Your app is ready to deploy. Want to add any final touches?
+                    Done! I've integrated OAuth for both providers with secure session management. Users can now sign in with their preferred method.
                   </p>
                 </div>
               </div>
 
               {/* User message 2 */}
-              <div className="flex justify-end">
-                <div className="max-w-[50%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
+              <div className="flex justify-end gap-2 items-end">
+                <div className="max-w-[75%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
                   <p className="text-sm leading-relaxed">
-                    Perfect, thanks!
+                    Can you add Stripe for subscription payments?
                   </p>
+                </div>
+                <div className="w-7 h-7 mb-1 flex-shrink-0 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-[#e86b47]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </div>
               </div>
 
               {/* AI message 2 */}
-              <div className="flex justify-start">
-                <div className="max-w-[70%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
+              <div className="flex justify-start gap-2 items-end">
+                <img src="/lightmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 dark:hidden" />
+                <img src="/darkmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 hidden dark:block" />
+                <div className="max-w-[80%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
                   <p className="text-sm leading-relaxed">
-                    Absolutely! Making it fully responsive with mobile-first design...
+                    Perfect! Setting up Stripe with three pricing tiers, webhooks for subscription events, and a customer portal for managing billing.
                   </p>
                 </div>
               </div>
 
               {/* User message 3 */}
-              <div className="flex justify-end">
-                <div className="max-w-[65%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
+              <div className="flex justify-end gap-2 items-end">
+                <div className="max-w-[60%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
                   <p className="text-sm leading-relaxed">
-                    Can you make it responsive?
+                    Make it mobile responsive
                   </p>
+                </div>
+                <div className="w-7 h-7 mb-1 flex-shrink-0 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-[#e86b47]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </div>
               </div>
 
               {/* AI message 3 */}
-              <div className="flex justify-start">
+              <div className="flex justify-start gap-2 items-end">
+                <img src="/lightmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 dark:hidden" />
+                <img src="/darkmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 hidden dark:block" />
                 <div className="max-w-[78%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
                   <p className="text-sm leading-relaxed">
-                    On it! Adding a beautiful dark mode with smooth transitions...
+                    On it! Implementing responsive breakpoints and touch-optimized UI. Your app will look great on any device.
                   </p>
                 </div>
               </div>
 
               {/* User message 4 */}
-              <div className="flex justify-end">
-                <div className="max-w-[60%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
+              <div className="flex justify-end gap-2 items-end">
+                <div className="max-w-[55%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
                   <p className="text-sm leading-relaxed">
-                    Add dark mode support too
+                    Looks amazing! Deploy it
                   </p>
+                </div>
+                <div className="w-7 h-7 mb-1 flex-shrink-0 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-[#e86b47]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </div>
               </div>
 
               {/* AI message 4 */}
-              <div className="flex justify-start">
-                <div className="max-w-[85%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
+              <div className="flex justify-start gap-2 items-end">
+                <img src="/lightmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 dark:hidden" />
+                <img src="/darkmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 hidden dark:block" />
+                <div className="max-w-[88%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
                   <p className="text-sm leading-relaxed">
-                    Perfect! I'll build that with React, Chart.js for analytics, and a clean admin panel. Starting now...
+                    🚀 Deploying to production now! Setting up CI/CD, configuring your domain, and optimizing for performance. You'll be live in moments!
                   </p>
                 </div>
               </div>
 
               {/* User message 5 - will be cut off at bottom */}
-              <div className="flex justify-end">
-                <div className="max-w-[80%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
+              <div className="flex justify-end gap-2 items-end">
+                <div className="max-w-[85%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
                   <p className="text-sm leading-relaxed">
-                    Create a dashboard with analytics charts and user management
+                    Build me a SaaS platform with user dashboards, team collaboration, and real-time analytics
                   </p>
                 </div>
+                <div className="w-7 h-7 mb-1 flex-shrink-0 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-[#e86b47]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
               </div>
-              </div>
+            </div>
             </div>
 
             <div className="max-w-6xl mx-auto">

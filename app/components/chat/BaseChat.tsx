@@ -28,11 +28,11 @@ interface BaseChatProps {
 }
 
 const EXAMPLE_PROMPTS = [
-  { text: 'Build a todo app in React using Tailwind' },
-  { text: 'Build a simple blog using Astro' },
-  { text: 'Create a cookie consent form using Material UI' },
-  { text: 'Make a space invaders game' },
-  { text: 'How do I center a div?' },
+  { text: 'Create a task manager with real-time collaboration' },
+  { text: 'Build a portfolio website with smooth animations' },
+  { text: 'Design a modern dashboard with analytics charts' },
+  { text: 'Make an interactive game with leaderboards' },
+  { text: 'Build a landing page for my startup idea' },
 ];
 
 const TEXTAREA_MIN_HEIGHT = 76;
@@ -71,21 +71,22 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
         <ClientOnly>{() => <Menu />}</ClientOnly>
         <div ref={scrollRef} className="flex overflow-y-auto w-full h-full">
           <div className={classNames(styles.Chat, 'flex flex-col flex-grow min-w-[var(--chat-min-width)] h-full')}>
-            {!chatStarted && (
-              <div id="intro" className="mt-[26vh] max-w-chat mx-auto">
-                <h1 className="text-5xl text-center font-bold text-bolt-elements-textPrimary mb-2">
-                  Where ideas begin
-                </h1>
-                <p className="mb-4 text-center text-bolt-elements-textSecondary">
-                  Bring ideas to life in seconds or get help on existing projects.
-                </p>
-              </div>
-            )}
             <div
-              className={classNames('pt-6 px-6', {
+              className={classNames('px-6', {
                 'h-full flex flex-col': chatStarted,
+                'flex flex-col justify-center min-h-screen -mt-16': !chatStarted,
               })}
             >
+              {!chatStarted && (
+                <div id="intro" className="max-w-chat mx-auto px-4 mb-8">
+                  <h1 className="text-5xl md:text-6xl text-center font-bold text-bolt-elements-textPrimary mb-4 tracking-tight">
+                    Build anything, instantly
+                  </h1>
+                  <p className="mb-0 text-center text-bolt-elements-textSecondary text-lg">
+                    Describe your vision and watch Otter create full-stack applications in real-time.
+                  </p>
+                </div>
+              )}
               <ClientOnly>
                 {() => {
                   return chatStarted ? (
@@ -105,12 +106,15 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               >
                 <div
                   className={classNames(
-                    'shadow-sm border border-bolt-elements-borderColor bg-bolt-elements-prompt-background backdrop-filter backdrop-blur-[8px] rounded-lg overflow-hidden',
+                    'bg-white/80 dark:bg-white/15 backdrop-blur-sm border border-gray-200 dark:border-white/30 rounded-2xl overflow-hidden transition-all duration-200 shadow-sm',
+                    {
+                      'ring-2 ring-[#e86b47]/50': input.length > 0,
+                    }
                   )}
                 >
                   <textarea
                     ref={textareaRef}
-                    className={`w-full pl-4 pt-4 pr-16 focus:outline-none resize-none text-md text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary bg-transparent`}
+                    className={`w-full pl-5 pt-5 pr-16 focus:outline-none resize-none text-md text-bolt-elements-textPrimary placeholder:text-bolt-elements-textTertiary dark:placeholder:text-white/50 bg-transparent`}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') {
                         if (event.shiftKey) {
@@ -130,13 +134,13 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                       minHeight: TEXTAREA_MIN_HEIGHT,
                       maxHeight: TEXTAREA_MAX_HEIGHT,
                     }}
-                    placeholder="How can Bolt help you today?"
+                    placeholder="Describe what you want to build..."
                     translate="no"
                   />
                   <ClientOnly>
                     {() => (
                       <SendButton
-                        show={input.length > 0 || isStreaming}
+                        show={true}
                         isStreaming={isStreaming}
                         onClick={(event) => {
                           if (isStreaming) {
@@ -149,34 +153,34 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                       />
                     )}
                   </ClientOnly>
-                  <div className="flex justify-between text-sm p-4 pt-2">
+                  <div className="flex justify-between text-sm p-5 pt-2">
                     <div className="flex gap-1 items-center">
                       <IconButton
                         title="Enhance prompt"
                         disabled={input.length === 0 || enhancingPrompt}
-                        className={classNames({
+                        className={classNames('transition-all duration-200', {
                           'opacity-100!': enhancingPrompt,
-                          'text-bolt-elements-item-contentAccent! pr-1.5 enabled:hover:bg-bolt-elements-item-backgroundAccent!':
+                          'text-[#e86b47]! pr-1.5 enabled:hover:bg-[#e86b47]/10!':
                             promptEnhanced,
                         })}
                         onClick={() => enhancePrompt?.()}
                       >
                         {enhancingPrompt ? (
                           <>
-                            <div className="i-svg-spinners:90-ring-with-bg text-bolt-elements-loader-progress text-xl"></div>
-                            <div className="ml-1.5">Enhancing prompt...</div>
+                            <div className="i-svg-spinners:90-ring-with-bg text-[#e86b47] text-xl"></div>
+                            <div className="ml-1.5 text-bolt-elements-textSecondary">Enhancing...</div>
                           </>
                         ) : (
                           <>
                             <div className="i-bolt:stars text-xl"></div>
-                            {promptEnhanced && <div className="ml-1.5">Prompt enhanced</div>}
+                            {promptEnhanced && <div className="ml-1.5 text-[#e86b47]">Enhanced</div>}
                           </>
                         )}
                       </IconButton>
                     </div>
                     {input.length > 3 ? (
-                      <div className="text-xs text-bolt-elements-textTertiary">
-                        Use <kbd className="kdb">Shift</kbd> + <kbd className="kdb">Return</kbd> for a new line
+                      <div className="text-xs text-bolt-elements-textTertiary dark:text-white/40">
+                        <kbd className="kdb px-1.5 py-0.5 bg-white/20 dark:bg-white/10 rounded">Shift</kbd> + <kbd className="kdb px-1.5 py-0.5 bg-white/20 dark:bg-white/10 rounded">Return</kbd> for new line
                       </div>
                     ) : null}
                   </div>
@@ -194,10 +198,10 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         onClick={(event) => {
                           sendMessage?.(event, examplePrompt.text);
                         }}
-                        className="group flex items-center w-full gap-2 justify-center bg-transparent text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary transition-theme"
+                        className="group flex items-center w-full gap-2 justify-center bg-transparent text-bolt-elements-textTertiary hover:text-[#e86b47] transition-all duration-200"
                       >
                         {examplePrompt.text}
-                        <div className="i-ph:arrow-bend-down-left" />
+                        <div className="i-ph:arrow-bend-down-left group-hover:translate-x-0.5 transition-transform" />
                       </button>
                     );
                   })}

@@ -8,9 +8,9 @@ export function PlatformNav() {
   return (
     <nav className="border-b border-bolt-elements-borderColor bg-bolt-elements-background-depth-1">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          {/* Logo and main nav */}
-          <div className="flex">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex items-center">
             <Link to="/home" className="flex items-center gap-2">
               <img 
                 src="/lightmodelogonew.svg" 
@@ -23,36 +23,37 @@ export function PlatformNav() {
                 className="h-10 hidden dark:block"
               />
             </Link>
-            
-            {isAuthenticated && (
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-6">
-                <Link
-                  to="/dashboard"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/templates"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
-                >
-                  Templates
-                </Link>
-                <Link
-                  to="/"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
-                >
-                  Build
-                </Link>
-                <Link
-                  to="/projects"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
-                >
-                  Projects
-                </Link>
-              </div>
-            )}
           </div>
+
+          {/* Center nav */}
+          {isAuthenticated && (
+            <div className="hidden sm:flex sm:space-x-6 absolute left-1/2 transform -translate-x-1/2">
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/templates"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
+              >
+                Templates
+              </Link>
+              <Link
+                to="/"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
+              >
+                Build
+              </Link>
+              <Link
+                to="/projects"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
+              >
+                Projects
+              </Link>
+            </div>
+          )}
 
           {/* Right side - theme toggle, user menu */}
           <div className="flex items-center space-x-4">

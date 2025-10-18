@@ -68,12 +68,13 @@ $code-font-size: 13px;
   }
 
   a {
-    color: var(--bolt-elements-messages-linkColor);
+    color: #e86b47;
     text-decoration: none;
     cursor: pointer;
 
     &:hover {
       text-decoration: underline;
+      color: #d45a36;
     }
   }
 
@@ -106,7 +107,7 @@ $code-font-size: 13px;
     margin: 0;
     padding: 0 1em;
     color: var(--bolt-elements-textTertiary);
-    border-left: 0.25em solid var(--bolt-elements-borderColor);
+    border-left: 0.25em solid #e86b47;
   }
 
   :is(ul, ol) {
