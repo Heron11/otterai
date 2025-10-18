@@ -1,0 +1,189 @@
+/* HAI Production Color System - Exact Copy */
+
+:root {
+  /* Brand Color System - Orange theme */
+  --brand-primary: #e86b47;
+  --brand-primary-hover: #d45a36;
+  --brand-primary-light: #ff7c58;
+  --brand-primary-subtle: #fef3f0;
+  --brand-primary-muted: #e86b47;
+
+  /* Build/Chat color aliases */
+  --build-accent-color: var(--brand-primary);
+  
+  /* Light mode backgrounds */
+  --build-chat-colors-bg-1: #fefaf8; /* Very light cream - elevated surfaces */
+  --build-chat-colors-bg-2: #fdf6f2; /* Light cream - sidebar */
+  --build-chat-colors-bg-3: #faf4ef; /* Main content area - warm cream */
+  --build-chat-colors-bg-4: #f5ede5; /* Cards/elevated elements - warm beige */
+  
+  /* Light mode borders */
+  --build-chat-colors-border-primary: #e8dfd6; /* Soft beige borders */
+  --build-chat-colors-border-secondary: #f0e9e1; /* Lighter beige borders */
+  --build-chat-colors-border-tertiary: #f7f2ed; /* Very light cream borders */
+  
+  /* Semantic colors */
+  --build-chat-colors-danger: #dc2626; /* Red for errors */
+  
+  /* Brand color usage */
+  --build-chat-colors-brand-heavy: var(--brand-primary);
+  --build-chat-colors-brand-primary: var(--brand-primary);
+  --build-chat-colors-brand-subtle: var(--brand-primary-muted);
+  
+  /* Light mode text */
+  --build-chat-colors-text-inverted: #ffffff; /* White text on dark backgrounds */
+  --build-chat-colors-text-primary: #000000; /* Black text for primary content */
+  --build-chat-colors-text-secondary: #1f2937; /* Dark gray for secondary text */
+  --build-chat-colors-text-tertiary: #6b7280; /* Gray for tertiary text */
+
+  /* Input/form styling */
+  --border: #e8dfd6;
+  --input: #fefaf8;
+  --ring: #000000;
+  --radius: 0.625rem;
+  --destructive: oklch(0.577 0.245 27.325);
+
+  /* Shadows */
+  --shadow-dialog:
+    0px 18px 60px 0px rgba(0, 0, 0, 0.15),
+    3px 3px 13px 0px rgba(0, 0, 0, 0.08), -3px 3px 13px 0px rgba(0, 0, 0, 0.08),
+    24px 24px 24px 0px rgba(0, 0, 0, 0.06),
+    -24px 24px 24px 0px rgba(0, 0, 0, 0.06),
+    53px 53px 32px 0px rgba(0, 0, 0, 0.04),
+    0px 0px 0px 1px rgba(0, 0, 0, 0.1);
+    
+  --shadow-elevation:
+    6px 6px 13px 0px rgba(0, 0, 0, 0.08),
+    24px 24px 24px 0px rgba(0, 0, 0, 0.06),
+    53px 53px 32px 0px rgba(0, 0, 0, 0.04),
+    0px 0px 0px 1px rgba(0, 0, 0, 0.1);
+    
+  --shadow-soft-layered:
+    3px 3px 13px 0px rgba(0, 0, 0, 0.04),
+    24px 24px 24px 0px rgba(0, 0, 0, 0.03);
+
+  --shadow-textarea:
+    6px 6px 13px 0px rgba(0, 0, 0, 0.08),
+    24px 24px 24px 0px rgba(0, 0, 0, 0.06),
+    53px 53px 32px 0px rgba(0, 0, 0, 0.04),
+    0px 0px 0px 1px rgba(0, 0, 0, 0.1);
+}
+
+.dark {
+  /* Dark mode backgrounds - Better depth and contrast */
+  --build-chat-colors-bg-1: #000000; /* Pure black for main background */
+  --build-chat-colors-bg-2: #111111; /* Slightly lighter for elevated elements */
+  --build-chat-colors-bg-3: #000000; /* Pure black for main content area */
+  --build-chat-colors-bg-4: #1a1a1a; /* Lighter for cards/elements */
+  
+  /* Dark mode borders - Refined for elegance */
+  --build-chat-colors-border-primary: rgba(255, 255, 255, 0.08); /* Subtle but visible */
+  --build-chat-colors-border-secondary: rgba(255, 255, 255, 0.06); /* Softer for nested */
+  --build-chat-colors-border-tertiary: rgba(255, 255, 255, 0.04); /* Very subtle */
+  
+  /* Brand colors (same) */
+  --build-chat-colors-brand-heavy: var(--brand-primary);
+  --build-chat-colors-brand-primary: var(--brand-primary);
+  --build-chat-colors-brand-subtle: var(--brand-primary-muted);
+  
+  /* Dark mode text */
+  --build-chat-colors-text-inverted: #000000;
+  --build-chat-colors-text-primary: #ffffff;
+  --build-chat-colors-text-secondary: #d1d5db; /* Slightly brighter secondary text */
+  --build-chat-colors-text-tertiary: #9ca3af; /* Better contrast tertiary text */
+
+  /* Dark mode inputs/forms */
+  --border: rgba(255, 255, 255, 0.08);
+  --input: #111111;
+  --destructive: #ef4444;
+
+  /* Dark mode shadows - Enhanced depth */
+  --shadow-dialog:
+    0px 18px 60px 0px rgba(0, 0, 0, 0.4),
+    3px 3px 13px 0px rgba(0, 0, 0, 0.3), -3px 3px 13px 0px rgba(0, 0, 0, 0.3),
+    24px 24px 24px 0px rgba(0, 0, 0, 0.2),
+    -24px 24px 24px 0px rgba(0, 0, 0, 0.2);
+    
+  --shadow-elevation:
+    6px 6px 20px 0px rgba(0, 0, 0, 0.4),
+    24px 24px 32px 0px rgba(0, 0, 0, 0.3),
+    53px 53px 48px 0px rgba(0, 0, 0, 0.2);
+    
+  --shadow-soft-layered:
+    3px 3px 13px 0px rgba(0, 0, 0, 0.2),
+    12px 12px 24px 0px rgba(0, 0, 0, 0.15);
+}
+
+/* Utility color classes */
+.bg-brand {
+  background-color: var(--brand-primary);
+}
+
+.bg-brand-hover {
+  background-color: var(--brand-primary-hover);
+}
+
+.text-brand {
+  color: var(--brand-primary);
+}
+
+.border-brand {
+  border-color: var(--brand-primary);
+}
+
+/* Background utilities matching hai-production */
+.bg-bg-1 {
+  background-color: var(--build-chat-colors-bg-1);
+}
+
+.bg-bg-2 {
+  background-color: var(--build-chat-colors-bg-2);
+}
+
+.bg-bg-3 {
+  background-color: var(--build-chat-colors-bg-3);
+}
+
+.bg-bg-4 {
+  background-color: var(--build-chat-colors-bg-4);
+}
+
+/* Text utilities */
+.text-text-primary {
+  color: var(--build-chat-colors-text-primary);
+}
+
+.text-text-secondary {
+  color: var(--build-chat-colors-text-secondary);
+}
+
+.text-text-tertiary {
+  color: var(--build-chat-colors-text-tertiary);
+}
+
+/* Border utilities */
+.border-border-primary {
+  border-color: var(--build-chat-colors-border-primary);
+}
+
+.border-border-secondary {
+  border-color: var(--build-chat-colors-border-secondary);
+}
+
+.border-border-tertiary {
+  border-color: var(--build-chat-colors-border-tertiary);
+}
+
+/* Shadow utilities */
+.shadow-soft {
+  box-shadow: var(--shadow-soft-layered);
+}
+
+.shadow-elevation {
+  box-shadow: var(--shadow-elevation);
+}
+
+.shadow-dialog {
+  box-shadow: var(--shadow-dialog);
+}
+
