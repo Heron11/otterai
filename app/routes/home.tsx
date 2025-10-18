@@ -221,6 +221,92 @@ export default function HomePage() {
           
           {/* Main Feature Card - Describe */}
           <div className="relative mb-10 py-20 px-8 lg:px-16 bg-gradient-to-br from-bg-3/50 to-bg-2/50 dark:from-neutral-900/40 dark:to-neutral-900/20 backdrop-blur-sm overflow-hidden border border-neutral-200 dark:border-neutral-800/60 rounded-[2.5rem] shadow-elevation">
+            {/* Chat messages as background decoration */}
+            <div className="absolute top-0 right-0 w-1/2 h-full overflow-hidden">
+            <div className="absolute top-0 right-8 left-0 bottom-0 flex flex-col gap-2 overflow-hidden justify-center">
+              {/* User message 1 - will be cut off at top */}
+              <div className="flex justify-end">
+                <div className="max-w-[60%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
+                  <p className="text-sm leading-relaxed">
+                    Maybe add some animations?
+                  </p>
+                </div>
+              </div>
+
+              {/* AI message 1 */}
+              <div className="flex justify-start">
+                <div className="max-w-[75%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
+                  <p className="text-sm leading-relaxed">
+                    You're welcome! Your app is ready to deploy. Want to add any final touches?
+                  </p>
+                </div>
+              </div>
+
+              {/* User message 2 */}
+              <div className="flex justify-end">
+                <div className="max-w-[50%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
+                  <p className="text-sm leading-relaxed">
+                    Perfect, thanks!
+                  </p>
+                </div>
+              </div>
+
+              {/* AI message 2 */}
+              <div className="flex justify-start">
+                <div className="max-w-[70%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
+                  <p className="text-sm leading-relaxed">
+                    Absolutely! Making it fully responsive with mobile-first design...
+                  </p>
+                </div>
+              </div>
+
+              {/* User message 3 */}
+              <div className="flex justify-end">
+                <div className="max-w-[65%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
+                  <p className="text-sm leading-relaxed">
+                    Can you make it responsive?
+                  </p>
+                </div>
+              </div>
+
+              {/* AI message 3 */}
+              <div className="flex justify-start">
+                <div className="max-w-[78%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
+                  <p className="text-sm leading-relaxed">
+                    On it! Adding a beautiful dark mode with smooth transitions...
+                  </p>
+                </div>
+              </div>
+
+              {/* User message 4 */}
+              <div className="flex justify-end">
+                <div className="max-w-[60%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
+                  <p className="text-sm leading-relaxed">
+                    Add dark mode support too
+                  </p>
+                </div>
+              </div>
+
+              {/* AI message 4 */}
+              <div className="flex justify-start">
+                <div className="max-w-[85%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
+                  <p className="text-sm leading-relaxed">
+                    Perfect! I'll build that with React, Chart.js for analytics, and a clean admin panel. Starting now...
+                  </p>
+                </div>
+              </div>
+
+              {/* User message 5 - will be cut off at bottom */}
+              <div className="flex justify-end">
+                <div className="max-w-[80%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
+                  <p className="text-sm leading-relaxed">
+                    Create a dashboard with analytics charts and user management
+                  </p>
+                </div>
+              </div>
+              </div>
+            </div>
+
             <div className="max-w-6xl mx-auto">
               <div className="relative z-10 flex flex-wrap items-center -m-8">
                 <div className="w-full md:w-1/2 p-8">
@@ -229,19 +315,8 @@ export default function HomePage() {
                     <p className="text-text-tertiary dark:text-white/60 text-lg">Tell OtterAI what you want to build. Be as detailed or as brief as you like - our AI understands both.</p>
                   </div>
                 </div>
+                {/* Empty right side - messages are now in background */}
                 <div className="w-full md:w-1/2 p-8">
-                  <div className="bg-bg-4/50 dark:bg-white/5 border border-border-primary dark:border-white/10 rounded-xl p-6">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#e86b47] flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                        U
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-text-primary dark:text-white text-sm leading-relaxed">
-                          Create a task management app with teams, real-time collaboration, and Stripe billing
-                        </p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
