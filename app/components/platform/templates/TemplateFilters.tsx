@@ -36,7 +36,7 @@ export function TemplateFilters({ onSearchChange, onCategoryChange, onFrameworkC
   };
 
   return (
-    <div className="bg-white dark:bg-bg-2 border border-border-primary dark:border-border-primary rounded-xl p-6 shadow-soft">
+    <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6 shadow-soft">
       {/* Search */}
       <div className="mb-6">
         <div className="relative">
@@ -56,7 +56,7 @@ export function TemplateFilters({ onSearchChange, onCategoryChange, onFrameworkC
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search templates..."
-            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-bg-4 border border-border-primary dark:border-border-primary rounded-lg text-text-primary dark:text-white placeholder:text-text-tertiary dark:placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-[#e86b47] focus:border-[#e86b47] transition-all"
+            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 rounded-lg text-text-primary dark:text-white placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#e86b47] focus:border-[#e86b47] transition-all"
           />
         </div>
       </div>
@@ -70,7 +70,7 @@ export function TemplateFilters({ onSearchChange, onCategoryChange, onFrameworkC
           </label>
           <select
             onChange={(e) => onCategoryChange(e.target.value ? e.target.value as TemplateCategory : undefined)}
-            className="w-full px-4 py-2.5 bg-white dark:bg-bg-4 border border-border-primary dark:border-border-primary rounded-lg text-text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-[#e86b47] focus:border-[#e86b47] transition-all"
+            className="w-full px-4 py-2.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 rounded-lg text-text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-[#e86b47] focus:border-[#e86b47] transition-all"
           >
             <option value="">All categories</option>
             {categories.map((category) => (
@@ -88,7 +88,7 @@ export function TemplateFilters({ onSearchChange, onCategoryChange, onFrameworkC
           </label>
           <select
             onChange={(e) => onFrameworkChange(e.target.value ? e.target.value as TemplateFramework : undefined)}
-            className="w-full px-4 py-2.5 bg-white dark:bg-bg-4 border border-border-primary dark:border-border-primary rounded-lg text-text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-[#e86b47] focus:border-[#e86b47] transition-all"
+            className="w-full px-4 py-2.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 rounded-lg text-text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-[#e86b47] focus:border-[#e86b47] transition-all"
           >
             <option value="">All frameworks</option>
             {frameworks.map((framework) => (

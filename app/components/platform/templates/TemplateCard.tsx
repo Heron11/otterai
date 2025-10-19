@@ -22,18 +22,18 @@ export function TemplateCard({ template }: TemplateCardProps) {
   };
 
   return (
-    <div className="group bg-white dark:bg-bg-2 border border-border-primary dark:border-border-primary rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl dark:hover:shadow-2xl hover:-translate-y-1 hover:border-[#e86b47]/30 dark:hover:border-[#e86b47]/30 cursor-pointer">
+    <div className="group bg-white/80 dark:bg-neutral-900/90 backdrop-blur-sm border border-neutral-200/50 dark:border-neutral-700/50 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-xl dark:hover:shadow-2xl hover:-translate-y-1 hover:border-[#e86b47]/30 dark:hover:border-[#e86b47]/30 cursor-pointer">
       {/* Thumbnail */}
-      <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative overflow-hidden">
+      <div className="aspect-video bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-800 dark:to-neutral-900 relative overflow-hidden">
         {template.thumbnailUrl ? (
           <img
             src={template.thumbnailUrl}
             alt={template.name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-6xl opacity-20 group-hover:opacity-30 transition-opacity duration-300">
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="text-6xl opacity-20 dark:opacity-30 group-hover:opacity-40 dark:group-hover:opacity-50 transition-opacity duration-500">
               {template.framework === 'react' ? '⚛️' : 
                template.framework === 'next' ? '▲' :
                template.framework === 'vue' ? '🖖' :
@@ -47,27 +47,27 @@ export function TemplateCard({ template }: TemplateCardProps) {
         
         {/* Featured badge */}
         {template.featured && (
-          <div className="absolute top-3 left-3 px-2 py-1 bg-[#e86b47]/90 backdrop-blur-sm border border-[#e86b47]/30 rounded-md text-xs font-medium text-white">
+          <div className="absolute top-4 left-4 px-3 py-1.5 bg-[#e86b47]/95 backdrop-blur-sm border border-[#e86b47]/30 rounded-lg text-xs font-semibold text-white shadow-sm">
             Featured
           </div>
         )}
         
         {/* Tier badge */}
-        <div className={`absolute top-3 right-3 px-2 py-1 border rounded-md text-xs font-medium backdrop-blur-sm ${getTierBadgeColor(template.requiredTier)}`}>
+        <div className={`absolute top-4 right-4 px-3 py-1.5 border rounded-lg text-xs font-semibold backdrop-blur-sm shadow-sm ${getTierBadgeColor(template.requiredTier)}`}>
           {template.requiredTier.charAt(0).toUpperCase() + template.requiredTier.slice(1)}
         </div>
 
         {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
           {/* Content in overlay */}
-          <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+          <div className="transform translate-y-6 group-hover:translate-y-0 transition-transform duration-500">
             {/* Title */}
-            <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">
+            <h3 className="text-xl font-semibold text-white mb-3 line-clamp-1">
               {template.name}
             </h3>
             
             {/* Description */}
-            <p className="text-sm text-gray-200 mb-3 line-clamp-2 leading-relaxed">
+            <p className="text-sm text-gray-200 mb-4 line-clamp-2 leading-relaxed">
               {template.description}
             </p>
             

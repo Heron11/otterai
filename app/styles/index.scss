@@ -13,4 +13,45 @@ html,
 body {
   height: 100%;
   width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
+}
+
+/* Hide scrollbar entirely while keeping scroll functionality */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* For Firefox */
+html {
+  scrollbar-width: none;
+}
+
+/* Ensure scrollbar never takes up layout space */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Ensure the entire scrollbar area matches page background */
+body {
+  background-color: var(--build-chat-colors-bg-1);
+}
+
+.dark body {
+  background-color: #000000;
 }

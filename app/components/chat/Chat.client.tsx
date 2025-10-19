@@ -203,6 +203,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
       ref={animationScope}
       textareaRef={textareaRef}
       input={input}
+      setInput={setInput}
       showChat={showChat}
       chatStarted={chatStarted}
       isStreaming={isLoading}

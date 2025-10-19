@@ -15,7 +15,7 @@ export function ProjectGrid({ projects, onDeleteProject, emptyMessage = 'No proj
           <div className="text-8xl mb-6 opacity-30">📁</div>
           <div className="absolute inset-0 bg-[#e86b47]/10 rounded-full blur-2xl"></div>
         </div>
-        <p className="text-text-secondary dark:text-text-secondary text-lg mb-6">{emptyMessage}</p>
+        <p className="text-text-secondary dark:text-white/70 text-lg mb-6">{emptyMessage}</p>
         <div className="inline-flex items-center gap-2 px-6 py-3 bg-[#e86b47]/10 dark:bg-[#e86b47]/20 border border-[#e86b47]/20 rounded-full">
           <span className="text-[#e86b47] text-sm font-medium">Create your first project to get started</span>
         </div>

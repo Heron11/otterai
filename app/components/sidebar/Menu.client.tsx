@@ -92,10 +92,16 @@ export function Menu() {
       }
     }
 
+    function onToggleSidebar() {
+      setOpen(prev => !prev);
+    }
+
     window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('toggleSidebar', onToggleSidebar);
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('toggleSidebar', onToggleSidebar);
     };
   }, []);
 

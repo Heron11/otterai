@@ -3,6 +3,7 @@ import { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Link } from '@remix-run/react';
 import { PlatformNav } from '~/components/platform/layout/PlatformNav';
+import { FloatingUser } from '~/components/platform/layout/FloatingUser';
 import { BuildAnimationLoader } from '~/components/platform/LottieLoader';
 import { TemplateCard } from '~/components/platform/templates/TemplateCard';
 import { getFeaturedTemplates } from '~/lib/mock/templates';

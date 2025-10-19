@@ -11,6 +11,54 @@ import { SendButton } from './SendButton.client';
 
 import styles from './BaseChat.module.scss';
 
+const PROMPT_EXAMPLES = [
+  {
+    title: "E-commerce Store",
+    prompt: "Build me a modern e-commerce store with product catalog, shopping cart, and checkout functionality",
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+    )
+  },
+  {
+    title: "Portfolio Website",
+    prompt: "Create a professional portfolio website with projects showcase, about section, and contact form",
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    )
+  },
+  {
+    title: "SaaS Dashboard",
+    prompt: "Build a SaaS dashboard with user management, analytics, and billing integration",
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    )
+  },
+  {
+    title: "Blog Platform",
+    prompt: "Create a modern blog platform with article creation, comments, and user authentication",
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+      </svg>
+    )
+  },
+  {
+    title: "Task Manager",
+    prompt: "Build a task management app with project boards, team collaboration, and progress tracking",
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+    )
+  }
+];
+
 interface BaseChatProps {
   textareaRef?: React.RefObject<HTMLTextAreaElement> | undefined;
   messageRef?: RefCallback<HTMLDivElement> | undefined;
@@ -22,6 +70,7 @@ interface BaseChatProps {
   enhancingPrompt?: boolean;
   promptEnhanced?: boolean;
   input?: string;
+  setInput?: (value: string) => void;
   handleStop?: () => void;
   sendMessage?: (event: React.UIEvent, messageInput?: string) => void;
   handleInputChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -59,6 +108,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       promptEnhanced = false,
       messages,
       input = '',
+      setInput,
       sendMessage,
       handleInputChange,
       enhancePrompt,
@@ -262,11 +312,10 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                                           }`}
                                         >
                                           <div 
-                                            className="w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0 ring-2" 
+                                            className="w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0" 
                                             style={{ 
                                               backgroundColor: model.color,
-                                              ringColor: `${model.color}30`,
-                                              boxShadow: selectedModel.id === model.id ? `0 0 12px ${model.color}60` : 'none'
+                                              boxShadow: selectedModel.id === model.id ? `0 0 12px ${model.color}60` : `0 0 0 2px ${model.color}30`
                                             }}
                                           ></div>
                                           <div className="flex-1 min-w-0">
@@ -305,29 +354,37 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     </div>
                   </div>
                 </div>
+                
+                {/* Prompt Examples */}
+                {!chatStarted && (
+                  <div className="mt-8 mb-6">
+                    <div className="text-center mb-4">
+                      <p className="text-sm text-bolt-elements-textSecondary dark:text-white/70">
+                        Not sure where to start? Try one of these:
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-3 justify-center max-w-4xl mx-auto">
+                      {PROMPT_EXAMPLES.map((example, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setInput?.(example.prompt)}
+                          className="flex items-center gap-3 px-5 py-3 bg-white/80 dark:bg-white/15 border border-gray-200 dark:border-white/30 hover:border-[#e86b47]/50 dark:hover:border-[#e86b47]/50 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-[#e86b47]/20 group backdrop-blur-sm hover:bg-[#e86b47]/5 dark:hover:bg-[#e86b47]/10"
+                        >
+                          <div className="text-[#e86b47]/80 dark:text-[#e86b47]/70 group-hover:text-[#e86b47] transition-colors duration-300 group-hover:scale-110">
+                            {example.icon}
+                          </div>
+                          <span className="text-sm font-medium text-gray-700 dark:text-white/80 group-hover:text-[#e86b47] transition-colors duration-300">
+                            {example.title}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="bg-bolt-elements-background-depth-1 pb-6">{/* Ghost Element */}</div>
               </div>
-            </div>
-            {!chatStarted && (
-              <div id="examples" className="relative w-full max-w-xl mx-auto mt-8 flex justify-center">
-                <div className="flex flex-col space-y-2 [mask-image:linear-gradient(to_bottom,black_0%,transparent_180%)] hover:[mask-image:none]">
-                  {EXAMPLE_PROMPTS.map((examplePrompt, index) => {
-                    return (
-                      <button
-                        key={index}
-                        onClick={(event) => {
-                          sendMessage?.(event, examplePrompt.text);
-                        }}
-                        className="group flex items-center w-full gap-2 justify-center bg-transparent text-bolt-elements-textTertiary hover:text-[#e86b47] transition-all duration-200"
-                      >
-                        {examplePrompt.text}
-                        <div className="i-ph:arrow-bend-down-left group-hover:translate-x-0.5 transition-transform" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                  </div>
           </div>
           <ClientOnly>{() => <Workbench chatStarted={chatStarted} isStreaming={isStreaming} />}</ClientOnly>
         </div>
