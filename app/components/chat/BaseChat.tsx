@@ -1,6 +1,7 @@
 import type { Message } from 'ai';
 import React, { type RefCallback, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation } from '@remix-run/react';
 import { ClientOnly } from 'remix-utils/client-only';
 import { Menu } from '~/components/sidebar/Menu.client';
 import { IconButton } from '~/components/ui/IconButton';
@@ -116,6 +117,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     },
     ref,
   ) => {
+    const location = useLocation();
+    const isBuildPage = location.pathname === '/';
     const TEXTAREA_MAX_HEIGHT = chatStarted ? 400 : 200;
     const [modelPickerOpen, setModelPickerOpen] = useState(false);
     const [selectedModel, setSelectedModel] = useState(MOCK_MODELS.find(m => m.active) || MOCK_MODELS[0]);
@@ -151,7 +154,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 'flex flex-col justify-center min-h-screen -mt-16': !chatStarted,
               })}
             >
-              {!chatStarted && (
+              {!chatStarted && isBuildPage && (
                 <div id="intro" className="max-w-chat mx-auto px-4 mb-8">
                   <h1 className="text-5xl md:text-6xl text-center font-bold text-bolt-elements-textPrimary mb-4 tracking-tight">
                     Build anything, instantly
@@ -356,8 +359,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 </div>
                 
                 {/* Prompt Examples */}
-                {!chatStarted && (
-                  <div className="mt-8 mb-6">
+                {!chatStarted && isBuildPage && (
+                  <div id="examples" className="mt-8 mb-6">
                     <div className="text-center mb-4">
                       <p className="text-sm text-bolt-elements-textSecondary dark:text-white/70">
                         Not sure where to start? Try one of these:

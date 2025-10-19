@@ -15,49 +15,56 @@ export function PricingCard({ tier, currentTier, highlighted = false }: PricingC
 
   return (
     <div
-      className={`bg-bolt-elements-background-depth-1 rounded-lg p-6 border ${
+      className={`bg-white/80 dark:bg-white/10 backdrop-blur-sm rounded-2xl p-8 border transition-all duration-500 hover:scale-105 hover:-translate-y-2 relative ${
         highlighted
-          ? 'border-orange-500 ring-2 ring-orange-500/20 shadow-elevation'
-          : 'border-bolt-elements-borderColor shadow-soft'
-      } relative transition-all hover:shadow-elevation card-hover`}
+          ? 'border-[#e86b47]/50 ring-2 ring-[#e86b47]/20 shadow-xl hover:shadow-2xl'
+          : 'border-gray-200/50 dark:border-white/10 shadow-lg hover:shadow-xl hover:border-[#e86b47]/30'
+      }`}
     >
       {highlighted && (
-        <div className="absolute top-0 right-6 transform -translate-y-1/2">
-          <span className="px-3 py-1 bg-[#e86b47] text-white text-xs font-medium rounded-full shadow-md">
-            Popular
-          </span>
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          <div className="px-4 py-2 bg-[#e86b47] text-white text-sm font-semibold rounded-full shadow-lg">
+            Most Popular
+          </div>
         </div>
       )}
 
-      <div className="text-center mb-6">
-        <h3 className="text-2xl font-bold text-bolt-elements-textPrimary mb-2">
+      <div className="text-center mb-8">
+        <h3 className="text-2xl font-bold text-text-primary dark:text-white mb-3">
           {limits.name}
         </h3>
-        <div className="flex items-baseline justify-center">
-          <span className="text-4xl font-bold text-bolt-elements-textPrimary">
+        <div className="flex items-baseline justify-center mb-4">
+          <span className="text-5xl font-bold text-text-primary dark:text-white">
             ${limits.price}
           </span>
           {limits.price > 0 && (
-            <span className="ml-2 text-bolt-elements-textSecondary">/month</span>
+            <span className="ml-2 text-lg text-text-secondary dark:text-white/70">/month</span>
           )}
         </div>
+        {limits.price === 0 && (
+          <div className="text-sm text-text-secondary dark:text-white/70">
+            Perfect for getting started
+          </div>
+        )}
       </div>
 
-      <ul className="space-y-3 mb-6">
+      <ul className="space-y-4 mb-8">
         {features.map((feature, index) => (
-          <li key={index} className="flex items-start">
-            <svg
-              className="w-5 h-5 text-green-400 mr-2 flex-shrink-0 mt-0.5"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span className="text-sm text-bolt-elements-textSecondary">{feature}</span>
+          <li key={index} className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 mt-0.5">
+              <svg
+                className="w-5 h-5 text-[#e86b47]"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+            <span className="text-sm text-text-secondary dark:text-white/70 leading-relaxed">{feature}</span>
           </li>
         ))}
       </ul>
@@ -65,20 +72,20 @@ export function PricingCard({ tier, currentTier, highlighted = false }: PricingC
       {isCurrentPlan ? (
         <button
           disabled
-          className="w-full px-4 py-2 bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary rounded-md font-medium cursor-not-allowed"
+          className="w-full px-6 py-3 bg-gray-100 dark:bg-white/20 text-text-secondary dark:text-white/60 rounded-xl font-semibold cursor-not-allowed"
         >
           Current Plan
         </button>
       ) : (
         <Link
           to={limits.price > 0 ? `/settings/billing?upgrade=${tier}` : '/signup'}
-          className={`block w-full px-4 py-2 text-center rounded-md font-medium transition-all ${
+          className={`block w-full px-6 py-3 text-center rounded-xl font-semibold transition-all duration-300 ${
             highlighted
-              ? 'bg-[#e86b47] text-white hover:bg-[#d45a36]'
-              : 'border border-bolt-elements-borderColor text-bolt-elements-textPrimary hover:bg-bolt-elements-background-depth-2'
+              ? 'bg-[#e86b47] text-white hover:bg-[#d45a36] shadow-lg hover:shadow-xl'
+              : 'border-2 border-gray-200 dark:border-white/20 text-text-primary dark:text-white hover:border-[#e86b47] hover:bg-[#e86b47]/5 dark:hover:bg-[#e86b47]/10'
           }`}
         >
-          {limits.price > 0 ? 'Upgrade' : 'Get Started'}
+          {limits.price > 0 ? 'Upgrade Now' : 'Get Started Free'}
         </Link>
       )}
     </div>

@@ -54,6 +54,12 @@ export function PlatformNav() {
               >
                 Projects
               </Link>
+              <Link
+                to="/pricing"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
+              >
+                Pricing
+              </Link>
             </div>
           )}
 
