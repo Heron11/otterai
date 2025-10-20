@@ -1,4 +1,4 @@
-export type ActionType = 'file' | 'shell';
+export type ActionType = 'file' | 'shell' | 'mcp-tool';
 
 export interface BaseAction {
   content: string;
@@ -13,6 +13,12 @@ export interface ShellAction extends BaseAction {
   type: 'shell';
 }
 
-export type BoltAction = FileAction | ShellAction;
+export interface MCPToolAction extends BaseAction {
+  type: 'mcp-tool';
+  toolName: string;
+  serverName: string;
+}
 
-export type BoltActionData = BoltAction | BaseAction;
+export type OtterAction = FileAction | ShellAction | MCPToolAction;
+
+export type OtterActionData = OtterAction | BaseAction;

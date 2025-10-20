@@ -44,6 +44,7 @@
     "@iconify-json/svg-spinners": "^1.1.2",
     "@lezer/highlight": "^1.2.0",
     "@lottiefiles/dotlottie-react": "^0.17.5",
+    "@modelcontextprotocol/sdk": "^1.20.1",
     "@nanostores/react": "^0.7.2",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-dropdown-menu": "^2.1.1",

@@ -1,7 +1,8 @@
 import { WebContainer } from '@webcontainer/api';
 import { map, type MapStore } from 'nanostores';
 import * as nodePath from 'node:path';
-import type { BoltAction } from '~/types/actions';
+import type { OtterAction } from '~/types/actions';
+import { mcpClientManager } from '~/lib/mcp/client';
 import { createScopedLogger } from '~/utils/logger';
 import { unreachable } from '~/utils/unreachable';
 import type { ActionCallbackData } from './message-parser';
@@ -10,14 +11,14 @@ const logger = createScopedLogger('ActionRunner');
 
 export type ActionStatus = 'pending' | 'running' | 'complete' | 'aborted' | 'failed';
 
-export type BaseActionState = BoltAction & {
+export type BaseActionState = OtterAction & {
   status: Exclude<ActionStatus, 'failed'>;
   abort: () => void;
   executed: boolean;
   abortSignal: AbortSignal;
 };
 
-export type FailedActionState = BoltAction &
+export type FailedActionState = OtterAction &
   Omit<BaseActionState, 'status'> & {
     status: Extract<ActionStatus, 'failed'>;
     error: string;
@@ -110,6 +111,10 @@ export class ActionRunner {
           await this.#runFileAction(action);
           break;
         }
+        case 'mcp-tool': {
+          await this.#runMCPToolAction(action);
+          break;
+        }
       }
 
       this.#updateAction(actionId, { status: action.abortSignal.aborted ? 'aborted' : 'complete' });
@@ -175,6 +180,35 @@ export class ActionRunner {
       logger.debug(`File written ${action.filePath}`);
     } catch (error) {
       logger.error('Failed to write file\n\n', error);
+    }
+  }
+
+  async #runMCPToolAction(action: ActionState) {
+    if (action.type !== 'mcp-tool') {
+      unreachable('Expected MCP tool action');
+    }
+
+    try {
+      // Parse the content as JSON arguments
+      const args = JSON.parse(action.content);
+      
+      const result = await mcpClientManager.callTool(
+        action.serverName,
+        action.toolName,
+        args
+      );
+
+      if (result.success) {
+        logger.debug(`MCP tool executed successfully: ${action.serverName}.${action.toolName}`);
+        // Store result for potential use in subsequent actions
+        // This could be enhanced to pass results between actions
+      } else {
+        logger.error(`MCP tool failed: ${result.error}`);
+        throw new Error(result.error || 'MCP tool execution failed');
+      }
+    } catch (error) {
+      logger.error('Failed to execute MCP tool\n\n', error);
+      throw error;
     }
   }
 
