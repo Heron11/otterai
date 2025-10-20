@@ -15,7 +15,7 @@ import styles from './BaseChat.module.scss';
 const PROMPT_EXAMPLES = [
   {
     title: "E-commerce Store",
-    prompt: "Build me a modern e-commerce store with product catalog, shopping cart, and checkout functionality",
+    prompt: "Create a stunning, modern e-commerce store with a focus on visual appeal and user experience. Include: Hero section with beautiful product showcase, clean product grid with hover effects and smooth animations, elegant product detail pages with image galleries, minimalist shopping cart with slide-out animations, streamlined checkout flow with progress indicators, and a cohesive color scheme with premium typography. Use subtle gradients, glassmorphism effects, and micro-interactions to create a luxury shopping experience.",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -24,7 +24,7 @@ const PROMPT_EXAMPLES = [
   },
   {
     title: "Portfolio Website",
-    prompt: "Create a professional portfolio website with projects showcase, about section, and contact form",
+    prompt: "Design a breathtaking portfolio website that showcases work in the most elegant way possible. Include: Stunning hero section with animated text and background effects, immersive project gallery with smooth transitions and hover states, elegant about section with personal story and skills visualization, beautiful contact form with floating labels and smooth validation, dark/light mode toggle with seamless transitions, and a cohesive design system with premium typography and spacing. Focus on creating an emotional connection through beautiful visuals and smooth animations.",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -33,7 +33,7 @@ const PROMPT_EXAMPLES = [
   },
   {
     title: "SaaS Dashboard",
-    prompt: "Build a SaaS dashboard with user management, analytics, and billing integration",
+    prompt: "Build a sophisticated SaaS dashboard that feels premium and intuitive. Include: Clean, data-rich dashboard with beautiful charts and visualizations, elegant sidebar navigation with smooth transitions, modern card-based layout with subtle shadows and hover effects, comprehensive user management with sleek tables and action buttons, integrated analytics with animated progress bars and trend indicators, and a cohesive design system with consistent spacing and typography. Focus on creating a professional, trustworthy interface that users will love to interact with daily.",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -42,7 +42,7 @@ const PROMPT_EXAMPLES = [
   },
   {
     title: "Blog Platform",
-    prompt: "Create a modern blog platform with article creation, comments, and user authentication",
+    prompt: "Create a visually stunning blog platform that makes reading a pleasure. Include: Beautiful hero section with featured articles and smooth parallax effects, elegant article cards with hover animations and reading time indicators, immersive article reading experience with perfect typography and spacing, clean comment system with threaded replies and smooth interactions, author profiles with social links and bio sections, and a sophisticated search and filtering system. Focus on creating a reading experience that's both beautiful and functional, with attention to typography, spacing, and visual hierarchy.",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
@@ -51,7 +51,7 @@ const PROMPT_EXAMPLES = [
   },
   {
     title: "Task Manager",
-    prompt: "Build a task management app with project boards, team collaboration, and progress tracking",
+    prompt: "Design a beautiful, intuitive task management app that makes productivity feel effortless. Include: Clean, drag-and-drop kanban boards with smooth animations, elegant task cards with priority indicators and due dates, beautiful project overview with progress visualizations and team avatars, intuitive task creation with smart suggestions and auto-complete, collaborative features with real-time updates and notifications, and a cohesive design system with calming colors and smooth micro-interactions. Focus on creating a stress-free, enjoyable experience that motivates users to stay organized and productive.",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
