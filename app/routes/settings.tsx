@@ -49,9 +49,7 @@ export default function SettingsLayout() {
 
           {/* Settings content */}
           <div className="md:col-span-3">
-            <div className="bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor rounded-lg p-6">
-              <Outlet />
-            </div>
+            <Outlet />
           </div>
         </div>
       </div>

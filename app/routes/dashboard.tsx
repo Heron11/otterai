@@ -1,13 +1,15 @@
-import type { MetaFunction } from '@remix-run/cloudflare';
-import { Link } from '@remix-run/react';
+import type { MetaFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { Link, useLoaderData } from '@remix-run/react';
+import { json } from '@remix-run/cloudflare';
 import { motion } from 'framer-motion';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
 import { TemplateGrid } from '~/components/platform/templates/TemplateGrid';
-import { useUser } from '~/lib/hooks/platform/useUser';
-import { useStore } from '@nanostores/react';
-import { projectsStore, deleteProject } from '~/lib/stores/platform/projects';
-import { mockTemplates, getFeaturedTemplates } from '~/lib/mock/templates';
+import { requireAuth } from '~/lib/.server/auth/clerk.server';
+import { getDatabase } from '~/lib/.server/db/client';
+import { getUserProfile, getUserCredits } from '~/lib/.server/users/queries';
+import { getRecentProjects, getFeaturedProjects } from '~/lib/.server/projects/queries';
+import { TIER_LIMITS } from '~/lib/utils/tier-limits';
 
 export const meta: MetaFunction = () => {
   return [
@@ -16,16 +18,30 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function loader(args: LoaderFunctionArgs) {
+  const { request, context } = args;
+  const auth = await requireAuth(args);
+  const db = getDatabase(context.cloudflare.env);
+
+  const [userProfile, creditInfo, recentProjects, featuredTemplates] = await Promise.all([
+    getUserProfile(db, auth.userId!),
+    getUserCredits(db, auth.userId!),
+    getRecentProjects(db, auth.userId!, 4),
+    getFeaturedProjects(db, 3),
+  ]);
+
+  return json({
+    userProfile,
+    creditInfo,
+    recentProjects,
+    featuredTemplates,
+  });
+}
+
 export default function DashboardPage() {
-  const { userProfile } = useUser();
-  const projects = useStore(projectsStore);
+  const { userProfile, creditInfo, recentProjects, featuredTemplates } = useLoaderData<typeof loader>();
   
-  const recentProjects = projects
-    .filter(p => p.status === 'active')
-    .sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())
-    .slice(0, 4);
-  
-  const featuredTemplates = getFeaturedTemplates().slice(0, 3);
+  const tierLimits = userProfile ? TIER_LIMITS[userProfile.tier] : null;
 
   return (
     <PlatformLayout>
@@ -52,11 +68,11 @@ export default function DashboardPage() {
             <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-[#e86b47]/20 rounded-full shadow-sm">
               <div className="w-2 h-2 bg-[#e86b47] rounded-full animate-pulse"></div>
               <span className="text-sm font-semibold text-[#e86b47]">
-                {userProfile?.tier.charAt(0).toUpperCase()}{userProfile?.tier.slice(1)} Plan
+                {tierLimits?.name} Plan
               </span>
               <div className="w-px h-4 bg-[#e86b47]/30"></div>
               <span className="text-xs text-text-tertiary dark:text-white/60 font-medium">
-                {userProfile?.credits} credits remaining
+                {creditInfo?.credits || 0}/{tierLimits?.creditsPerMonth || 0} messages
               </span>
             </div>
           </motion.div>
@@ -147,7 +163,6 @@ export default function DashboardPage() {
             </div>
             <ProjectGrid
               projects={recentProjects}
-              onDeleteProject={deleteProject}
               emptyMessage="No projects yet. Create your first project to get started!"
             />
           </motion.div>

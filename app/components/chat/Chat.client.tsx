@@ -5,13 +5,16 @@ import { useAnimate } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';
 import { cssTransition, toast, ToastContainer } from 'react-toastify';
 import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from '~/lib/hooks';
-import { useChatHistory } from '~/lib/persistence';
+import { useChatHistory, chatId } from '~/lib/persistence';
 import { chatStore } from '~/lib/stores/chat';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { fileModificationsToHTML } from '~/utils/diff';
 import { cubicEasingFn } from '~/utils/easings';
 import { createScopedLogger, renderLogger } from '~/utils/logger';
+import { useAuth } from '~/lib/hooks/useAuth';
+import { SignInModal } from '~/components/auth/SignInModal';
 import { BaseChat } from './BaseChat';
+import { syncProjectToServer } from '~/lib/services/project-sync.client';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -68,6 +71,8 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
   useShortcuts();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { isAuthenticated, isLoaded } = useAuth();
+  const [showSignInModal, setShowSignInModal] = useState(false);
 
   const [chatStarted, setChatStarted] = useState(initialMessages.length > 0);
 
@@ -75,14 +80,62 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
   const [animationScope, animate] = useAnimate();
 
+  // Reset sign in modal when authentication state changes
+  useEffect(() => {
+    if (isAuthenticated && showSignInModal) {
+      setShowSignInModal(false);
+    }
+  }, [isAuthenticated, showSignInModal]);
+
+  // Listen for custom events to show sign in modal
+  useEffect(() => {
+    const handleShowSignInModal = () => {
+      setShowSignInModal(true);
+    };
+
+    window.addEventListener('showSignInModal', handleShowSignInModal);
+    
+    return () => {
+      window.removeEventListener('showSignInModal', handleShowSignInModal);
+    };
+  }, []);
+
   const { messages, isLoading, input, handleInputChange, setInput, stop, append } = useChat({
     api: '/api/chat',
-    onError: (error) => {
+    onError: async (error) => {
       logger.error('Request failed\n\n', error);
-      toast.error('There was an error processing your request');
+      
+      // Check if it's a credits error (402 Payment Required)
+      if (error instanceof Error && error.message.includes('402')) {
+        toast.error('You have run out of credits. Please upgrade your plan to continue.');
+      } else {
+        toast.error('There was an error processing your request');
+      }
     },
-    onFinish: () => {
+    onFinish: async () => {
       logger.debug('Finished streaming');
+      
+      // Sync to server for authenticated users
+      if (isAuthenticated) {
+        // Wait a moment for all file writes to complete
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const files = workbenchStore.files.get();
+        const currentChatId = chatId.get();
+        const projectName = workbenchStore.firstArtifact?.title || 'Untitled Project';
+        
+        // Only sync if we have files and a chat ID
+        if (currentChatId && Object.keys(files).length > 0) {
+          syncProjectToServer({
+            chatId: currentChatId,
+            projectName,
+            files,
+          }).catch((error) => {
+            logger.error('Background project sync failed:', error);
+            // Don't show error to user - still saved locally in IndexedDB
+          });
+        }
+      }
     },
     initialMessages,
   });
@@ -153,6 +206,12 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
       return;
     }
 
+    // Check if user is authenticated before sending message
+    if (!isLoaded || !isAuthenticated) {
+      setShowSignInModal(true);
+      return;
+    }
+
     /**
      * @note (delm) Usually saving files shouldn't take long but it may take longer if there
      * many unsaved files. In that case we need to block user input and show an indicator
@@ -199,37 +258,44 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
   const [messageRef, scrollRef] = useSnapScroll();
 
   return (
-    <BaseChat
-      ref={animationScope}
-      textareaRef={textareaRef}
-      input={input}
-      setInput={setInput}
-      showChat={showChat}
-      chatStarted={chatStarted}
-      isStreaming={isLoading}
-      enhancingPrompt={enhancingPrompt}
-      promptEnhanced={promptEnhanced}
-      sendMessage={sendMessage}
-      messageRef={messageRef}
-      scrollRef={scrollRef}
-      handleInputChange={handleInputChange}
-      handleStop={abort}
-      messages={messages.map((message, i) => {
-        if (message.role === 'user') {
-          return message;
-        }
+    <>
+      <BaseChat
+        ref={animationScope}
+        textareaRef={textareaRef}
+        input={input}
+        setInput={setInput}
+        showChat={showChat}
+        chatStarted={chatStarted}
+        isStreaming={isLoading}
+        enhancingPrompt={enhancingPrompt}
+        promptEnhanced={promptEnhanced}
+        sendMessage={sendMessage}
+        messageRef={messageRef}
+        scrollRef={scrollRef}
+        handleInputChange={handleInputChange}
+        handleStop={abort}
+        messages={messages.map((message, i) => {
+          if (message.role === 'user') {
+            return message;
+          }
 
-        return {
-          ...message,
-          content: parsedMessages[i] || '',
-        };
-      })}
-      enhancePrompt={() => {
-        enhancePrompt(input, (input) => {
-          setInput(input);
-          scrollTextArea();
-        });
-      }}
-    />
+          return {
+            ...message,
+            content: parsedMessages[i] || '',
+          };
+        })}
+        enhancePrompt={() => {
+          enhancePrompt(input, (input) => {
+            setInput(input);
+            scrollTextArea();
+          });
+        }}
+      />
+      
+      <SignInModal 
+        isOpen={showSignInModal} 
+        onClose={() => setShowSignInModal(false)} 
+      />
+    </>
   );
 });

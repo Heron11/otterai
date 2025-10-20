@@ -3,3 +3,19 @@ name = "bolt"
 compatibility_flags = ["nodejs_compat"]
 compatibility_date = "2024-07-01"
 pages_build_output_dir = "./build/client"
+
+# Cloudflare D1 Database
+# To create: wrangler d1 create otterai-production
+# Then replace 'xxx' below with the database_id from the output
+[[d1_databases]]
+binding = "DB"
+database_name = "otternew"
+database_id = "a2e4d1ad-ba16-416e-b22b-0f775682b336"
+
+# Cloudflare R2 Object Storage
+# To create: Go to Cloudflare Dashboard > R2 > Create bucket
+# Name it 'otterai-projects' (or your preferred name)
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "otterai-projects"
+preview_bucket_name = "otterai-projects-dev"

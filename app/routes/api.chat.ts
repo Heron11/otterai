@@ -3,13 +3,52 @@ import { MAX_RESPONSE_SEGMENTS, MAX_TOKENS } from '~/lib/.server/llm/constants';
 import { CONTINUE_PROMPT } from '~/lib/.server/llm/prompts';
 import { streamText, type Messages, type StreamingOptions } from '~/lib/.server/llm/stream-text';
 import SwitchableStream from '~/lib/.server/llm/switchable-stream';
+import { getOptionalUserId } from '~/lib/.server/auth/clerk.server';
+import { getDatabase } from '~/lib/.server/db/client';
+import { checkUserCredits, deductCredit } from '~/lib/.server/credits/manager';
+import { logUsage } from '~/lib/.server/credits/usage';
 
 export async function action(args: ActionFunctionArgs) {
   return chatAction(args);
 }
 
-async function chatAction({ context, request }: ActionFunctionArgs) {
+async function chatAction(args: ActionFunctionArgs) {
+  const { context, request } = args;
   const { messages } = await request.json<{ messages: Messages }>();
+
+  // Check if user is authenticated and has credits
+  const userId = await getOptionalUserId(args);
+  
+  if (userId) {
+    const db = getDatabase(context.cloudflare.env);
+    const credits = await checkUserCredits(db, userId);
+    
+    // If user has no credits, return 402 Payment Required
+    if (credits !== null && credits < 1) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Insufficient credits. Please upgrade your plan to continue.',
+          code: 'CREDITS_EXHAUSTED'
+        }),
+        {
+          status: 402,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+    
+    // Deduct credit before processing
+    if (credits !== null) {
+      await deductCredit(db, userId, 1);
+      await logUsage(db, userId, {
+        messageCount: 1,
+        creditsUsed: 1,
+        model: 'claude-haiku-4-5',
+      });
+    }
+  }
 
   const stream = new SwitchableStream();
 

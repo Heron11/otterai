@@ -1,9 +1,9 @@
 import { Link, useLocation } from '@remix-run/react';
-import { useAuth } from '~/lib/hooks/platform/useAuth';
+import { useAuth } from '~/lib/hooks/useAuth';
 import { ThemeToggle } from '~/components/ui/ThemeToggle';
 
 export function PlatformNav() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
   const isBuildPage = location.pathname === '/';
 
@@ -82,14 +82,14 @@ export function PlatformNav() {
               <div className="flex items-center space-x-4">
                 <ThemeToggle />
                 <Link
-                  to="/login"
+                  to="/sign-in"
                   className="text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
                 >
                   Log in
                 </Link>
                 <Link
-                  to="/signup"
-                  className="px-4 py-2 text-sm font-medium rounded-md bg-[#e86b47] text-white hover:bg-[#d45a36] transition-all"
+                  to="/sign-up"
+                  className="px-6 py-2 text-sm font-medium rounded-full bg-[#e86b47] text-white hover:bg-[#d45a36] transition-all"
                 >
                   Sign up
                 </Link>

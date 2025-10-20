@@ -1,23 +1,19 @@
-import { useUser } from '~/lib/hooks/platform/useUser';
-import { useStore } from '@nanostores/react';
-import { projectsStore } from '~/lib/stores/platform/projects';
 import { TIER_LIMITS } from '~/lib/utils/tier-limits';
+import type { UserTier } from '~/lib/types/platform/user';
 
-export function UsageStats() {
-  const { userProfile } = useUser();
-  const projects = useStore(projectsStore);
-  
-  if (!userProfile) {
-    return null;
-  }
+interface UsageStatsProps {
+  userId: string;
+  credits: number;
+  tier: UserTier;
+}
 
-  const activeProjects = projects.filter(p => p.status === 'active').length;
-  const limits = TIER_LIMITS[userProfile.tier];
+export function UsageStats({ userId, credits, tier }: UsageStatsProps) {
+  const limits = TIER_LIMITS[tier];
+  const creditsLimit = limits.creditsPerMonth;
+  const creditsUsed = creditsLimit - credits;
   
-  // Mock data for demonstration
-  const aiTokensUsed = 3500;
-  const aiTokensLimit = limits.aiTokensPerDay;
-  const storageUsed = 0.3; // GB
+  // Mock data for other metrics (will be implemented later)
+  const storageUsed = 0; // GB
   const storageLimit = limits.storageGB;
 
   const UsageBar = ({ used, limit, label, unit = '' }: { used: number; limit: number; label: string; unit?: string }) => {
@@ -55,16 +51,14 @@ export function UsageStats() {
         
         <div className="bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor rounded-lg p-6 space-y-6">
           <UsageBar
-            used={activeProjects}
-            limit={limits.projects}
-            label="Active Projects"
+            used={creditsUsed}
+            limit={creditsLimit}
+            label="Messages Used This Month"
           />
           
-          <UsageBar
-            used={aiTokensUsed}
-            limit={aiTokensLimit}
-            label="AI Tokens (Today)"
-          />
+          <div className="text-sm text-bolt-elements-textSecondary">
+            You have <span className="font-semibold text-bolt-elements-textPrimary">{credits}</span> messages remaining this month
+          </div>
           
           <UsageBar
             used={storageUsed}
@@ -83,15 +77,21 @@ export function UsageStats() {
         <div className="bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor rounded-lg p-6">
           <dl className="space-y-3">
             <div className="flex justify-between">
-              <dt className="text-sm text-bolt-elements-textSecondary">Projects</dt>
-              <dd className="text-sm font-medium text-bolt-elements-textPrimary">
-                {limits.projects === -1 ? 'Unlimited' : limits.projects}
+              <dt className="text-sm text-bolt-elements-textSecondary">Current Plan</dt>
+              <dd className="text-sm font-medium text-bolt-elements-textPrimary capitalize">
+                {tier}
               </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-sm text-bolt-elements-textSecondary">AI Tokens/Day</dt>
+              <dt className="text-sm text-bolt-elements-textSecondary">Messages per Month</dt>
               <dd className="text-sm font-medium text-bolt-elements-textPrimary">
-                {(limits.aiTokensPerDay / 1000).toFixed(0)}K
+                {creditsLimit.toLocaleString()}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-sm text-bolt-elements-textSecondary">Projects</dt>
+              <dd className="text-sm font-medium text-bolt-elements-textPrimary">
+                {limits.projects === -1 ? 'Unlimited' : limits.projects}
               </dd>
             </div>
             <div className="flex justify-between">

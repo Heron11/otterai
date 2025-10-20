@@ -1,51 +1,40 @@
-import type { MetaFunction } from '@remix-run/cloudflare';
+import type { MetaFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
+import { useLoaderData } from '@remix-run/react';
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
-import { TemplateGrid } from '~/components/platform/templates/TemplateGrid';
-import { TemplateFilters } from '~/components/platform/templates/TemplateFilters';
-import { useStore } from '@nanostores/react';
-import { templatesStore } from '~/lib/stores/platform/templates';
-import type { TemplateCategory, TemplateFramework } from '~/lib/types/platform/template';
+import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
+import { getDatabase } from '~/lib/.server/db/client';
+import { getPublicTemplates } from '~/lib/.server/projects/queries';
 
 export const meta: MetaFunction = () => {
   return [
     { title: 'Templates - OtterAI' },
-    { name: 'description', content: 'Browse our collection of project templates' },
+    { name: 'description', content: 'Browse community templates - public projects you can clone' },
   ];
 };
 
+export async function loader({ context }: LoaderFunctionArgs) {
+  const db = getDatabase(context.cloudflare.env);
+  const templates = await getPublicTemplates(db, 50); // Get up to 50 public projects
+
+  return json({ templates });
+}
+
 export default function TemplatesPage() {
-  const templates = useStore(templatesStore);
+  const { templates } = useLoaderData<typeof loader>();
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<TemplateCategory | undefined>();
-  const [framework, setFramework] = useState<TemplateFramework | undefined>();
 
   const filteredTemplates = useMemo(() => {
-    return templates.filter(template => {
-      if (category && template.category !== category) {
-        return false;
-      }
-      
-      if (framework && template.framework !== framework) {
-        return false;
-      }
-      
-      if (search) {
-        const searchLower = search.toLowerCase();
-        const matchesSearch = 
-          template.name.toLowerCase().includes(searchLower) ||
-          template.description.toLowerCase().includes(searchLower) ||
-          template.tags.some(tag => tag.toLowerCase().includes(searchLower));
-        
-        if (!matchesSearch) {
-          return false;
-        }
-      }
-      
-      return true;
-    });
-  }, [templates, search, category, framework]);
+    if (!search) return templates;
+    
+    const searchLower = search.toLowerCase();
+    return templates.filter(template => 
+      template.name.toLowerCase().includes(searchLower) ||
+      (template.description && template.description.toLowerCase().includes(searchLower))
+    );
+  }, [templates, search]);
 
   return (
     <PlatformLayout>
@@ -79,18 +68,22 @@ export default function TemplatesPage() {
             </p>
           </motion.div>
 
-          {/* Filters Section */}
+          {/* Search Section */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-12"
           >
-            <TemplateFilters
-              onSearchChange={setSearch}
-              onCategoryChange={setCategory}
-              onFrameworkChange={setFramework}
-            />
+            <div className="max-w-2xl mx-auto">
+              <input
+                type="text"
+                placeholder="Search templates..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full px-6 py-4 bg-white/80 dark:bg-white/10 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 rounded-2xl text-text-primary dark:text-white placeholder:text-text-tertiary dark:placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[#e86b47]/50 transition-all"
+              />
+            </div>
           </motion.div>
 
           {/* Templates Grid */}
@@ -99,7 +92,10 @@ export default function TemplatesPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <TemplateGrid templates={filteredTemplates} />
+            <ProjectGrid 
+              projects={filteredTemplates} 
+              emptyMessage="No public templates available yet. Be the first to share a project!"
+            />
           </motion.div>
         </div>
       </div>

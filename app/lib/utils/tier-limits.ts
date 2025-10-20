@@ -4,7 +4,8 @@ export interface TierLimits {
   name: string;
   price: number;
   projects: number;
-  aiTokensPerDay: number;
+  creditsPerMonth: number; // Message-level credit limit
+  creditsPerDay?: number; // Optional daily limit (for free tier)
   templates: 'all' | 'basic' | 'limited';
   support: 'community' | 'email' | 'priority';
   customDomains: boolean;
@@ -17,7 +18,8 @@ export const TIER_LIMITS: Record<UserTier, TierLimits> = {
     name: 'Free',
     price: 0,
     projects: 3,
-    aiTokensPerDay: 10000,
+    creditsPerMonth: 50, // 50 messages per month
+    creditsPerDay: 3, // 3 messages per day
     templates: 'limited',
     support: 'community',
     customDomains: false,
@@ -28,7 +30,7 @@ export const TIER_LIMITS: Record<UserTier, TierLimits> = {
     name: 'Plus',
     price: 19,
     projects: 15,
-    aiTokensPerDay: 50000,
+    creditsPerMonth: 500, // 500 messages per month
     templates: 'basic',
     support: 'email',
     customDomains: true,
@@ -39,7 +41,7 @@ export const TIER_LIMITS: Record<UserTier, TierLimits> = {
     name: 'Pro',
     price: 49,
     projects: -1, // unlimited
-    aiTokensPerDay: 200000,
+    creditsPerMonth: 5000, // 5000 messages per month
     templates: 'all',
     support: 'priority',
     customDomains: true,
@@ -61,10 +63,16 @@ export const canCreateProject = (userTier: UserTier, currentProjectCount: number
 export const getTierFeatures = (tier: UserTier): string[] => {
   const limits = TIER_LIMITS[tier];
   
-  const features: string[] = [
-    limits.projects === -1 ? 'Unlimited projects' : `Up to ${limits.projects} projects`,
-    `${(limits.aiTokensPerDay / 1000).toFixed(0)}K AI tokens per day`,
-  ];
+  const features: string[] = [];
+  
+  // Add message limits
+  if (limits.creditsPerDay && tier === 'free') {
+    features.push(`${limits.creditsPerDay} messages per day (${limits.creditsPerMonth} per month)`);
+  } else {
+    features.push(`${limits.creditsPerMonth} messages per month`);
+  }
+  
+  features.push(limits.projects === -1 ? 'Unlimited projects' : `Up to ${limits.projects} projects`);
   
   if (limits.templates === 'all') {
     features.push('Access to all templates');

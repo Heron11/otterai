@@ -1,0 +1,15 @@
+# OtterAI Environment Variables Template
+# Copy this file to .dev.vars and fill in your actual values
+
+# Anthropic API Key (already in use)
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# Clerk Authentication (https://clerk.com)
+CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+CLERK_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+CLERK_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Stripe (for future payment integration - placeholder for now)
+STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+

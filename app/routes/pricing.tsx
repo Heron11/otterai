@@ -58,60 +58,6 @@ export default function PricingPage() {
           <PricingTable currentTier={userProfile?.tier} />
         </motion.section>
 
-        {/* FAQ Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-          className="py-20 px-4 bg-white/60 dark:bg-white/5 backdrop-blur-sm"
-        >
-          <div className="container mx-auto max-w-4xl">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl lg:text-4xl font-semibold text-text-primary dark:text-white mb-4">
-                Frequently Asked Questions
-              </h2>
-              <p className="text-text-secondary dark:text-white/70">
-                Everything you need to know about our pricing
-              </p>
-            </div>
-
-            <div className="grid gap-6">
-              {[
-                {
-                  question: "Can I change my plan anytime?",
-                  answer: "Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any billing differences."
-                },
-                {
-                  question: "What happens if I exceed my plan limits?",
-                  answer: "We'll notify you when you're approaching your limits. You can upgrade your plan or purchase additional credits as needed."
-                },
-                {
-                  question: "Do you offer refunds?",
-                  answer: "Yes, we offer a 30-day money-back guarantee for all paid plans. No questions asked."
-                },
-                {
-                  question: "Is there a free trial for paid plans?",
-                  answer: "All paid plans come with a 14-day free trial. No credit card required to start."
-                }
-              ].map((faq, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.8 + index * 0.1, ease: "easeOut" }}
-                  className="bg-white/80 dark:bg-white/10 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 rounded-2xl p-6 hover:border-[#e86b47]/30 transition-all duration-300"
-                >
-                  <h3 className="text-lg font-semibold text-text-primary dark:text-white mb-3">
-                    {faq.question}
-                  </h3>
-                  <p className="text-text-secondary dark:text-white/70 leading-relaxed">
-                    {faq.answer}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.section>
       </div>
     </PlatformLayout>
   );

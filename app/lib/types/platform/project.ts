@@ -7,6 +7,7 @@ export interface Project {
   description?: string;
   templateId?: string;
   templateName?: string;
+  chatId?: string;
   status: ProjectStatus;
   lastModified: Date;
   createdAt: Date;

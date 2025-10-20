@@ -1,8 +1,11 @@
-import type { MetaFunction } from '@remix-run/cloudflare';
+import type { MetaFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
+import { useLoaderData } from '@remix-run/react';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
-import { useStore } from '@nanostores/react';
-import { projectsStore, deleteProject } from '~/lib/stores/platform/projects';
+import { requireAuth } from '~/lib/.server/auth/clerk.server';
+import { getDatabase } from '~/lib/.server/db/client';
+import { getUserProjects } from '~/lib/.server/projects/queries';
 
 export const meta: MetaFunction = () => {
   return [
@@ -11,8 +14,18 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function loader(args: LoaderFunctionArgs) {
+  const { context } = args;
+  const auth = await requireAuth(args);
+  const db = getDatabase(context.cloudflare.env);
+
+  const projects = await getUserProjects(db, auth.userId!);
+
+  return json({ projects });
+}
+
 export default function ProjectsPage() {
-  const projects = useStore(projectsStore);
+  const { projects } = useLoaderData<typeof loader>();
   const activeProjects = projects.filter(p => p.status === 'active');
 
   return (
@@ -29,7 +42,6 @@ export default function ProjectsPage() {
 
         <ProjectGrid
           projects={activeProjects}
-          onDeleteProject={deleteProject}
           emptyMessage="No projects yet. Create your first project to get started!"
         />
       </div>
