@@ -1,6 +1,7 @@
 import { Link } from '@remix-run/react';
 import type { UserTier } from '~/lib/types/platform/user';
 import { TIER_LIMITS, getTierFeatures } from '~/lib/utils/tier-limits';
+import { CheckoutButton } from '~/components/billing/CheckoutButton';
 
 interface PricingCardProps {
   tier: UserTier;
@@ -76,16 +77,19 @@ export function PricingCard({ tier, currentTier, highlighted = false }: PricingC
         >
           Current Plan
         </button>
+      ) : limits.price > 0 ? (
+        <CheckoutButton
+          tier={tier as 'plus' | 'pro'}
+          className="block w-full px-6 py-3 text-center rounded-xl font-semibold transition-all duration-300 bg-[#e86b47] text-white hover:bg-[#d45a36] shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Upgrade Now
+        </CheckoutButton>
       ) : (
         <Link
-          to={limits.price > 0 ? `/settings/billing?upgrade=${tier}` : '/signup'}
-          className={`block w-full px-6 py-3 text-center rounded-xl font-semibold transition-all duration-300 ${
-            highlighted
-              ? 'bg-[#e86b47] text-white hover:bg-[#d45a36] shadow-lg hover:shadow-xl'
-              : 'border-2 border-gray-200 dark:border-white/20 text-text-primary dark:text-white hover:border-[#e86b47] hover:bg-[#e86b47]/5 dark:hover:bg-[#e86b47]/10'
-          }`}
+          to="/signup"
+          className="block w-full px-6 py-3 text-center rounded-xl font-semibold transition-all duration-300 border-2 border-gray-200 dark:border-white/20 text-text-primary dark:text-white hover:border-[#e86b47] hover:bg-[#e86b47]/5 dark:hover:bg-[#e86b47]/10"
         >
-          {limits.price > 0 ? 'Upgrade Now' : 'Get Started Free'}
+          Get Started Free
         </Link>
       )}
     </div>

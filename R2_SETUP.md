@@ -279,3 +279,4 @@ When deploying to Cloudflare Pages:
 - [Wrangler R2 Commands](https://developers.cloudflare.com/workers/wrangler/commands/#r2)
 - [R2 Pricing](https://developers.cloudflare.com/r2/pricing/)
 
+

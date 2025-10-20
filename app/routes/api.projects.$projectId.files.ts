@@ -168,3 +168,4 @@ function getContentType(filePath: string): string {
   return contentTypes[ext || ''] || 'text/plain';
 }
 
+

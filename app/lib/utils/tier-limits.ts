@@ -88,9 +88,7 @@ export const getTierFeatures = (tier: UserTier): string[] => {
     'Community support'
   );
   
-  if (limits.customDomains) {
-    features.push('Custom domains');
-  }
+  // Custom domains feature removed - not implemented yet
   
   if (limits.collaborators === -1) {
     features.push('Unlimited collaborators');

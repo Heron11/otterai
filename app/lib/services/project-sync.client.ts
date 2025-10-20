@@ -65,3 +65,4 @@ export async function syncProjectToServer(data: SyncProjectData): Promise<void> 
   }
 }
 
+

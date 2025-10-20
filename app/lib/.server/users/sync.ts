@@ -137,3 +137,25 @@ export async function updateUserTier(
   return result.success;
 }
 
+/**
+ * Update user's Stripe customer ID
+ */
+export async function updateUserStripeCustomer(
+  db: Database,
+  userId: string,
+  stripeCustomerId: string,
+  stripeSubscriptionId?: string
+): Promise<boolean> {
+  const result = await execute(
+    db,
+    `UPDATE users 
+     SET stripe_customer_id = ?, stripe_subscription_id = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    stripeCustomerId,
+    stripeSubscriptionId || null,
+    userId
+  );
+
+  return result.success;
+}
+
