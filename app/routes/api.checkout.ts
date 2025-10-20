@@ -59,13 +59,14 @@ export async function action(args: ActionFunctionArgs) {
     const baseUrl = `${url.protocol}//${url.host}`;
 
     // Create checkout session
+    // Success URL redirects to our API handler which syncs data from Stripe
     const session = await createCheckoutSession(
       {
         userId: userProfile.id,
         userEmail: userProfile.email,
         tier: tier,
         stripeCustomerId: stripeCustomerId,
-        successUrl: `${baseUrl}/dashboard?checkout=success`,
+        successUrl: `${baseUrl}/api/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${baseUrl}/pricing?checkout=cancelled`,
       },
       context.cloudflare.env

@@ -1,6 +1,7 @@
-import { Link } from '@remix-run/react';
+import { Link, useRevalidator } from '@remix-run/react';
 import { TIER_LIMITS } from '~/lib/utils/tier-limits';
 import { PortalButton } from '~/components/billing/PortalButton';
+import { CancelButton } from '~/components/billing/CancelButton';
 import type { UserTier } from '~/lib/types/platform/user';
 import type { SubscriptionRecord } from '~/lib/.server/subscriptions/queries';
 
@@ -15,6 +16,7 @@ interface BillingPanelProps {
 export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
   const { tier, stripe_customer_id } = userProfile;
   const limits = TIER_LIMITS[tier];
+  const revalidator = useRevalidator();
 
   return (
     <div className="space-y-6">
@@ -51,14 +53,21 @@ export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
             </p>
           )}
 
-          <div className="flex gap-3">
-            {tier !== 'pro' && (
+          <div className="flex gap-3 flex-wrap">
+            {tier !== 'pro' && !subscription?.cancel_at_period_end && (
               <Link
                 to="/pricing"
                 className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-all"
               >
                 Upgrade Plan
               </Link>
+            )}
+            
+            {subscription && tier !== 'free' && (
+              <CancelButton
+                isScheduledForCancellation={subscription.cancel_at_period_end}
+                onSuccess={() => revalidator.revalidate()}
+              />
             )}
             
             {stripe_customer_id && (

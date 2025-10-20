@@ -34,7 +34,8 @@ export interface CreateSubscriptionData {
 }
 
 /**
- * Create a new subscription record
+ * Create a new subscription record (UPSERT)
+ * Uses INSERT OR REPLACE to handle race conditions between webhook and redirect handlers
  */
 export async function createSubscription(
   db: Database,
@@ -42,7 +43,7 @@ export async function createSubscription(
 ): Promise<boolean> {
   const result = await execute(
     db,
-    `INSERT INTO subscriptions 
+    `INSERT OR REPLACE INTO subscriptions 
      (id, user_id, stripe_customer_id, stripe_price_id, tier, status, current_period_start, current_period_end, cancel_at_period_end)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     data.id,

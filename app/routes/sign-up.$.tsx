@@ -3,7 +3,8 @@ import { SignUp } from '@clerk/remix';
 export default function SignUpPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bolt-elements-background-depth-1 p-4">
-      <SignUp
+      <div className="w-full max-w-md">
+        <SignUp
         appearance={{
           elements: {
             rootBox: 'w-full',
@@ -34,6 +35,7 @@ export default function SignUpPage() {
         path="/sign-up"
         signInUrl="/sign-in"
       />
+      </div>
     </div>
   );
 }
