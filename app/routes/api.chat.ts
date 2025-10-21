@@ -1,18 +1,24 @@
 import { type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { MAX_RESPONSE_SEGMENTS, MAX_TOKENS } from '~/lib/.server/llm/constants';
-import { CONTINUE_PROMPT } from '~/lib/.server/llm/prompts';
-import { streamText, type Messages, type StreamingOptions } from '~/lib/.server/llm/stream-text';
-import SwitchableStream from '~/lib/.server/llm/switchable-stream';
-import { getOptionalUserId } from '~/lib/.server/auth/clerk.server';
-import { getDatabase } from '~/lib/.server/db/client';
-import { checkUserCredits, deductCredit } from '~/lib/.server/credits/manager';
-import { logUsage } from '~/lib/.server/credits/usage';
+import type { Messages, StreamingOptions } from '~/lib/.server/llm/stream-text';
 
 export async function action(args: ActionFunctionArgs) {
   return chatAction(args);
 }
 
 async function chatAction(args: ActionFunctionArgs) {
+  // Import server-only modules inside the function
+  const { 
+    MAX_RESPONSE_SEGMENTS, 
+    MAX_TOKENS 
+  } = await import('~/lib/.server/llm/constants');
+  const { CONTINUE_PROMPT } = await import('~/lib/.server/llm/prompts');
+  const { streamText } = await import('~/lib/.server/llm/stream-text');
+  const SwitchableStream = (await import('~/lib/.server/llm/switchable-stream')).default;
+  const { getOptionalUserId } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase } = await import('~/lib/.server/db/client');
+  const { checkUserCredits, deductCredit } = await import('~/lib/.server/credits/manager');
+  const { logUsage } = await import('~/lib/.server/credits/usage');
+
   const { context, request } = args;
   const { messages } = await request.json<{ messages: Messages }>();
 

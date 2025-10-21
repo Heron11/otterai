@@ -7,21 +7,17 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { requireAuth } from '~/lib/.server/auth/clerk.server';
-import { getDatabase } from '~/lib/.server/db/client';
-import { execute, queryFirst } from '~/lib/.server/db/client';
-import {
-  saveFiles,
-  getProjectFiles,
-  deleteFile,
-  getFileKey,
-} from '~/lib/.server/storage/r2';
 
 /**
  * GET /api/projects/:projectId/files
  * Load all files for a project from R2
  */
 export async function loader({ params, context, ...args }: LoaderFunctionArgs) {
+  // Import server-only modules inside the function
+  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase, queryFirst } = await import('~/lib/.server/db/client');
+  const { getProjectFiles } = await import('~/lib/.server/storage/r2');
+
   const auth = await requireAuth(args);
   const { projectId } = params;
 
@@ -60,6 +56,11 @@ export async function loader({ params, context, ...args }: LoaderFunctionArgs) {
  * Save/update files for a project
  */
 export async function action({ request, params, context, ...args }: ActionFunctionArgs) {
+  // Import server-only modules inside the function
+  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase, queryFirst } = await import('~/lib/.server/db/client');
+  const { saveFiles } = await import('~/lib/.server/storage/r2');
+
   const auth = await requireAuth(args);
   const { projectId } = params;
 
