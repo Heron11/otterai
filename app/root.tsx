@@ -73,13 +73,13 @@ export const loader = (args: LoaderFunctionArgs) => {
         userId, 
         sessionClaims,
         ENV: {
-          CLERK_PUBLISHABLE_KEY: args.context.CLERK_PUBLISHABLE_KEY,
+          CLERK_PUBLISHABLE_KEY: args.context.cloudflare.env.CLERK_PUBLISHABLE_KEY,
         },
       };
     },
     {
-      publishableKey: args.context.CLERK_PUBLISHABLE_KEY,
-      secretKey: args.context.CLERK_SECRET_KEY,
+      publishableKey: args.context.cloudflare.env.CLERK_PUBLISHABLE_KEY,
+      secretKey: args.context.cloudflare.env.CLERK_SECRET_KEY,
     }
   );
 };
