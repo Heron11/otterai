@@ -29,9 +29,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const webhookSecret = context.cloudflare.env.STRIPE_WEBHOOK_SECRET;
   
-  console.log('🔍 WEBHOOK DEBUG:');
-  console.log('Has webhook secret:', !!webhookSecret);
-  console.log('Webhook secret prefix:', webhookSecret ? webhookSecret.substring(0, 10) + '...' : 'undefined');
+  // Webhook secret verification
   
   if (!webhookSecret) {
     console.error('STRIPE_WEBHOOK_SECRET not configured');
@@ -41,9 +39,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const payload = await request.text();
   const signature = request.headers.get('stripe-signature');
 
-  console.log('Has signature:', !!signature);
-  console.log('Signature prefix:', signature ? signature.substring(0, 20) + '...' : 'undefined');
-  console.log('Payload length:', payload.length);
+  // Signature verification
 
   if (!signature) {
     console.error('No Stripe signature in webhook request');
@@ -55,18 +51,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   let event: Stripe.Event;
 
-  try {
-    // Verify webhook signature
-    event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
-    console.log('✅ Webhook signature verified successfully');
-  } catch (err) {
-    console.error('❌ Webhook signature verification failed:', err);
-    console.error('Error details:', {
-      message: err instanceof Error ? err.message : String(err),
-      stack: err instanceof Error ? err.stack : undefined,
-    });
-    return new Response('Invalid signature', { status: 400 });
-  }
+      try {
+        // Verify webhook signature
+        event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+      } catch (err) {
+        console.error('Webhook signature verification failed:', err);
+        return new Response('Invalid signature', { status: 400 });
+      }
 
   console.log(`Stripe webhook received: ${event.type}`);
 
