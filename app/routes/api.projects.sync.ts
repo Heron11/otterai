@@ -6,10 +6,6 @@
 
 import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { requireAuth } from '~/lib/.server/auth/clerk.server';
-import { getDatabase, queryFirst, execute } from '~/lib/.server/db/client';
-import { createProject } from '~/lib/.server/projects/queries';
-import { saveFiles, getFileKey } from '~/lib/.server/storage/r2';
 
 interface SyncRequest {
   chatId: string;
@@ -22,6 +18,12 @@ interface SyncRequest {
  * Create or update project and save files
  */
 export async function action(args: ActionFunctionArgs) {
+  // Import server-only modules inside the function
+  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase, queryFirst, execute } = await import('~/lib/.server/db/client');
+  const { createProject } = await import('~/lib/.server/projects/queries');
+  const { saveFiles, getFileKey } = await import('~/lib/.server/storage/r2');
+
   const { request, context } = args;
   const auth = await requireAuth(args);
   const db = getDatabase(context.cloudflare.env);

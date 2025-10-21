@@ -4,12 +4,14 @@
  */
 
 import { type ActionFunctionArgs, json } from '@remix-run/cloudflare';
-import { requireAuth } from '~/lib/.server/auth/clerk.server';
-import { getDatabase } from '~/lib/.server/db/client';
-import { getSubscription, updateSubscription } from '~/lib/.server/subscriptions/queries';
-import { getStripeClient } from '~/lib/.server/stripe/client';
 
 export async function action(args: ActionFunctionArgs) {
+  // Import server-only modules inside the function
+  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase } = await import('~/lib/.server/db/client');
+  const { getSubscription, updateSubscription } = await import('~/lib/.server/subscriptions/queries');
+  const { getStripeClient } = await import('~/lib/.server/stripe/client');
+
   const { context } = args;
   const auth = await requireAuth(args);
   const db = getDatabase(context.cloudflare.env);
