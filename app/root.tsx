@@ -64,22 +64,47 @@ const inlineThemeCode = stripIndents`
 `;
 
 export const loader = (args: LoaderFunctionArgs) => {
+  // Extensive logging for debugging
+  console.log('🔍 ROOT LOADER DEBUG:');
+  console.log('Environment:', process.env.NODE_ENV);
+  console.log('Request URL:', args.request.url);
+  console.log('Context keys:', Object.keys(args.context));
+  console.log('Cloudflare env keys:', Object.keys(args.context.cloudflare?.env || {}));
+  
+  // Check if environment variables exist
+  const publishableKey = args.context.cloudflare?.env?.CLERK_PUBLISHABLE_KEY;
+  const secretKey = args.context.cloudflare?.env?.CLERK_SECRET_KEY;
+  
+  console.log('CLERK_PUBLISHABLE_KEY exists:', !!publishableKey);
+  console.log('CLERK_PUBLISHABLE_KEY value:', publishableKey ? `${publishableKey.substring(0, 10)}...` : 'undefined');
+  console.log('CLERK_SECRET_KEY exists:', !!secretKey);
+  console.log('CLERK_SECRET_KEY value:', secretKey ? `${secretKey.substring(0, 10)}...` : 'undefined');
+  
+  if (!publishableKey) {
+    console.error('❌ CRITICAL: CLERK_PUBLISHABLE_KEY is missing!');
+  }
+  if (!secretKey) {
+    console.error('❌ CRITICAL: CLERK_SECRET_KEY is missing!');
+  }
+
   return rootAuthLoader(
     args,
     ({ request }) => {
       const { sessionId, userId, sessionClaims } = request.auth;
+      console.log('🔍 AUTH DATA:', { sessionId, userId, sessionClaims });
+      
       return { 
         sessionId, 
         userId, 
         sessionClaims,
         ENV: {
-          CLERK_PUBLISHABLE_KEY: args.context.cloudflare.env.CLERK_PUBLISHABLE_KEY,
+          CLERK_PUBLISHABLE_KEY: publishableKey,
         },
       };
     },
     {
-      publishableKey: args.context.cloudflare.env.CLERK_PUBLISHABLE_KEY,
-      secretKey: args.context.cloudflare.env.CLERK_SECRET_KEY,
+      publishableKey: publishableKey,
+      secretKey: secretKey,
     }
   );
 };
@@ -102,13 +127,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
     document.querySelector('html')?.setAttribute('data-theme', theme);
   }, [theme]);
 
+  // Client-side logging
+  useEffect(() => {
+    console.log('🔍 CLIENT-SIDE DEBUG:');
+    console.log('Window ENV:', window.ENV);
+    console.log('Loader data:', data);
+    console.log('CLERK_PUBLISHABLE_KEY in window.ENV:', window.ENV?.CLERK_PUBLISHABLE_KEY);
+    
+    if (!window.ENV?.CLERK_PUBLISHABLE_KEY) {
+      console.error('❌ CRITICAL: CLERK_PUBLISHABLE_KEY not found in window.ENV!');
+    }
+  }, [data]);
+
   return (
     <>
       {children}
       <ScrollRestoration />
       <script
         dangerouslySetInnerHTML={{
-          __html: `window.ENV = ${JSON.stringify(data?.ENV || {})}`,
+          __html: `window.ENV = ${JSON.stringify(data?.ENV || {})}; console.log('🔍 SCRIPT INJECTION: window.ENV =', window.ENV);`,
         }}
       />
       <Scripts />
