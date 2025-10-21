@@ -1,4 +1,6 @@
-import type { MetaFunction } from '@remix-run/cloudflare';
+import type { MetaFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
+import { useLoaderData } from '@remix-run/react';
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Link, useNavigate } from '@remix-run/react';
@@ -6,7 +8,8 @@ import { PlatformNav } from '~/components/platform/layout/PlatformNav';
 import { FloatingUser } from '~/components/platform/layout/FloatingUser';
 import { BuildAnimationLoader } from '~/components/platform/LottieLoader';
 import { TemplateCard } from '~/components/platform/templates/TemplateCard';
-import { getFeaturedTemplates } from '~/lib/mock/templates';
+import { getDatabase } from '~/lib/.server/db/client';
+import { getFeaturedProjects } from '~/lib/.server/projects/queries';
 
 export const meta: MetaFunction = () => {
   return [
@@ -15,7 +18,15 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function loader({ context }: LoaderFunctionArgs) {
+  const db = getDatabase(context.cloudflare.env);
+  const featuredTemplates = await getFeaturedProjects(db, 6); // Get up to 6 featured projects
+
+  return json({ featuredTemplates });
+}
+
 export default function HomePage() {
+  const { featuredTemplates } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [query, setQuery] = useState('');
@@ -463,44 +474,67 @@ export default function HomePage() {
           </div>
 
           {/* Template Grid */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
-          >
-            {getFeaturedTemplates().slice(0, 3).map((template, index) => (
-              <motion.div
-                key={template.id}
+          {featuredTemplates.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-center py-16"
+            >
+              <div className="relative inline-block">
+                <div className="text-8xl mb-6 opacity-30">📁</div>
+                <div className="absolute inset-0 bg-[#e86b47]/10 rounded-full blur-2xl"></div>
+              </div>
+              <p className="text-text-secondary dark:text-white/70 text-lg mb-6">
+                No public templates available yet. Be the first to share a project!
+              </p>
+              <div className="inline-flex items-center gap-2 px-6 py-3 bg-[#e86b47]/10 dark:bg-[#e86b47]/20 border border-[#e86b47]/20 rounded-full">
+                <span className="text-[#e86b47] text-sm font-medium">Create your first project to get started</span>
+              </div>
+            </motion.div>
+          ) : (
+            <>
+              <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.1 + (index * 0.1) }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
               >
-                <TemplateCard template={template} />
+                {featuredTemplates.slice(0, 3).map((template, index) => (
+                  <motion.div
+                    key={template.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.1 + (index * 0.1) }}
+                  >
+                    <TemplateCard template={template} />
+                  </motion.div>
+                ))}
               </motion.div>
-            ))}
-          </motion.div>
 
-          {/* View All Templates CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="text-center"
-          >
-            <Link
-              to="/templates"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white rounded-full font-medium transition-all duration-300 hover:scale-105"
-            >
-              Browse All Templates
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
-          </motion.div>
+              {/* View All Templates CTA */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="text-center"
+              >
+                <Link
+                  to="/templates"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white rounded-full font-medium transition-all duration-300 hover:scale-105"
+                >
+                  Browse All Templates
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+              </motion.div>
+            </>
+          )}
         </div>
       </section>
 
