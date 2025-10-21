@@ -39,7 +39,7 @@ export function CancelButton({ isScheduledForCancellation, onSuccess }: CancelBu
     <button
       onClick={handleClick}
       disabled={isLoading || fetcher.state === 'submitting'}
-      className="px-4 py-2 border-2 border-bolt-elements-borderColor text-bolt-elements-textPrimary rounded-md font-medium hover:border-red-500 hover:text-red-500 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {isLoading || fetcher.state === 'submitting' 
         ? 'Processing...' 

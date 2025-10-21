@@ -78,7 +78,7 @@ export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
             {tier === 'free' && (
               <button
                 onClick={handleUpgrade}
-                className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-all"
+                className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-colors"
               >
                 Upgrade to Plus
               </button>
@@ -87,7 +87,7 @@ export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
             {tier === 'plus' && (
               <button
                 onClick={handleUpgrade}
-                className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-all"
+                className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-colors"
               >
                 Upgrade to Pro
               </button>
