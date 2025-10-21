@@ -1,0 +1,35 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Specific AI crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# Disallow auth-related pages from being indexed
+Disallow: /sign-in
+Disallow: /sign-up
+
+# Disallow user-specific pages
+Disallow: /dashboard
+Disallow: /projects
+Disallow: /settings
+
+# Sitemap location
+Sitemap: https://otterai.net/sitemap.xml
+
