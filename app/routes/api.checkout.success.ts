@@ -10,9 +10,11 @@
  */
 
 import { type LoaderFunctionArgs, redirect } from '@remix-run/cloudflare';
-import { getStripeClient } from '~/lib/.server/stripe/client';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
+  // Import server-only modules inside the function
+  const { getStripeClient } = await import('~/lib/.server/stripe/client');
+
   const url = new URL(request.url);
   const sessionId = url.searchParams.get('session_id');
 

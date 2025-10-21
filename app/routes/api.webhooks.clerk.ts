@@ -4,10 +4,12 @@
  */
 
 import { type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { getDatabase } from '~/lib/.server/db/client';
-import { createUser, updateUser, deleteUser } from '~/lib/.server/users/sync';
 
 export async function action({ request, context }: ActionFunctionArgs) {
+  // Import server-only modules inside the function
+  const { getDatabase } = await import('~/lib/.server/db/client');
+  const { createUser, updateUser, deleteUser } = await import('~/lib/.server/users/sync');
+
   // Verify webhook signature (important for production)
   const webhookSecret = context.cloudflare.env.CLERK_WEBHOOK_SECRET;
   
