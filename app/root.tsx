@@ -116,6 +116,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function ErrorBoundary() {
+  return (
+    <html>
+      <head>
+        <title>Oh no!</title>
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <h1>Something went wrong</h1>
+          <p>Please try refreshing the page.</p>
+        </div>
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
 function App() {
   return (
     <>
