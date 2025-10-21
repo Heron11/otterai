@@ -30,20 +30,22 @@ export default function ProjectsPage() {
 
   return (
     <PlatformLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-bolt-elements-textPrimary mb-4">
-            My Projects
-          </h1>
-          <p className="text-lg text-bolt-elements-textSecondary">
-            {activeProjects.length} active {activeProjects.length === 1 ? 'project' : 'projects'}
-          </p>
-        </div>
+      <div className="bg-bg-1 dark:bg-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-bolt-elements-textPrimary mb-4">
+              My Projects
+            </h1>
+            <p className="text-lg text-bolt-elements-textSecondary">
+              {activeProjects.length} active {activeProjects.length === 1 ? 'project' : 'projects'}
+            </p>
+          </div>
 
-        <ProjectGrid
-          projects={activeProjects}
-          emptyMessage="No projects yet. Create your first project to get started!"
-        />
+          <ProjectGrid
+            projects={activeProjects}
+            emptyMessage="No projects yet. Create your first project to get started!"
+          />
+        </div>
       </div>
     </PlatformLayout>
   );
