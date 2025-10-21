@@ -1,32 +1,43 @@
-import { Link, useRevalidator } from '@remix-run/react';
+import { Link } from '@remix-run/react';
 import { TIER_LIMITS } from '~/lib/utils/tier-limits';
-import { PortalButton } from '~/components/billing/PortalButton';
-import { CancelButton } from '~/components/billing/CancelButton';
 import type { UserTier } from '~/lib/types/platform/user';
-import type { SubscriptionRecord } from '~/lib/.server/subscriptions/queries';
 
 interface BillingPanelProps {
   userProfile: {
     tier: UserTier;
     stripe_customer_id: string | null;
   };
-  subscription: SubscriptionRecord | null;
+  subscription: any | null;
 }
 
 export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
-  const { tier, stripe_customer_id } = userProfile;
+  const { tier } = userProfile;
   const limits = TIER_LIMITS[tier];
-  const revalidator = useRevalidator();
 
-  // Debug logging
-  console.log('BillingPanel Debug:', {
-    tier,
-    stripe_customer_id: stripe_customer_id ? `${stripe_customer_id.substring(0, 10)}...` : null,
-    hasSubscription: !!subscription,
-    subscriptionStatus: subscription?.status,
-    showManageButton: !!(stripe_customer_id && subscription),
-    showPortalSection: !!(stripe_customer_id && subscription)
-  });
+  const handleUpgrade = () => {
+    window.location.href = '/pricing';
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      const response = await fetch('/api/billing/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.url) {
+          window.location.href = data.url;
+        }
+      } else {
+        alert('Failed to open billing portal. Please try again.');
+      }
+    } catch (error) {
+      console.error('Billing portal error:', error);
+      alert('Failed to open billing portal. Please try again.');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -47,14 +58,14 @@ export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
             </div>
             
             {subscription && (
-            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-              subscription.status === 'active' ? 'bg-green-500/20 text-green-400' :
-              subscription.status === 'past_due' ? 'bg-red-500/20 text-red-400' :
-              'bg-yellow-500/20 text-yellow-400'
-            }`}>
-              {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1).replace('_', ' ')}
-            </div>
-          )}
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                subscription.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                subscription.status === 'past_due' ? 'bg-red-500/20 text-red-400' :
+                'bg-yellow-500/20 text-yellow-400'
+              }`}>
+                {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1).replace('_', ' ')}
+              </div>
+            )}
           </div>
 
           {subscription?.current_period_end && (
@@ -64,34 +75,37 @@ export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
           )}
 
           <div className="flex gap-3 flex-wrap">
-            {tier !== 'pro' && !subscription?.cancel_at_period_end && (
-              <Link
-                to="/pricing"
+            {tier === 'free' && (
+              <button
+                onClick={handleUpgrade}
                 className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-all"
               >
-                Upgrade Plan
-              </Link>
+                Upgrade to Plus
+              </button>
+            )}
+            
+            {tier === 'plus' && (
+              <button
+                onClick={handleUpgrade}
+                className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-all"
+              >
+                Upgrade to Pro
+              </button>
             )}
             
             {subscription && tier !== 'free' && (
-              <CancelButton
-                isScheduledForCancellation={subscription.cancel_at_period_end}
-                onSuccess={() => revalidator.revalidate()}
-              />
-            )}
-            
-            {stripe_customer_id && subscription && (
-              <PortalButton
-                className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              <button
+                onClick={handleManageSubscription}
+                className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-colors"
               >
                 Manage Subscription
-              </PortalButton>
+              </button>
             )}
           </div>
         </div>
       </div>
 
-      {stripe_customer_id && subscription && (
+      {subscription && tier !== 'free' && (
         <div>
           <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">
             Payment Method
@@ -99,13 +113,14 @@ export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
           
           <div className="bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor rounded-lg p-6">
             <p className="text-bolt-elements-textSecondary mb-4">
-              Manage your payment methods, view invoices, and update billing information through the Stripe Customer Portal.
+              Manage your payment methods, view invoices, and update billing information.
             </p>
-            <PortalButton
-              className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            <button
+              onClick={handleManageSubscription}
+              className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-colors"
             >
               Open Billing Portal
-            </PortalButton>
+            </button>
           </div>
         </div>
       )}
