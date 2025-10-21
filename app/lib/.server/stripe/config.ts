@@ -5,12 +5,12 @@
 
 export const STRIPE_CONFIG = {
   products: {
-    plus: 'prod_TGik2fbcYsJHX7',
-    pro: 'prod_TGilWKrYFZ665h',
+    plus: 'prod_TH3cpdaQ21YOj0',
+    pro: 'prod_TH3cGxXRL6RTWn',
   },
   prices: {
-    plus: 'price_1SKBJdRjvitucgh9mcap73NW',
-    pro: 'price_1SKBJiRjvitucgh91lR8fadh',
+    plus: 'price_1SKVVNDsyGVnOZHcUmL2cQ61',
+    pro: 'price_1SKVVUDsyGVnOZHcLGE4dNwz',
   },
 } as const;
 
