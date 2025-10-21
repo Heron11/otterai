@@ -11,9 +11,6 @@ export default defineConfig((config) => {
     build: {
       target: 'esnext',
     },
-    ssr: {
-      noExternal: ['stripe'],
-    },
     plugins: [
       nodePolyfills({
         include: ['path', 'buffer'],
@@ -25,6 +22,7 @@ export default defineConfig((config) => {
           v3_relativeSplatPath: true,
           v3_throwAbortReason: true,
         },
+        serverModuleFormat: 'esm',
       }),
       UnoCSS(),
       tsconfigPaths(),
