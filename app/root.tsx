@@ -8,6 +8,7 @@ import { themeStore } from './lib/stores/theme';
 import { stripIndents } from './utils/stripIndent';
 import { createHead } from 'remix-island';
 import { useEffect } from 'react';
+import { BetaBanner } from './components/ui/BetaBanner';
 
 declare global {
   interface Window {
@@ -116,7 +117,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  return <Outlet />;
+  return (
+    <>
+      <BetaBanner />
+      <Outlet />
+    </>
+  );
 }
 
 // Wrap the app with Clerk for authentication

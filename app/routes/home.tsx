@@ -1,7 +1,7 @@
 import type { MetaFunction } from '@remix-run/cloudflare';
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import { Link } from '@remix-run/react';
+import { Link, useNavigate } from '@remix-run/react';
 import { PlatformNav } from '~/components/platform/layout/PlatformNav';
 import { FloatingUser } from '~/components/platform/layout/FloatingUser';
 import { BuildAnimationLoader } from '~/components/platform/LottieLoader';
@@ -16,6 +16,7 @@ export const meta: MetaFunction = () => {
 };
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [query, setQuery] = useState('');
 
@@ -74,8 +75,13 @@ export default function HomePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Functionality will be connected later
-    console.log('Query:', query);
+    
+    if (!query.trim()) {
+      return;
+    }
+    
+    // Redirect to main chat page with the message as a query parameter
+    navigate(`/?message=${encodeURIComponent(query.trim())}`);
   };
 
   return (
@@ -138,7 +144,7 @@ export default function HomePage() {
                   >
                     <div className="flex-1 flex flex-col relative">
                       <textarea
-                        className="w-full resize-none ring-0 outline-0 bg-transparent placeholder:text-text-tertiary text-text-primary dark:text-white"
+                        className="w-full resize-none ring-0 outline-0 bg-transparent placeholder:text-gray-600 dark:placeholder:text-gray-200 text-text-primary dark:text-white"
                         name="query"
                         value={query}
                         placeholder={`Create a${currentPlaceholderText}`}
@@ -159,8 +165,7 @@ export default function HomePage() {
                     <div className="flex items-center justify-end mt-4 pt-1">
                       <button
                         type="submit"
-                        disabled={!query.trim()}
-                        className="inline-flex items-center justify-center px-8 py-4 tracking-tight bg-[#e86b47] hover:bg-[#d45a36] text-white focus:ring-4 focus:ring-[#e86b47]/40 rounded-full transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center justify-center px-8 py-4 tracking-tight bg-[#e86b47] hover:bg-[#d45a36] text-white focus:ring-4 focus:ring-[#e86b47]/40 rounded-full transition duration-300"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />

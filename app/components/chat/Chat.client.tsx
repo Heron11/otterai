@@ -15,6 +15,7 @@ import { useAuth } from '~/lib/hooks/useAuth';
 import { SignInModal } from '~/components/auth/SignInModal';
 import { BaseChat } from './BaseChat';
 import { syncProjectToServer } from '~/lib/services/project-sync.client';
+import { useSearchParams } from '@remix-run/react';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -73,12 +74,25 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { isAuthenticated, isLoaded } = useAuth();
   const [showSignInModal, setShowSignInModal] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
 
   const [chatStarted, setChatStarted] = useState(initialMessages.length > 0);
 
   const { showChat } = useStore(chatStore);
 
   const [animationScope, animate] = useAnimate();
+
+  // Check for message parameter from landing page
+  useEffect(() => {
+    const messageParam = searchParams.get('message');
+    if (messageParam) {
+      setPendingMessage(messageParam);
+      // Remove the message parameter from URL
+      searchParams.delete('message');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Reset sign in modal when authentication state changes
   useEffect(() => {
@@ -198,6 +212,26 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
     setChatStarted(true);
   };
+
+  // Handle pending message from landing page
+  useEffect(() => {
+    if (pendingMessage && isLoaded) {
+      if (isAuthenticated) {
+        // User is authenticated, send the message automatically
+        setInput(pendingMessage);
+        setPendingMessage(null);
+        // Send after a brief delay to ensure input is set
+        setTimeout(() => {
+          sendMessage({} as React.UIEvent, pendingMessage);
+        }, 100);
+      } else {
+        // User is not authenticated, set input and show sign-in modal
+        setInput(pendingMessage);
+        setPendingMessage(null);
+        setShowSignInModal(true);
+      }
+    }
+  }, [pendingMessage, isLoaded, isAuthenticated]);
 
   const sendMessage = async (_event: React.UIEvent, messageInput?: string) => {
     const _input = messageInput || input;

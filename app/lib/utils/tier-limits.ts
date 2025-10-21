@@ -7,10 +7,11 @@ export interface TierLimits {
   creditsPerMonth: number; // Message-level credit limit
   creditsPerDay?: number; // Optional daily limit (for free tier)
   templates: 'all' | 'basic' | 'limited';
-  support: 'community' | 'email' | 'priority';
-  customDomains: boolean;
-  collaborators: number;
   storageGB: number;
+  // Future features (not yet implemented):
+  // customDomains: boolean;
+  // collaborators: number;
+  // support: 'community' | 'email' | 'priority';
 }
 
 export const TIER_LIMITS: Record<UserTier, TierLimits> = {
@@ -21,9 +22,6 @@ export const TIER_LIMITS: Record<UserTier, TierLimits> = {
     creditsPerMonth: 50, // 50 messages per month
     creditsPerDay: 3, // 3 messages per day
     templates: 'limited',
-    support: 'community',
-    customDomains: false,
-    collaborators: 0,
     storageGB: 1,
   },
   plus: {
@@ -32,9 +30,6 @@ export const TIER_LIMITS: Record<UserTier, TierLimits> = {
     projects: 15,
     creditsPerMonth: 500, // 500 messages per month
     templates: 'basic',
-    support: 'email',
-    customDomains: true,
-    collaborators: 3,
     storageGB: 10,
   },
   pro: {
@@ -43,9 +38,6 @@ export const TIER_LIMITS: Record<UserTier, TierLimits> = {
     projects: -1, // unlimited
     creditsPerMonth: 5000, // 5000 messages per month
     templates: 'all',
-    support: 'priority',
-    customDomains: true,
-    collaborators: -1, // unlimited
     storageGB: 100,
   },
 };
@@ -67,36 +59,46 @@ export const getTierFeatures = (tier: UserTier): string[] => {
   
   // Add message limits
   if (limits.creditsPerDay && tier === 'free') {
-    features.push(`${limits.creditsPerDay} messages per day (${limits.creditsPerMonth} per month)`);
+    features.push(`${limits.creditsPerDay} messages per day (${limits.creditsPerMonth}/month)`);
   } else {
-    features.push(`${limits.creditsPerMonth} messages per month`);
+    features.push(`${limits.creditsPerMonth.toLocaleString()} AI messages per month`);
   }
   
+  // Projects
   features.push(limits.projects === -1 ? 'Unlimited projects' : `Up to ${limits.projects} projects`);
   
+  // Storage
+  features.push(`${limits.storageGB}GB project storage`);
+  
+  // Templates
   if (limits.templates === 'all') {
-    features.push('Access to all templates');
+    features.push('Access to all premium templates');
   } else if (limits.templates === 'basic') {
-    features.push('Access to Plus templates');
+    features.push('Access to Plus & Free templates');
   } else {
-    features.push('Access to Free templates');
+    features.push('Access to basic templates');
   }
   
-  features.push(
-    limits.support === 'priority' ? 'Priority support' : 
-    limits.support === 'email' ? 'Email support' : 
-    'Community support'
-  );
+  // Code export
+  features.push('Full code export & download');
   
-  // Custom domains feature removed - not implemented yet
+  // Real-time features
+  features.push('Real-time code preview');
   
-  if (limits.collaborators === -1) {
-    features.push('Unlimited collaborators');
-  } else if (limits.collaborators > 0) {
-    features.push(`Up to ${limits.collaborators} collaborators`);
+  // Deployment
+  if (tier === 'pro') {
+    features.push('Priority AI processing');
+    features.push('Advanced deployment options');
+    features.push('Beta feature early access');
+  } else if (tier === 'plus') {
+    features.push('Faster AI responses');
+    features.push('One-click deployment');
+  } else {
+    features.push('Standard deployment');
   }
   
-  features.push(`${limits.storageGB}GB storage`);
+  // Community
+  features.push('Community Discord access');
   
   return features;
 };
