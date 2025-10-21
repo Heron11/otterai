@@ -4,6 +4,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
   // Import server-only modules inside the function
   const { getDatabase } = await import('~/lib/.server/db/client');
   const { getAllDocs } = await import('~/lib/content/docs');
+  const { getAllBlogs } = await import('~/lib/content/blogs');
 
   const baseUrl = 'https://otterai.net';
   
@@ -12,6 +13,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     { url: '', priority: '1.0', changefreq: 'daily' }, // Home page
     { url: '/pricing', priority: '0.9', changefreq: 'weekly' },
     { url: '/templates', priority: '0.9', changefreq: 'daily' },
+    { url: '/blog', priority: '0.9', changefreq: 'daily' },
     { url: '/dashboard', priority: '0.8', changefreq: 'daily' },
     { url: '/projects', priority: '0.8', changefreq: 'daily' },
     { url: '/docs', priority: '0.8', changefreq: 'weekly' },
@@ -26,6 +28,15 @@ export async function loader({ context }: LoaderFunctionArgs) {
     priority: '0.7',
     changefreq: 'weekly',
     lastmod: doc.metadata.lastUpdated,
+  }));
+
+  // Get all blog posts
+  const blogs = getAllBlogs();
+  const blogPages = blogs.map(blog => ({
+    url: `/blog/${blog.slug}`,
+    priority: '0.8',
+    changefreq: 'monthly',
+    lastmod: blog.metadata.date,
   }));
 
   // Get public templates from database
@@ -53,7 +64,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
   }
 
   // Combine all pages
-  const allPages = [...staticPages, ...docPages, ...templatePages];
+  const allPages = [...staticPages, ...docPages, ...blogPages, ...templatePages];
 
   // Generate XML
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
