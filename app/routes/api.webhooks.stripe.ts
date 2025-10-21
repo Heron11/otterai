@@ -16,11 +16,16 @@ import type { UserTier } from '~/lib/types/platform/user';
 
 export async function action({ request, context }: ActionFunctionArgs) {
   // Import server-only modules inside the function
-  const { getDatabase } = await import('~/lib/.server/db/client');
-  const { getStripeClient } = await import('~/lib/.server/stripe/client');
-  const { updateUserTier, updateUserStripeCustomer } = await import('~/lib/.server/users/sync');
-  const { createSubscription, updateSubscription, getSubscriptionById } = await import('~/lib/.server/subscriptions/queries');
-  const { STRIPE_CONFIG } = await import('~/lib/.server/stripe/config');
+  const { 
+    getDatabase, 
+    getStripeClient, 
+    updateUserTier, 
+    updateUserStripeCustomer, 
+    createSubscription, 
+    updateSubscription, 
+    getSubscriptionById,
+    STRIPE_CONFIG 
+  } = await import('~/lib/.server');
 
   const webhookSecret = context.cloudflare.env.STRIPE_WEBHOOK_SECRET;
   

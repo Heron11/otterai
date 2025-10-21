@@ -11,6 +11,9 @@ export default defineConfig((config) => {
     build: {
       target: 'esnext',
     },
+    ssr: {
+      noExternal: ['stripe'],
+    },
     plugins: [
       nodePolyfills({
         include: ['path', 'buffer'],
