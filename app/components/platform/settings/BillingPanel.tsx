@@ -11,7 +11,7 @@ interface BillingPanelProps {
 }
 
 export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
-  const { tier } = userProfile;
+  const { tier, stripe_customer_id } = userProfile;
   const limits = TIER_LIMITS[tier];
 
   const handleUpgrade = () => {
@@ -93,7 +93,7 @@ export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
               </button>
             )}
             
-            {subscription && tier !== 'free' && (
+            {tier !== 'free' && stripe_customer_id && (
               <button
                 onClick={handleManageSubscription}
                 className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-colors"
@@ -105,7 +105,7 @@ export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
         </div>
       </div>
 
-      {subscription && tier !== 'free' && (
+      {tier !== 'free' && stripe_customer_id && (
         <div>
           <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">
             Payment Method

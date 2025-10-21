@@ -23,13 +23,32 @@ export async function loader(args: LoaderFunctionArgs) {
       throw new Response('User not found', { status: 404 });
     }
 
-    // Always return basic user info - let the component handle the display
+    // For paid users, try to get subscription info
+    if (userProfile.stripe_customer_id || userProfile.stripe_subscription_id) {
+      try {
+        const { getSubscription } = await import('~/lib/.server/subscriptions/queries');
+        const subscription = await getSubscription(db, auth.userId!);
+        
+        return json({ 
+          userProfile: {
+            tier: userProfile.tier || 'free',
+            stripe_customer_id: userProfile.stripe_customer_id,
+          },
+          subscription: subscription
+        });
+      } catch (error) {
+        console.error('Failed to get subscription:', error);
+        // Fall back to basic user info
+      }
+    }
+
+    // For free users or if subscription fetch fails, return basic info
     return json({ 
       userProfile: {
         tier: userProfile.tier || 'free',
         stripe_customer_id: userProfile.stripe_customer_id || null,
       },
-      subscription: null // Simplified - no complex subscription logic
+      subscription: null
     });
   } catch (error) {
     console.error('Billing loader error:', error);
