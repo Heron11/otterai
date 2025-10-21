@@ -19,7 +19,7 @@ export function BetaBanner() {
   }
 
   return (
-    <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 relative">
+    <div className="bg-[#e86b47]/10 border-b border-[#e86b47]/20 px-4 py-2.5 relative">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         <p className="text-sm text-black flex items-center gap-2 flex-1">
           <span className="text-base" role="img" aria-label="warning">
@@ -32,7 +32,7 @@ export function BetaBanner() {
         </p>
         <button
           onClick={handleDismiss}
-          className="text-black hover:text-gray-700 transition-colors px-2 py-1 rounded hover:bg-amber-500/10 text-sm font-medium"
+          className="text-black hover:text-gray-700 transition-colors px-2 py-1 rounded hover:bg-[#e86b47]/10 text-sm font-medium"
           aria-label="Dismiss banner"
         >
           Dismiss
