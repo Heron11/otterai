@@ -5,6 +5,7 @@ author: Sarah Chen
 date: 2025-01-20
 tags: [Tips & Tricks, AI, Best Practices]
 featured: true
+coverImage: https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=600&fit=crop&q=80
 ---
 
 # 10 Tips for Getting the Most Out of AI-Powered Development
@@ -36,6 +37,8 @@ If you have a design or app you like, mention it:
 Visual or functional references help the AI understand your vision.
 
 ## 4. Use Iterative Refinement
+
+![Iterative Development Process](https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1000&h=500&fit=crop&q=80)
 
 Think of working with AI like sculpting:
 - Start with the basic shape (core features)

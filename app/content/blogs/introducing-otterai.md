@@ -5,6 +5,7 @@ author: OtterAI Team
 date: 2025-01-15
 tags: [Product Launch, AI, Web Development]
 featured: true
+coverImage: https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&q=80
 ---
 
 # Introducing OtterAI: Build Apps with Plain English
@@ -22,6 +23,8 @@ Building web applications has traditionally required:
 **What if you could just describe what you want in plain English?**
 
 ## How OtterAI Works
+
+![AI Development Workflow](https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1000&h=500&fit=crop&q=80)
 
 OtterAI combines cutting-edge AI technology with an in-browser development environment to make app creation as simple as having a conversation:
 

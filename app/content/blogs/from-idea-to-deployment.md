@@ -5,6 +5,7 @@ author: Michael Rodriguez
 date: 2025-01-25
 tags: [Case Study, Tutorial, Success Stories]
 featured: false
+coverImage: https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=600&fit=crop&q=80
 ---
 
 # From Idea to Deployment in 30 Minutes
@@ -71,6 +72,8 @@ OtterAI handled responsive design adjustments and UI improvements.
 The moment of truth. Alex clicked "Deploy" and within 2 minutes had a live URL to share with clients.
 
 ## The Result
+
+![Successful Launch](https://images.unsplash.com/photo-1569748130764-3fed0c102c59?w=1000&h=500&fit=crop&q=80)
 
 Alex now had a fully functional feedback collection tool:
 - ✅ Professional design
