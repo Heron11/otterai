@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react';
 import { motion, type HTMLMotionProps, type Variants } from 'framer-motion';
 import { computed } from 'nanostores';
-import { memo, useCallback, useEffect } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import {
   type OnChangeCallback as OnEditorChange,
@@ -16,6 +16,9 @@ import { cubicEasingFn } from '~/utils/easings';
 import { renderLogger } from '~/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
+import { chatId } from '~/lib/persistence';
+import { syncProjectToServer } from '~/lib/services/project-sync.client';
+import { useUser } from '@clerk/remix';
 
 interface WorkspaceProps {
   chatStarted?: boolean;
@@ -62,10 +65,52 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
   const unsavedFiles = useStore(workbenchStore.unsavedFiles);
   const files = useStore(workbenchStore.files);
   const selectedView = useStore(workbenchStore.currentView);
+  const { isSignedIn } = useUser();
+  const [isSaving, setIsSaving] = useState(false);
 
   const setSelectedView = (view: WorkbenchViewType) => {
     workbenchStore.currentView.set(view);
   };
+
+  const handleSaveProject = useCallback(async () => {
+    if (!isSignedIn) {
+      toast.error('Please sign in to save your project');
+      return;
+    }
+
+    const currentChatId = chatId.get();
+    const currentFiles = workbenchStore.files.get();
+    const projectName = workbenchStore.firstArtifact?.title || 'Untitled Project';
+
+    if (!currentChatId) {
+      toast.error('No active chat session');
+      return;
+    }
+
+    if (Object.keys(currentFiles).length === 0) {
+      toast.error('No files to save');
+      return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      await workbenchStore.saveAllFiles();
+      
+      await syncProjectToServer({
+        chatId: currentChatId,
+        projectName,
+        files: currentFiles,
+      });
+
+      toast.success('Project saved successfully!');
+    } catch (error) {
+      console.error('Save error:', error);
+      toast.error('Failed to save project');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [isSignedIn]);
 
   useEffect(() => {
     if (hasPreview) {
@@ -132,6 +177,14 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                     Toggle Terminal
                   </PanelHeaderButton>
                 )}
+                <PanelHeaderButton
+                  className="mr-1 text-sm"
+                  onClick={handleSaveProject}
+                  disabled={isSaving}
+                >
+                  <div className={isSaving ? "i-ph:circle-notch animate-spin" : "i-ph:floppy-disk-duotone"} />
+                  {isSaving ? 'Saving...' : 'Save Project'}
+                </PanelHeaderButton>
                 <IconButton
                   icon="i-ph:x-circle"
                   className="-mr-1"
