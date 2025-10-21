@@ -17,11 +17,22 @@ export async function createPortalSession(
 ): Promise<Stripe.BillingPortal.Session> {
   const stripe = getStripeClient(env);
 
-  const session = await stripe.billingPortal.sessions.create({
-    customer: stripeCustomerId,
-    return_url: returnUrl,
-  });
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: stripeCustomerId,
+      return_url: returnUrl,
+    });
 
-  return session;
+    return session;
+  } catch (error: any) {
+    console.error('Stripe billing portal error:', {
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      statusCode: error.statusCode,
+      raw: error.raw,
+    });
+    throw error;
+  }
 }
 
