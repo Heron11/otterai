@@ -1,6 +1,6 @@
 ---
 title: Privacy Policy
-description: How we collect, use, and protect your data
+description: How we collect, use, and protect your personal data
 lastUpdated: 2025-01-20
 icon: lock
 ---
@@ -11,101 +11,115 @@ icon: lock
 
 ## Introduction
 
-OtterAI ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information.
+OtterAI ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your information when you use our AI-powered web development platform.
 
 ## Information We Collect
 
-### Personal Information
+### Account Information
 - Email address
 - Name
-- Profile information
-- Payment information (processed securely through Stripe)
+- Profile picture (optional)
+
+### Projects and Code
+- Applications and code you create
+- Conversations with our AI assistant
+- Project files and data
 
 ### Usage Information
-- Projects and code you create
-- API usage and interactions
-- Device information
-- Log data and analytics
+- Number of messages sent
+- Features you use
+- Projects you create
 
-### Automatically Collected Information
-- IP address
-- Browser type
-- Operating system
-- Usage patterns and preferences
+### Payment Information
+- Subscription tier (Free, Plus, or Pro)
+- Payment details (processed securely through Stripe - we never see your credit card information)
+- Billing history
 
 ## How We Use Your Information
 
-We use the information we collect to:
-
-- Provide, maintain, and improve our Service
-- Process your transactions and manage your subscription
-- Send you technical notices and support messages
-- Respond to your comments and questions
-- Monitor and analyze trends and usage
-- Detect, prevent, and address technical issues
+We use your information to:
+- Provide and improve our Service
+- Process AI requests and generate code
+- Manage your account and subscription
+- Track message credits and usage limits
 - Provide customer support
-
-## Data Storage and Security
-
-- Your data is stored securely using industry-standard encryption
-- We use Cloudflare's infrastructure for reliable and secure hosting
-- Payment information is processed through Stripe and never stored on our servers
-- We implement appropriate technical and organizational measures to protect your data
-
-## Data Sharing and Disclosure
-
-We do not sell your personal information. We may share your information only in the following circumstances:
-
-- **With your consent**: When you explicitly agree to share information
-- **Service providers**: With third-party vendors who perform services on our behalf (Clerk for authentication, Stripe for payments, Anthropic for AI services)
-- **Legal requirements**: When required by law or to protect our rights
-- **Business transfers**: In connection with any merger, sale, or acquisition
-
-## Your Rights
-
-You have the right to:
-
-- Access your personal data
-- Correct inaccurate data
-- Request deletion of your data
-- Export your data
-- Opt-out of marketing communications
-- Withdraw consent at any time
-
-## Cookies and Tracking
-
-We use cookies and similar tracking technologies to track activity on our Service and hold certain information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.
+- Send important service updates
+- Detect and prevent fraud or abuse
 
 ## Third-Party Services
 
-Our Service uses third-party services:
+We use trusted third-party services to operate our platform:
 
-- **Clerk**: Authentication and user management
-- **Stripe**: Payment processing
-- **Anthropic**: AI model services
-- **Cloudflare**: Hosting and CDN
+- **Clerk** - Account authentication and security
+- **Stripe** - Payment processing (handles all payment card details securely)
+- **Anthropic (Claude)** - AI language model for code generation
+- **Cloudflare** - Secure hosting and data storage
 
-Each service has its own privacy policy governing the use of your information.
+Each service has its own privacy policy and handles your data according to industry standards.
 
-## Children's Privacy
+## Data Security
 
-Our Service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13.
+We protect your data using:
+- Encrypted connections (HTTPS)
+- Secure data storage
+- Industry-standard security practices
+- Regular security updates
 
-## International Data Transfers
+## Data Sharing
 
-Your information may be transferred to and maintained on servers located outside of your state, province, country, or other governmental jurisdiction.
+We do not sell your personal information. We only share your data:
+- With service providers who help us operate the platform
+- When required by law
+- To protect our rights or the safety of our users
+- In connection with a business transfer (merger or acquisition)
+
+## Your Rights
+
+You can:
+- Access and update your account information
+- Export your projects and code
+- Delete your account and data
+- Unsubscribe from marketing emails
+- Request a copy of your personal data
 
 ## Data Retention
 
-We retain your personal information only for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required by law.
+- **Active accounts**: Data is retained while your account is active
+- **Deleted accounts**: Data is permanently removed after 30 days
+- **Usage logs**: Kept for analytics (anonymized after 90 days)
 
-## Changes to Privacy Policy
+## Children's Privacy
 
-We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.
+Our Service is not intended for children under 13. We do not knowingly collect information from children under 13.
+
+## Cookies
+
+We use essential cookies for:
+- Keeping you logged in
+- Security and fraud prevention
+- Remembering your preferences
+
+## International Users
+
+Your data may be stored and processed in the United States and other countries where our service providers operate.
+
+## Updates to This Policy
+
+We may update this Privacy Policy from time to time. We'll notify you of significant changes by email or through the Service.
+
+## Your Rights Under GDPR and CCPA
+
+If you're in the European Union or California, you have additional rights:
+- Right to access your data
+- Right to correct inaccurate data
+- Right to delete your data
+- Right to export your data
+- Right to object to data processing
 
 ## Contact Us
 
-If you have questions about this Privacy Policy, please contact us at:
-- Email: help@otterai.net
-- Website: https://otterai.net
+For questions about privacy or to exercise your rights:
 
+**Email**: help@otterai.net
+
+We'll respond within 30 days.

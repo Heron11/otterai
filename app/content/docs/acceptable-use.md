@@ -1,6 +1,6 @@
 ---
 title: Acceptable Use Policy
-description: Guidelines for appropriate use of our services
+description: Guidelines for using OtterAI responsibly
 lastUpdated: 2025-01-20
 icon: shield
 ---
@@ -11,90 +11,120 @@ icon: shield
 
 ## Overview
 
-This Acceptable Use Policy outlines prohibited uses of OtterAI's services. By using our Service, you agree to comply with this policy.
+This policy outlines what you can and cannot do with OtterAI. By using our Service, you agree to follow these guidelines.
 
-## Prohibited Activities
+## What You Can Do
 
-You may not use OtterAI to:
+✅ Build web applications and websites  
+✅ Learn programming and development  
+✅ Prototype ideas and MVPs  
+✅ Generate code for personal or commercial projects  
+✅ Share public projects with the community  
+✅ Experiment and test new ideas  
 
-### 1. Illegal Activities
-- Engage in any illegal activities
-- Violate any applicable laws or regulations
-- Infringe on intellectual property rights
-- Distribute malware, viruses, or harmful code
+## What You Cannot Do
 
-### 2. Abusive Behavior
-- Harass, threaten, or abuse others
-- Impersonate any person or entity
-- Attempt to gain unauthorized access to systems
-- Interfere with other users' access to the Service
+### Illegal Activities
 
-### 3. Harmful Content
-- Generate or distribute content that is:
-  - Illegal or promotes illegal activities
-  - Defamatory, discriminatory, or hateful
-  - Sexually explicit or exploitative
-  - Violent or promotes violence
-  - Fraudulent or deceptive
+❌ Generate code for illegal purposes  
+❌ Create malware, viruses, or harmful software  
+❌ Build tools for hacking or unauthorized access  
+❌ Violate any laws or regulations  
+❌ Infringe on others' intellectual property  
 
-### 4. System Abuse
-- Attempt to circumvent usage limits or restrictions
-- Use automated systems to access the Service excessively
-- Reverse engineer or attempt to extract source code
-- Overload or disrupt our infrastructure
+### Abusive Behavior
 
-### 5. Commercial Misuse
-- Resell or redistribute our Service without authorization
-- Use the Service to compete with OtterAI
-- Scrape or harvest data from our platform
+❌ Harass, threaten, or abuse other users  
+❌ Impersonate others  
+❌ Spam or flood the system  
+❌ Create fake accounts  
 
-## AI-Specific Guidelines
+### Harmful Content
 
-When using our AI-powered features:
+You may not generate or distribute:
 
-- Do not attempt to generate malicious code
-- Do not use the service to create spam or phishing content
-- Do not attempt to manipulate or "jailbreak" the AI
-- Respect the intended use of the AI assistant
+❌ Content promoting violence or terrorism  
+❌ Hate speech or discriminatory content  
+❌ Sexually explicit or exploitative material  
+❌ Fraudulent or deceptive content  
+❌ Phishing scams or social engineering tools  
 
-## Code of Conduct
+### System Abuse
 
-Users are expected to:
+❌ Attempt to bypass usage limits or restrictions  
+❌ Use automated systems to abuse the Service  
+❌ Try to reverse engineer our platform  
+❌ Attempt to access other users' accounts or data  
+❌ Overload or disrupt our systems  
 
-- Treat other users with respect
-- Provide accurate information
-- Report violations of this policy
-- Use the Service responsibly and ethically
+### Commercial Misuse
 
-## Reporting Violations
+❌ Resell access to OtterAI  
+❌ Use the Service to build a competing AI platform  
+❌ Scrape or harvest data from our platform  
+❌ Share your account with others  
 
-If you become aware of any violation of this policy, please report it to: help@otterai.net
+## AI Usage Guidelines
 
-## Consequences of Violations
+### Best Practices
+
+When using our AI assistant:
+
+✅ Be clear and specific in your requests  
+✅ Review and test generated code  
+✅ Report bugs or issues you encounter  
+✅ Use for legitimate development purposes  
+
+### Prohibited AI Use
+
+❌ Try to "jailbreak" or manipulate the AI  
+❌ Generate malicious or harmful code  
+❌ Create spam generation tools  
+❌ Attempt to extract training data  
+❌ Use for automated exploitation  
+
+## Community Guidelines
+
+Be a good community member:
+
+✅ Treat others with respect  
+✅ Share knowledge and help others  
+✅ Provide constructive feedback  
+✅ Report violations you see  
+✅ Give credit where it's due  
+
+Don't:
+
+❌ Steal or copy others' projects without permission  
+❌ Post misleading or false information  
+❌ Engage in trolling or harassment  
+❌ Share inappropriate content  
+
+## Consequences
 
 Violations of this policy may result in:
 
-- Warning and request to cease the violating activity
-- Temporary suspension of your account
-- Permanent termination of your account
-- Legal action if necessary
-- Reporting to law enforcement authorities
+1. **Warning** - First-time minor violations
+2. **Temporary suspension** - Repeated or moderate violations
+3. **Account termination** - Serious or repeated violations
+4. **Legal action** - Illegal activities or serious harm
+5. **Law enforcement notification** - When required by law
 
-## Enforcement
+We reserve the right to take immediate action for serious violations without prior warning.
 
-We reserve the right to:
+## Reporting Violations
 
-- Investigate suspected violations
-- Remove or disable access to violating content
-- Suspend or terminate accounts
-- Cooperate with law enforcement
-- Take any other appropriate action
+If you see someone violating this policy:
 
-## Updates to Policy
+📧 **Email**: help@otterai.net  
+📝 **Include**: Description of violation, username, and evidence (if available)
 
-We may update this Acceptable Use Policy at any time. Continued use of the Service after changes constitutes acceptance of the updated policy.
+We investigate all reports and take appropriate action.
 
-## Contact
+## Updates
 
-For questions about this policy, contact us at: help@otterai.net
+We may update this policy at any time. Continued use after changes means you accept the updated policy.
 
+## Questions?
+
+Contact us at: **help@otterai.net**
