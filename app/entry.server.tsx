@@ -68,8 +68,9 @@ export default async function handleRequest(
 
   responseHeaders.set('Content-Type', 'text/html');
 
-  // Removed Cross-Origin-Embedder-Policy: require-corp as it blocks Clerk JS loading
-  // responseHeaders.set('Cross-Origin-Embedder-Policy', 'require-corp');
+  // COOP/COEP headers are now set via public/_headers for Cloudflare Pages
+  // Using 'credentialless' allows WebContainer (SharedArrayBuffer) AND third-party resources like Clerk
+  responseHeaders.set('Cross-Origin-Embedder-Policy', 'credentialless');
   responseHeaders.set('Cross-Origin-Opener-Policy', 'same-origin');
 
   return new Response(body, {
