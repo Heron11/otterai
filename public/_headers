@@ -1,5 +1,37 @@
 /*
+  # Security Headers
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
   Cross-Origin-Resource-Policy: cross-origin
+  
+  # HSTS - Force HTTPS for 1 year
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  
+  # Prevent clickjacking
+  X-Frame-Options: SAMEORIGIN
+  
+  # Prevent MIME type sniffing
+  X-Content-Type-Options: nosniff
+  
+  # XSS Protection (legacy browsers)
+  X-XSS-Protection: 1; mode=block
+  
+  # Referrer Policy
+  Referrer-Policy: strict-origin-when-cross-origin
+  
+  # Permissions Policy - Restrict browser features
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+  
+  # Content Security Policy
+  # Note: unsafe-eval and unsafe-inline required for WebContainer and dynamic code execution
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com 'unsafe-inline' 'unsafe-eval' blob:; connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://api.anthropic.com wss: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; frame-src 'self' https://challenges.cloudflare.com https://*.clerk.accounts.dev; worker-src 'self' blob:; child-src 'self' blob:;
+
+# API Routes - Additional rate limiting headers
+/api/*
+  X-Robots-Tag: noindex
+  Cache-Control: no-store, no-cache, must-revalidate
+
+# Webhook endpoints - No caching
+/api/webhooks/*
+  Cache-Control: no-store
 
