@@ -4,14 +4,12 @@
  */
 
 import { type ActionFunctionArgs, json } from '@remix-run/cloudflare';
+import { requireAuth } from '~/lib/.server/auth/clerk.server';
+import { getDatabase } from '~/lib/.server/db/client';
+import { getUserProfile } from '~/lib/.server/users/queries';
+import { createPortalSession } from '~/lib/.server/stripe/portal';
 
 export async function action(args: ActionFunctionArgs) {
-  // Import server-only modules inside the function
-  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
-  const { getDatabase } = await import('~/lib/.server/db/client');
-  const { getUserProfile } = await import('~/lib/.server/users/queries');
-  const { createPortalSession } = await import('~/lib/.server/stripe/portal');
-
   const { request, context } = args;
   
   // Require authentication

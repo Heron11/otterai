@@ -6,9 +6,9 @@ interface Env {
   CLERK_SECRET_KEY: string;
   CLERK_WEBHOOK_SECRET: string;
   
-  // Stripe Payment (prepared for future use)
-  STRIPE_SECRET_KEY?: string;
-  STRIPE_WEBHOOK_SECRET?: string;
+  // Stripe Payment
+  STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
   
   // Cloudflare D1 Database
   DB: D1Database;

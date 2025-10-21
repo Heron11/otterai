@@ -18,6 +18,16 @@ export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
   const limits = TIER_LIMITS[tier];
   const revalidator = useRevalidator();
 
+  // Debug logging
+  console.log('BillingPanel Debug:', {
+    tier,
+    stripe_customer_id: stripe_customer_id ? `${stripe_customer_id.substring(0, 10)}...` : null,
+    hasSubscription: !!subscription,
+    subscriptionStatus: subscription?.status,
+    showManageButton: !!(stripe_customer_id && subscription),
+    showPortalSection: !!(stripe_customer_id && subscription)
+  });
+
   return (
     <div className="space-y-6">
       <div>
