@@ -30,7 +30,7 @@ export const TIER_LIMITS: Record<UserTier, TierLimits> = {
     name: 'Plus',
     price: 19,
     projects: 15,
-    creditsPerMonth: 500, // 500 messages per month
+    creditsPerMonth: 300, // 300 messages per month
     templates: 'basic',
     support: 'email',
     customDomains: true,
@@ -41,7 +41,7 @@ export const TIER_LIMITS: Record<UserTier, TierLimits> = {
     name: 'Pro',
     price: 49,
     projects: -1, // unlimited
-    creditsPerMonth: 5000, // 5000 messages per month
+    creditsPerMonth: 1000, // 1000 messages per month
     templates: 'all',
     support: 'priority',
     customDomains: true,
