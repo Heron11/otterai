@@ -620,7 +620,7 @@ export default function HomePage() {
                 <h3 className="font-semibold text-white dark:text-gray-900 mb-4">Company</h3>
                 <ul className="space-y-3">
                   <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">About</a></li>
-                  <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Blog</a></li>
+                  <li><Link to="/blog" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Blog</Link></li>
                   <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Careers</a></li>
                 </ul>
               </div>
