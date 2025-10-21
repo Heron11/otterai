@@ -4,14 +4,16 @@
  */
 
 import { type ActionFunctionArgs, json } from '@remix-run/cloudflare';
-import { requireAuth } from '~/lib/.server/auth/clerk.server';
-import { getDatabase } from '~/lib/.server/db/client';
-import { getUserProfile } from '~/lib/.server/users/queries';
-import { createCheckoutSession } from '~/lib/.server/stripe/checkout';
-import { getOrCreateCustomer } from '~/lib/.server/stripe/subscriptions';
-import { updateUserStripeCustomer } from '~/lib/.server/users/sync';
 
 export async function action(args: ActionFunctionArgs) {
+  // Import server-only modules inside the function
+  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase } = await import('~/lib/.server/db/client');
+  const { getUserProfile } = await import('~/lib/.server/users/queries');
+  const { createCheckoutSession } = await import('~/lib/.server/stripe/checkout');
+  const { getOrCreateCustomer } = await import('~/lib/.server/stripe/subscriptions');
+  const { updateUserStripeCustomer } = await import('~/lib/.server/users/sync');
+
   const { request, context } = args;
   
   // Require authentication
