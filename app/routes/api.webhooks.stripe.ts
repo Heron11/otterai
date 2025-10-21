@@ -12,14 +12,16 @@
 
 import { type ActionFunctionArgs } from '@remix-run/cloudflare';
 import type Stripe from 'stripe';
-import { getDatabase } from '~/lib/.server/db/client';
-import { getStripeClient } from '~/lib/.server/stripe/client';
-import { updateUserTier, updateUserStripeCustomer } from '~/lib/.server/users/sync';
-import { createSubscription, updateSubscription, getSubscriptionById } from '~/lib/.server/subscriptions/queries';
 import type { UserTier } from '~/lib/types/platform/user';
-import { STRIPE_CONFIG } from '~/lib/.server/stripe/config';
 
 export async function action({ request, context }: ActionFunctionArgs) {
+  // Import server-only modules inside the function
+  const { getDatabase } = await import('~/lib/.server/db/client');
+  const { getStripeClient } = await import('~/lib/.server/stripe/client');
+  const { updateUserTier, updateUserStripeCustomer } = await import('~/lib/.server/users/sync');
+  const { createSubscription, updateSubscription, getSubscriptionById } = await import('~/lib/.server/subscriptions/queries');
+  const { STRIPE_CONFIG } = await import('~/lib/.server/stripe/config');
+
   const webhookSecret = context.cloudflare.env.STRIPE_WEBHOOK_SECRET;
   
   if (!webhookSecret) {
