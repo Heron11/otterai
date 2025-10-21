@@ -625,13 +625,14 @@ export default function HomePage() {
                 </ul>
               </div>
 
-              {/* Resources Column */}
+              {/* Legal Column */}
               <div>
-                <h3 className="font-semibold text-white dark:text-gray-900 mb-4">Resources</h3>
+                <h3 className="font-semibold text-white dark:text-gray-900 mb-4">Legal</h3>
                 <ul className="space-y-3">
-                  <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Documentation</a></li>
-                  <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Support</a></li>
-                  <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Community</a></li>
+                  <li><Link to="/docs" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Documentation</Link></li>
+                  <li><Link to="/docs/privacy-policy" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Privacy Policy</Link></li>
+                  <li><Link to="/docs/terms-of-service" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Terms of Service</Link></li>
+                  <li><Link to="/docs/acceptable-use" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Acceptable Use</Link></li>
                 </ul>
               </div>
             </div>
@@ -642,8 +643,8 @@ export default function HomePage() {
                 © 2025 OtterAI. All rights reserved.
               </div>
               <div className="flex space-x-6">
-                <a href="#" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Privacy Policy</a>
-                <a href="#" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Terms</a>
+                <Link to="/docs/privacy-policy" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Privacy Policy</Link>
+                <Link to="/docs/terms-of-service" className="text-gray-300 dark:text-gray-600 hover:text-[#e86b47] transition-colors text-sm">Terms</Link>
               </div>
             </div>
           </div>
