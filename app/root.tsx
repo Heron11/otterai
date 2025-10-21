@@ -70,10 +70,14 @@ export const loader = (args: LoaderFunctionArgs) => {
   console.log('Request URL:', args.request.url);
   console.log('Context keys:', Object.keys(args.context));
   console.log('Cloudflare env keys:', Object.keys(args.context.cloudflare?.env || {}));
+  console.log('Direct context CLERK_PUBLISHABLE_KEY:', args.context.CLERK_PUBLISHABLE_KEY ? `${args.context.CLERK_PUBLISHABLE_KEY.substring(0, 10)}...` : 'undefined');
+  console.log('Cloudflare env CLERK_PUBLISHABLE_KEY:', args.context.cloudflare?.env?.CLERK_PUBLISHABLE_KEY ? `${args.context.cloudflare?.env?.CLERK_PUBLISHABLE_KEY.substring(0, 10)}...` : 'undefined');
   
   // Check if environment variables exist
-  const publishableKey = args.context.cloudflare?.env?.CLERK_PUBLISHABLE_KEY;
-  const secretKey = args.context.cloudflare?.env?.CLERK_SECRET_KEY;
+  // In local development, they're in args.context directly
+  // In production, they're in args.context.cloudflare.env
+  const publishableKey = args.context.CLERK_PUBLISHABLE_KEY || args.context.cloudflare?.env?.CLERK_PUBLISHABLE_KEY;
+  const secretKey = args.context.CLERK_SECRET_KEY || args.context.cloudflare?.env?.CLERK_SECRET_KEY;
   
   console.log('CLERK_PUBLISHABLE_KEY exists:', !!publishableKey);
   console.log('CLERK_PUBLISHABLE_KEY value:', publishableKey ? `${publishableKey.substring(0, 10)}...` : 'undefined');

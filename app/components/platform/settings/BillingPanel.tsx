@@ -70,7 +70,7 @@ export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
               />
             )}
             
-            {stripe_customer_id && (
+            {stripe_customer_id && subscription && (
               <PortalButton
                 className="px-4 py-2 bg-[#e86b47] text-white rounded-md font-medium hover:bg-[#d45a36] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -81,7 +81,7 @@ export function BillingPanel({ userProfile, subscription }: BillingPanelProps) {
         </div>
       </div>
 
-      {stripe_customer_id && (
+      {stripe_customer_id && subscription && (
         <div>
           <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">
             Payment Method
