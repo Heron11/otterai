@@ -5,6 +5,10 @@ compatibility_date = "2024-07-01"
 pages_build_output_dir = "./build/client"
 main = "./functions/[[path]].ts"
 
+# Custom domain (uncomment and update with your domain)
+# [env.production]
+# route = "otterai.net/*"
+
 # Cloudflare D1 Database
 # To create: wrangler d1 create otterai-production
 # Then replace 'xxx' below with the database_id from the output
