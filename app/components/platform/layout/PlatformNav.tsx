@@ -1,11 +1,12 @@
+import { memo, useMemo } from 'react';
 import { Link, useLocation } from '@remix-run/react';
 import { useAuth } from '~/lib/hooks/useAuth';
 import { ThemeToggle } from '~/components/ui/ThemeToggle';
 
-export function PlatformNav() {
+export const PlatformNav = memo(function PlatformNav() {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
-  const isBuildPage = location.pathname === '/';
+  const isBuildPage = useMemo(() => location.pathname === '/', [location.pathname]);
 
   return (
     <nav className="border-b border-bolt-elements-borderColor bg-bolt-elements-background-depth-1">
@@ -100,7 +101,7 @@ export function PlatformNav() {
       </div>
     </nav>
   );
-}
+});
 
 
 

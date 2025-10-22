@@ -4,6 +4,7 @@ import { Link, useLoaderData } from '@remix-run/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) {
@@ -67,6 +68,11 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function BlogPostPage() {
   const { blog, readingTime, relatedPosts } = useLoaderData<typeof loader>();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50">

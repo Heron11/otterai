@@ -2,6 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { Link, useLoaderData } from '@remix-run/react';
 import { json } from '@remix-run/cloudflare';
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
 import { TemplateGrid } from '~/components/platform/templates/TemplateGrid';
@@ -42,6 +43,11 @@ export default function DashboardPage() {
   const { userProfile, creditInfo, recentProjects, featuredTemplates } = useLoaderData<typeof loader>();
   
   const tierLimits = userProfile ? TIER_LIMITS[userProfile.tier] : null;
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
 
   return (
     <PlatformLayout>

@@ -1,4 +1,5 @@
 import { AnimatePresence, cubicBezier, motion } from 'framer-motion';
+import { memo } from 'react';
 
 interface SendButtonProps {
   show: boolean;
@@ -8,7 +9,7 @@ interface SendButtonProps {
 
 const customEasingFn = cubicBezier(0.4, 0, 0.2, 1);
 
-export function SendButton({ show, isStreaming, onClick }: SendButtonProps) {
+export const SendButton = memo(function SendButton({ show, isStreaming, onClick }: SendButtonProps) {
   return (
     <AnimatePresence>
       {show ? (
@@ -37,4 +38,4 @@ export function SendButton({ show, isStreaming, onClick }: SendButtonProps) {
       ) : null}
     </AnimatePresence>
   );
-}
+});

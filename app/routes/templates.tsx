@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
@@ -25,6 +25,11 @@ export async function loader({ context }: LoaderFunctionArgs) {
 export default function TemplatesPage() {
   const { templates } = useLoaderData<typeof loader>();
   const [search, setSearch] = useState('');
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
 
   const filteredTemplates = useMemo(() => {
     if (!search) return templates;

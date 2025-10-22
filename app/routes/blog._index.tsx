@@ -28,6 +28,11 @@ export default function BlogIndexPage() {
   const [isLoading, setIsLoading] = useState(false);
   const observerRef = useRef<HTMLDivElement>(null);
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
   // Filter blogs based on search query and selected tag
   const filteredBlogs = useMemo(() => {
     let filtered = blogs;

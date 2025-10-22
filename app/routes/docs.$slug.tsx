@@ -3,6 +3,7 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useEffect } from 'react';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) {
@@ -61,6 +62,11 @@ export async function loader({ params }: LoaderFunctionArgs) {
 export default function DocPage() {
   const { doc, slug, availableDocs } = useLoaderData<typeof loader>();
   
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Simple Header */}

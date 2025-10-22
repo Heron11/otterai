@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Project } from '~/lib/types/platform/project';
 import { ProjectCard } from './ProjectCard';
 
@@ -7,7 +8,7 @@ interface ProjectGridProps {
   emptyMessage?: string;
 }
 
-export function ProjectGrid({ projects, onDeleteProject, emptyMessage = 'No projects yet' }: ProjectGridProps) {
+export const ProjectGrid = memo(function ProjectGrid({ projects, onDeleteProject, emptyMessage = 'No projects yet' }: ProjectGridProps) {
   if (projects.length === 0) {
     return (
       <div className="text-center py-16">
@@ -34,7 +35,7 @@ export function ProjectGrid({ projects, onDeleteProject, emptyMessage = 'No proj
       ))}
     </div>
   );
-}
+});
 
 
 

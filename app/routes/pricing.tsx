@@ -1,5 +1,6 @@
 import type { MetaFunction } from '@remix-run/cloudflare';
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { PricingTable } from '~/components/platform/pricing/PricingTable';
 import { useUser } from '~/lib/hooks/platform/useUser';
@@ -13,6 +14,11 @@ export const meta: MetaFunction = () => {
 
 export default function PricingPage() {
   const { userProfile } = useUser();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
 
   return (
     <PlatformLayout showFooter={true}>

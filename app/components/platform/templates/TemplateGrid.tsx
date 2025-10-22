@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Template } from '~/lib/types/platform/template';
 import { TemplateCard } from './TemplateCard';
 
@@ -6,7 +7,7 @@ interface TemplateGridProps {
   emptyMessage?: string;
 }
 
-export function TemplateGrid({ templates, emptyMessage = 'No templates found' }: TemplateGridProps) {
+export const TemplateGrid = memo(function TemplateGrid({ templates, emptyMessage = 'No templates found' }: TemplateGridProps) {
   if (templates.length === 0) {
     return (
       <div className="text-center py-16">
@@ -29,7 +30,7 @@ export function TemplateGrid({ templates, emptyMessage = 'No templates found' }:
       ))}
     </div>
   );
-}
+});
 
 
 

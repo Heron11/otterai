@@ -2,7 +2,7 @@ import { useStore } from '@nanostores/react';
 import type { Message } from 'ai';
 import { useChat } from 'ai/react';
 import { useAnimate } from 'framer-motion';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { cssTransition, toast, ToastContainer } from 'react-toastify';
 import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from '~/lib/hooks';
 import { useChatHistory, chatId } from '~/lib/persistence';
@@ -171,19 +171,19 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     }
   }, [messages, isLoading, parseMessages]);
 
-  const scrollTextArea = () => {
+  const scrollTextArea = useCallback(() => {
     const textarea = textareaRef.current;
 
     if (textarea) {
       textarea.scrollTop = textarea.scrollHeight;
     }
-  };
+  }, []);
 
-  const abort = () => {
+  const abort = useCallback(() => {
     stop();
     chatStore.setKey('aborted', true);
     workbenchStore.abortAllActions();
-  };
+  }, [stop]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -198,7 +198,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     }
   }, [input, textareaRef]);
 
-  const runAnimation = async () => {
+  const runAnimation = useCallback(async () => {
     if (chatStarted) {
       return;
     }
@@ -211,7 +211,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     chatStore.setKey('started', true);
 
     setChatStarted(true);
-  };
+  }, [chatStarted, animate]);
 
   // Handle pending message from landing page
   useEffect(() => {
@@ -233,7 +233,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     }
   }, [pendingMessage, isLoaded, isAuthenticated]);
 
-  const sendMessage = async (_event: React.UIEvent, messageInput?: string) => {
+  const sendMessage = useCallback(async (_event: React.UIEvent, messageInput?: string) => {
     const _input = messageInput || input;
 
     if (_input.length === 0 || isLoading) {
@@ -287,9 +287,35 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     resetEnhancer();
 
     textareaRef.current?.blur();
-  };
+  }, [input, isLoading, isLoaded, isAuthenticated, append, setInput, resetEnhancer, runAnimation]);
 
   const [messageRef, scrollRef] = useSnapScroll();
+
+  // Memoize the processed messages to avoid recreating the array on every render
+  const processedMessages = useMemo(() => {
+    return messages.map((message, i) => {
+      if (message.role === 'user') {
+        return message;
+      }
+
+      return {
+        ...message,
+        content: parsedMessages[i] || '',
+      };
+    });
+  }, [messages, parsedMessages]);
+
+  // Memoize enhancePrompt callback
+  const handleEnhancePrompt = useCallback(() => {
+    enhancePrompt(input, (enhancedInput) => {
+      setInput(enhancedInput);
+      scrollTextArea();
+    });
+  }, [enhancePrompt, input, setInput, scrollTextArea]);
+
+  const handleCloseSignInModal = useCallback(() => {
+    setShowSignInModal(false);
+  }, []);
 
   return (
     <>
@@ -308,27 +334,13 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
         scrollRef={scrollRef}
         handleInputChange={handleInputChange}
         handleStop={abort}
-        messages={messages.map((message, i) => {
-          if (message.role === 'user') {
-            return message;
-          }
-
-          return {
-            ...message,
-            content: parsedMessages[i] || '',
-          };
-        })}
-        enhancePrompt={() => {
-          enhancePrompt(input, (input) => {
-            setInput(input);
-            scrollTextArea();
-          });
-        }}
+        messages={processedMessages}
+        enhancePrompt={handleEnhancePrompt}
       />
       
       <SignInModal 
         isOpen={showSignInModal} 
-        onClose={() => setShowSignInModal(false)} 
+        onClose={handleCloseSignInModal} 
       />
     </>
   );

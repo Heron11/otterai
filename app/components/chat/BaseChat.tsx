@@ -1,5 +1,5 @@
 import type { Message } from 'ai';
-import React, { type RefCallback, useState, useRef, useEffect } from 'react';
+import React, { type RefCallback, useState, useRef, useEffect, memo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from '@remix-run/react';
 import { ClientOnly } from 'remix-utils/client-only';
@@ -12,6 +12,7 @@ import { SendButton } from './SendButton.client';
 
 import styles from './BaseChat.module.scss';
 
+// Move constants outside component to prevent recreation on every render
 const PROMPT_EXAMPLES = [
   {
     title: "E-commerce Store",
@@ -86,7 +87,15 @@ const EXAMPLE_PROMPTS = [
   { text: 'Build a landing page for my startup idea' },
 ];
 
-const MOCK_MODELS = [
+type Model = {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  active: boolean;
+};
+
+const MOCK_MODELS: Model[] = [
   { id: 'claude-4.5-haiku', name: 'Claude 4.5 Haiku', description: 'Fast & efficient', color: '#e86b47', active: true },
   { id: 'claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', description: 'Most capable', color: '#3b82f6', active: false },
   { id: 'gpt-4o', name: 'GPT-4o', description: 'Versatile & creative', color: '#10b981', active: false },
@@ -95,6 +104,119 @@ const MOCK_MODELS = [
 ];
 
 const TEXTAREA_MIN_HEIGHT = 76;
+
+// Extract ModelPicker as a separate memoized component
+const ModelPicker = memo(({ 
+  isOpen, 
+  selectedModel, 
+  buttonRef, 
+  dropdownPosition, 
+  onToggle, 
+  onSelect, 
+  onClose 
+}: {
+  isOpen: boolean;
+  selectedModel: Model;
+  buttonRef: React.RefObject<HTMLButtonElement>;
+  dropdownPosition: { top: number; left: number; width: number };
+  onToggle: () => void;
+  onSelect: (model: Model) => void;
+  onClose: () => void;
+}) => {
+  return (
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        onClick={onToggle}
+        className="flex items-center gap-1.5 md:gap-2.5 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 hover:border-[#e86b47]/50 hover:bg-[#e86b47]/5 transition-all duration-200 group"
+      >
+        <div 
+          className="w-2 h-2 rounded-full shadow-sm" 
+          style={{ 
+            backgroundColor: selectedModel.color,
+            boxShadow: `0 0 8px ${selectedModel.color}40`
+          }}
+        ></div>
+        <span className="text-xs font-medium text-bolt-elements-textTertiary dark:text-white/60 group-hover:text-[#e86b47] transition-colors hidden sm:inline">
+          {selectedModel.name}
+        </span>
+        <svg 
+          className={`w-3.5 h-3.5 text-bolt-elements-textTertiary dark:text-white/40 group-hover:text-[#e86b47] transition-all duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      
+      {isOpen && typeof document !== 'undefined' && createPortal(
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={onClose}
+          ></div>
+          <div 
+            className="fixed bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-2xl overflow-hidden min-w-[280px] z-50 backdrop-blur-xl"
+            style={{
+              top: `${dropdownPosition.top - 12}px`,
+              left: `${dropdownPosition.left}px`,
+              transform: 'translateY(-100%)',
+            }}
+          >
+            <div className="px-3 py-2 border-b border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+              <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Select Model</div>
+            </div>
+            <div className="py-1 bg-white dark:bg-neutral-900">
+              {MOCK_MODELS.map((model) => (
+                <button
+                  key={model.id}
+                  onClick={() => {
+                    onSelect(model);
+                    onClose();
+                  }}
+                  className={`w-full text-left px-3 py-2.5 transition-all duration-150 flex items-start gap-3 group ${
+                    selectedModel.id === model.id 
+                      ? 'bg-[#e86b47]/10 dark:bg-[#e86b47]/15' 
+                      : 'hover:bg-gray-50 dark:hover:bg-neutral-800'
+                  }`}
+                >
+                  <div 
+                    className="w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0" 
+                    style={{ 
+                      backgroundColor: model.color,
+                      boxShadow: selectedModel.id === model.id ? `0 0 12px ${model.color}60` : `0 0 0 2px ${model.color}30`
+                    }}
+                  ></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className={`text-sm font-semibold ${
+                        selectedModel.id === model.id 
+                          ? 'text-[#e86b47]' 
+                          : 'text-gray-900 dark:text-white group-hover:text-[#e86b47]'
+                      } transition-colors`}>
+                        {model.name}
+                      </div>
+                      {selectedModel.id === model.id && (
+                        <svg className="w-4 h-4 text-[#e86b47]" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {model.description}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
+    </div>
+  );
+});
 
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
   (
@@ -135,6 +257,19 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
         });
       }
     }, [modelPickerOpen]);
+
+    // Memoize callbacks
+    const toggleModelPicker = useCallback(() => {
+      setModelPickerOpen(prev => !prev);
+    }, []);
+
+    const closeModelPicker = useCallback(() => {
+      setModelPickerOpen(false);
+    }, []);
+
+    const handleModelSelect = useCallback((model: Model) => {
+      setSelectedModel(model);
+    }, []);
 
     return (
       <div
@@ -257,97 +392,15 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     </div>
                     
                           <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <button
-                                ref={buttonRef}
-                                onClick={() => setModelPickerOpen(!modelPickerOpen)}
-                                className="flex items-center gap-1.5 md:gap-2.5 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 hover:border-[#e86b47]/50 hover:bg-[#e86b47]/5 transition-all duration-200 group"
-                              >
-                                <div 
-                                  className="w-2 h-2 rounded-full shadow-sm" 
-                                  style={{ 
-                                    backgroundColor: selectedModel.color,
-                                    boxShadow: `0 0 8px ${selectedModel.color}40`
-                                  }}
-                                ></div>
-                                <span className="text-xs font-medium text-bolt-elements-textTertiary dark:text-white/60 group-hover:text-[#e86b47] transition-colors hidden sm:inline">
-                                  {selectedModel.name}
-                                </span>
-                                <svg 
-                                  className={`w-3.5 h-3.5 text-bolt-elements-textTertiary dark:text-white/40 group-hover:text-[#e86b47] transition-all duration-200 ${modelPickerOpen ? 'rotate-180' : ''}`} 
-                                  fill="none" 
-                                  stroke="currentColor" 
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                              </button>
-                              
-                              {modelPickerOpen && typeof document !== 'undefined' && createPortal(
-                                <>
-                                  <div 
-                                    className="fixed inset-0 z-40" 
-                                    onClick={() => setModelPickerOpen(false)}
-                                  ></div>
-                                  <div 
-                                    className="fixed bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-2xl overflow-hidden min-w-[280px] z-50 backdrop-blur-xl"
-                                    style={{
-                                      top: `${dropdownPosition.top - 12}px`,
-                                      left: `${dropdownPosition.left}px`,
-                                      transform: 'translateY(-100%)',
-                                    }}
-                                  >
-                                    <div className="px-3 py-2 border-b border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
-                                      <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Select Model</div>
-                                    </div>
-                                    <div className="py-1 bg-white dark:bg-neutral-900">
-                                      {MOCK_MODELS.map((model) => (
-                                        <button
-                                          key={model.id}
-                                          onClick={() => {
-                                            setSelectedModel(model);
-                                            setModelPickerOpen(false);
-                                          }}
-                                          className={`w-full text-left px-3 py-2.5 transition-all duration-150 flex items-start gap-3 group ${
-                                            selectedModel.id === model.id 
-                                              ? 'bg-[#e86b47]/10 dark:bg-[#e86b47]/15' 
-                                              : 'hover:bg-gray-50 dark:hover:bg-neutral-800'
-                                          }`}
-                                        >
-                                          <div 
-                                            className="w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0" 
-                                            style={{ 
-                                              backgroundColor: model.color,
-                                              boxShadow: selectedModel.id === model.id ? `0 0 12px ${model.color}60` : `0 0 0 2px ${model.color}30`
-                                            }}
-                                          ></div>
-                                          <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between gap-2">
-                                              <div className={`text-sm font-semibold ${
-                                                selectedModel.id === model.id 
-                                                  ? 'text-[#e86b47]' 
-                                                  : 'text-gray-900 dark:text-white group-hover:text-[#e86b47]'
-                                              } transition-colors`}>
-                                                {model.name}
-                                              </div>
-                                              {selectedModel.id === model.id && (
-                                                <svg className="w-4 h-4 text-[#e86b47]" fill="currentColor" viewBox="0 0 20 20">
-                                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                </svg>
-                                              )}
-                                            </div>
-                                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                              {model.description}
-                                            </div>
-                                          </div>
-                                        </button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </>,
-                                document.body
-                              )}
-                            </div>
+                            <ModelPicker
+                              isOpen={modelPickerOpen}
+                              selectedModel={selectedModel}
+                              buttonRef={buttonRef}
+                              dropdownPosition={dropdownPosition}
+                              onToggle={toggleModelPicker}
+                              onSelect={handleModelSelect}
+                              onClose={closeModelPicker}
+                            />
                       
                       {input.length > 3 ? (
                         <div className="text-xs text-bolt-elements-textTertiary dark:text-white/40">

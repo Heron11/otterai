@@ -621,3 +621,4 @@ What will you build?
 
 *Ready to build your MVP? [OtterAI](https://otterai.net) can generate your entire MVP based on your description - from concept to deployed application in hours, not weeks. Focus on validation, not coding.*
 
+

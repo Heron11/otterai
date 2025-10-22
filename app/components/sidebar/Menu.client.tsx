@@ -1,5 +1,5 @@
 import { motion, type Variants } from 'framer-motion';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, memo } from 'react';
 import { toast } from 'react-toastify';
 import { Dialog, DialogButton, DialogDescription, DialogRoot, DialogTitle } from '~/components/ui/Dialog';
 import { IconButton } from '~/components/ui/IconButton';
@@ -33,7 +33,7 @@ const menuVariants = {
 
 type DialogContent = { type: 'delete'; item: ChatHistoryItem } | null;
 
-export function Menu() {
+export const Menu = memo(function Menu() {
   const menuRef = useRef<HTMLDivElement>(null);
   const [list, setList] = useState<ChatHistoryItem[]>([]);
   const [open, setOpen] = useState(false);
@@ -66,11 +66,11 @@ export function Menu() {
           logger.error(error);
         });
     }
-  }, []);
+  }, [loadEntries]);
 
-  const closeDialog = () => {
+  const closeDialog = useCallback(() => {
     setDialogContent(null);
-  };
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -185,4 +185,4 @@ export function Menu() {
     </motion.div>
     </>
   );
-}
+});

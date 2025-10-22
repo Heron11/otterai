@@ -2,6 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { Link, useLoaderData } from '@remix-run/react';
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 
 export const meta: MetaFunction = () => {
   return [
@@ -45,6 +46,11 @@ const ICON_MAP: Record<string, JSX.Element> = {
 export default function DocsIndexPage() {
   const { docs } = useLoaderData<typeof loader>();
   
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Simple Header */}

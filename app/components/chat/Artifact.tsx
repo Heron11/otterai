@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { computed } from 'nanostores';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState, useCallback } from 'react';
 import { createHighlighter, type BundledLanguage, type BundledTheme, type HighlighterGeneric } from 'shiki';
 import type { ActionState } from '~/lib/runtime/action-runner';
 import { workbenchStore } from '~/lib/stores/workbench';
@@ -37,26 +37,28 @@ export const Artifact = memo(({ messageId }: ArtifactProps) => {
     }),
   );
 
-  const toggleActions = () => {
+  const toggleActions = useCallback(() => {
     userToggledActions.current = true;
-    setShowActions(!showActions);
-  };
+    setShowActions(prev => !prev);
+  }, []);
+
+  const handleWorkbenchToggle = useCallback(() => {
+    const showWorkbench = workbenchStore.showWorkbench.get();
+    workbenchStore.showWorkbench.set(!showWorkbench);
+  }, []);
 
   useEffect(() => {
     if (actions.length && !showActions && !userToggledActions.current) {
       setShowActions(true);
     }
-  }, [actions]);
+  }, [actions, showActions]);
 
   return (
     <div className="artifact border border-bolt-elements-borderColor flex flex-col overflow-hidden rounded-lg w-full transition-border duration-150">
       <div className="flex">
         <button
           className="flex items-stretch bg-bolt-elements-artifacts-background hover:bg-bolt-elements-artifacts-backgroundHover w-full overflow-hidden"
-          onClick={() => {
-            const showWorkbench = workbenchStore.showWorkbench.get();
-            workbenchStore.showWorkbench.set(!showWorkbench);
-          }}
+          onClick={handleWorkbenchToggle}
         >
           <div className="px-5 p-3.5 w-full text-left">
             <div className="w-full text-bolt-elements-textPrimary font-medium leading-5 text-sm">{artifact?.title}</div>

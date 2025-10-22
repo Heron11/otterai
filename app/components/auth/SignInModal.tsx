@@ -1,12 +1,13 @@
 import { SignIn } from '@clerk/remix';
 import { AnimatePresence, motion } from 'framer-motion';
+import { memo } from 'react';
 
 interface SignInModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function SignInModal({ isOpen, onClose }: SignInModalProps) {
+export const SignInModal = memo(function SignInModal({ isOpen, onClose }: SignInModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -100,5 +101,5 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
       )}
     </AnimatePresence>
   );
-}
+});
 
