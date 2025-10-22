@@ -49,7 +49,7 @@ export function BetaBanner() {
   return (
     <div ref={bannerRef} className="bg-[#e86b47]/10 border-b border-[#e86b47]/20 px-4 py-2 relative">
       <div className="max-w-7xl mx-auto flex items-center justify-center">
-        <p className="text-xs md:text-sm text-black dark:text-white/90 flex items-center gap-1.5">
+        <p className="text-xs md:text-sm text-black flex items-center gap-1.5">
           <span className="text-sm" role="img" aria-label="warning">
             ⚠️
           </span>
@@ -59,7 +59,7 @@ export function BetaBanner() {
         </p>
         <button
           onClick={handleDismiss}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-black dark:text-white/70 hover:text-gray-700 dark:hover:text-white transition-colors p-1 rounded hover:bg-[#e86b47]/10"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-black hover:text-gray-700 transition-colors p-1 rounded hover:bg-[#e86b47]/10"
           aria-label="Dismiss banner"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

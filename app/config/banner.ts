@@ -19,7 +19,7 @@
  * - Handles window resize events
  */
 
-export const BETA_BANNER_ENABLED = false;
+export const BETA_BANNER_ENABLED = true;
 
 /**
  * Beta banner height in pixels (approximate)
