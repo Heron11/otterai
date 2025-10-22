@@ -129,7 +129,7 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
-                  className="inline-block mb-2.5 text-sm text-[#e86b47] font-medium tracking-tight"
+                  className="inline-block mb-2 md:mb-2.5 text-xs md:text-sm text-[#e86b47] font-medium tracking-tight"
                 >
                   Build Anything, Instantly
                 </motion.span>
@@ -138,7 +138,7 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  className="font-heading mb-10 text-7xl lg:text-8xl xl:text-[6.5rem] text-text-primary dark:text-white tracking-tighter leading-tight"
+                  className="font-heading mb-6 md:mb-10 text-4xl md:text-7xl lg:text-8xl xl:text-[6.5rem] text-text-primary dark:text-white tracking-tighter leading-tight px-4"
                 >
                   What should we build today?
                 </motion.h1>
@@ -151,11 +151,11 @@ export default function HomePage() {
                 >
                   <form
                     onSubmit={handleSubmit}
-                    className="flex flex-col w-full min-h-[120px] sm:min-h-[150px] bg-white/30 dark:bg-white/15 backdrop-blur-sm border border-white/40 dark:border-white/30 rounded-2xl p-4 sm:p-5 transition-all duration-200 focus-within:ring-2 focus-within:ring-[#e86b47]/50"
+                    className="flex flex-col w-full min-h-[100px] sm:min-h-[120px] md:min-h-[150px] bg-white/30 dark:bg-white/15 backdrop-blur-sm border border-white/40 dark:border-white/30 rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 transition-all duration-200 focus-within:ring-2 focus-within:ring-[#e86b47]/50"
                   >
                     <div className="flex-1 flex flex-col relative">
                       <textarea
-                        className="w-full resize-none ring-0 outline-0 bg-transparent placeholder:text-gray-600 dark:placeholder:text-gray-200 text-text-primary dark:text-white"
+                        className="w-full resize-none ring-0 outline-0 bg-transparent placeholder:text-gray-600 dark:placeholder:text-gray-200 text-text-primary dark:text-white text-sm md:text-base"
                         name="query"
                         value={query}
                         placeholder={`Create a${currentPlaceholderText}`}
@@ -173,12 +173,12 @@ export default function HomePage() {
                         }}
                       />
                     </div>
-                    <div className="flex items-center justify-end mt-4 pt-1">
+                    <div className="flex items-center justify-end mt-3 md:mt-4 pt-1">
                       <button
                         type="submit"
-                        className="inline-flex items-center justify-center px-8 py-4 tracking-tight bg-[#e86b47] hover:bg-[#d45a36] text-white focus:ring-4 focus:ring-[#e86b47]/40 rounded-full transition duration-300"
+                        className="inline-flex items-center justify-center px-6 md:px-8 py-3 md:py-4 tracking-tight bg-[#e86b47] hover:bg-[#d45a36] text-white focus:ring-4 focus:ring-[#e86b47]/40 rounded-full transition duration-300"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 md:w-5 h-4 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
                       </button>
@@ -224,20 +224,20 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="relative py-24 overflow-hidden bg-bg-2 dark:bg-neutral-950">
+      <section className="relative py-12 md:py-24 overflow-hidden bg-bg-2 dark:bg-neutral-950">
         {/* Background decorative elements */}
         <div className="absolute top-20 left-10 w-40 h-40 bg-[#e86b47]/10 dark:bg-[#e86b47]/8 rounded-full blur-3xl"></div>
         <div className="absolute top-40 right-20 w-32 h-32 bg-[#e86b47]/8 dark:bg-[#e86b47]/6 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 left-1/4 w-48 h-48 bg-[#e86b47]/5 dark:bg-[#e86b47]/4 rounded-full blur-3xl"></div>
         
         <div className="container px-4 mx-auto">
-          <div className="mb-20 md:max-w-xl text-center mx-auto relative">
-            <span className="inline-block mb-4 text-sm text-[#e86b47] font-medium tracking-tight">How It Works</span>
-            <h2 className="font-heading text-7xl lg:text-8xl text-text-primary dark:text-white tracking-tighter">From idea to production</h2>
+          <div className="mb-12 md:mb-20 md:max-w-xl text-center mx-auto relative">
+            <span className="inline-block mb-3 md:mb-4 text-xs md:text-sm text-[#e86b47] font-medium tracking-tight">How It Works</span>
+            <h2 className="font-heading text-4xl md:text-7xl lg:text-8xl text-text-primary dark:text-white tracking-tighter px-4">From idea to production</h2>
           </div>
           
           {/* Main Feature Card - Describe */}
-          <div className="relative mb-10 py-20 px-8 lg:px-16 bg-gradient-to-br from-bg-3/50 to-bg-2/50 dark:from-neutral-900/40 dark:to-neutral-900/20 backdrop-blur-sm overflow-hidden border border-neutral-200 dark:border-neutral-800/60 rounded-[2.5rem] shadow-elevation">
+          <div className="relative mb-6 md:mb-10 py-12 md:py-20 px-4 md:px-8 lg:px-16 bg-gradient-to-br from-bg-3/50 to-bg-2/50 dark:from-neutral-900/40 dark:to-neutral-900/20 backdrop-blur-sm overflow-hidden border border-neutral-200 dark:border-neutral-800/60 rounded-2xl md:rounded-[2.5rem] shadow-elevation">
             {/* Chat messages as background decoration */}
             <div className="absolute top-0 right-0 w-1/2 h-full overflow-hidden">
             <div className="absolute top-0 right-8 left-0 bottom-0 flex flex-col gap-2 overflow-hidden justify-center">

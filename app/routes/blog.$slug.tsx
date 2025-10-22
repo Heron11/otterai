@@ -89,7 +89,7 @@ export default function BlogPostPage() {
 
       {/* Cover Image */}
       {blog.metadata.coverImage && (
-        <div className="relative w-full h-[500px] bg-gradient-to-br from-[#e86b47]/20 to-[#d45a36]/20 overflow-hidden">
+        <div className="relative w-full h-[300px] md:h-[500px] bg-gradient-to-br from-[#e86b47]/20 to-[#d45a36]/20 overflow-hidden">
           <img
             src={blog.metadata.coverImage}
             alt={blog.metadata.title}
@@ -100,21 +100,21 @@ export default function BlogPostPage() {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
         {/* Article Header */}
         <motion.article
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-3xl border-2 border-slate-200 shadow-xl shadow-slate-200/50 p-8 lg:p-16 relative overflow-hidden"
+          className="bg-white rounded-2xl md:rounded-3xl border-2 border-slate-200 shadow-xl shadow-slate-200/50 p-6 md:p-8 lg:p-16 relative overflow-hidden"
         >
           {/* Decorative corner accent */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#e86b47]/5 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-slate-100 to-transparent rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-gradient-to-br from-[#e86b47]/5 to-transparent rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-32 md:w-48 h-32 md:h-48 bg-gradient-to-tr from-slate-100 to-transparent rounded-full blur-3xl"></div>
           
           {/* Meta Info */}
-          <div className="mb-10 relative z-10">
-            <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-slate-600 mb-8">
+          <div className="mb-6 md:mb-10 relative z-10">
+            <div className="flex flex-wrap items-center gap-2 md:gap-3 text-xs md:text-sm font-medium text-slate-600 mb-6 md:mb-8">
               <div className="flex items-center gap-2 px-3 py-1 bg-[#e86b47]/10 rounded-full">
                 <svg className="w-4 h-4 text-[#e86b47]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
@@ -142,22 +142,22 @@ export default function BlogPostPage() {
             </div>
 
             {/* Title */}
-            <h1 className="text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6 leading-[1.1] tracking-tight">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-4 md:mb-6 leading-[1.1] tracking-tight">
               {blog.metadata.title}
             </h1>
 
             {/* Description */}
-            <p className="text-xl lg:text-2xl text-slate-600 leading-relaxed mb-8 font-light">
+            <p className="text-lg md:text-xl lg:text-2xl text-slate-600 leading-relaxed mb-6 md:mb-8 font-light">
               {blog.metadata.description}
             </p>
 
             {/* Tags */}
             {blog.metadata.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-4 border-t-2 border-slate-100">
+              <div className="flex flex-wrap gap-1.5 md:gap-2 pt-3 md:pt-4 border-t-2 border-slate-100">
                 {blog.metadata.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-4 py-2 bg-gradient-to-r from-slate-100 to-slate-50 text-slate-700 text-sm rounded-full font-semibold hover:from-[#e86b47]/10 hover:to-[#e86b47]/5 hover:text-[#e86b47] transition-all duration-300 border border-slate-200"
+                    className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-slate-100 to-slate-50 text-slate-700 text-xs md:text-sm rounded-full font-semibold hover:from-[#e86b47]/10 hover:to-[#e86b47]/5 hover:text-[#e86b47] transition-all duration-300 border border-slate-200"
                   >
                     #{tag}
                   </span>
@@ -410,13 +410,13 @@ export default function BlogPostPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-20"
+            className="mt-12 md:mt-20"
           >
-            <div className="flex items-center gap-3 mb-8">
-              <div className="h-1 w-12 bg-gradient-to-r from-[#e86b47] to-[#d45a36] rounded-full"></div>
-              <h2 className="text-3xl font-bold text-slate-900">Related Articles</h2>
+            <div className="flex items-center gap-2 md:gap-3 mb-6 md:mb-8">
+              <div className="h-1 w-8 md:w-12 bg-gradient-to-r from-[#e86b47] to-[#d45a36] rounded-full"></div>
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Related Articles</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {relatedPosts.map((post) => (
                 <Link
                   key={post.slug}
@@ -438,12 +438,12 @@ export default function BlogPostPage() {
                       <span className="text-4xl opacity-40 group-hover:scale-110 transition-transform duration-500 relative z-10">📝</span>
                     </div>
                   )}
-                  <div className="p-5">
-                    <h3 className="font-bold text-slate-900 mb-2 group-hover:text-[#e86b47] transition-colors line-clamp-2 leading-tight">
+                  <div className="p-4 md:p-5">
+                    <h3 className="text-base md:text-lg font-bold text-slate-900 mb-2 group-hover:text-[#e86b47] transition-colors line-clamp-2 leading-tight">
                       {post.metadata.title}
                     </h3>
                     <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">{post.metadata.description}</p>
-                    <div className="flex items-center gap-2 mt-3 text-[#e86b47] font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="flex items-center gap-2 mt-3 text-[#e86b47] font-semibold text-sm opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                       <span>Read more</span>
                       <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />

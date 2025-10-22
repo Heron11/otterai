@@ -110,21 +110,21 @@ export default function BlogIndexPage() {
       <div className="relative bg-gradient-to-br from-[#e86b47]/5 via-white to-slate-50 border-b border-slate-200 overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#e86b47]/5 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-slate-200/30 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-0 w-64 md:w-96 h-64 md:h-96 bg-[#e86b47]/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-48 md:w-96 h-48 md:h-96 bg-slate-200/30 rounded-full blur-3xl"></div>
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="text-center"
           >
-            <h1 className="text-6xl font-extrabold text-slate-900 mb-6 tracking-tight">
+            <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 mb-4 md:mb-6 tracking-tight">
               OtterAI Blog
             </h1>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed px-4">
               Discover the latest insights, tips, and updates on AI-powered development
             </p>
           </motion.div>
@@ -179,19 +179,19 @@ export default function BlogIndexPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mb-12"
+            className="mb-8 md:mb-12"
           >
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">
+            <h2 className="text-xs md:text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 md:mb-4">
               Browse by Topic
             </h2>
             <div className="relative group">
-              <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide scroll-smooth">
-                <div className="flex gap-3 min-w-max px-1">
+              <div className="flex gap-2 md:gap-3 overflow-x-auto pb-3 scrollbar-hide scroll-smooth">
+                <div className="flex gap-2 md:gap-3 min-w-max px-1">
                   {tags.map((tag) => (
                     <button
                       key={tag}
                       onClick={() => handleTagClick(tag)}
-                      className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
+                      className={`px-3 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
                         selectedTag === tag
                           ? 'bg-gradient-to-r from-[#e86b47] to-[#d45a36] text-white shadow-lg shadow-[#e86b47]/40 scale-105'
                           : 'bg-white border-2 border-slate-200 text-slate-700 hover:border-[#e86b47] hover:text-[#e86b47] hover:shadow-md hover:scale-105'
@@ -204,15 +204,15 @@ export default function BlogIndexPage() {
               </div>
               
               {/* Enhanced scroll indicators */}
-              <div className="absolute top-0 right-0 bottom-3 w-20 bg-gradient-to-l from-slate-50 via-slate-50/60 to-transparent pointer-events-none opacity-100 group-hover:opacity-80 transition-opacity"></div>
-              <div className="absolute top-0 left-0 bottom-3 w-20 bg-gradient-to-r from-slate-50 via-slate-50/60 to-transparent pointer-events-none opacity-0 group-hover:opacity-80 transition-opacity"></div>
+              <div className="absolute top-0 right-0 bottom-3 w-12 md:w-20 bg-gradient-to-l from-slate-50 via-slate-50/60 to-transparent pointer-events-none opacity-100 group-hover:opacity-80 transition-opacity"></div>
+              <div className="absolute top-0 left-0 bottom-3 w-12 md:w-20 bg-gradient-to-r from-slate-50 via-slate-50/60 to-transparent pointer-events-none opacity-0 group-hover:opacity-80 transition-opacity"></div>
               
               {/* Animated scroll hint */}
               <div className="absolute -bottom-1 right-0 text-xs text-slate-400 flex items-center gap-1 animate-pulse">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 md:w-3.5 h-3 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                 </svg>
-                <span className="font-medium">Scroll</span>
+                <span className="font-medium hidden md:inline">Scroll</span>
               </div>
             </div>
           </motion.div>
@@ -312,9 +312,9 @@ export default function BlogIndexPage() {
                   )}
 
                   {/* Content */}
-                  <div className="p-6 relative z-20">
+                  <div className="p-4 md:p-6 relative z-20">
                     {/* Meta */}
-                    <div className="flex items-center gap-3 text-xs font-medium text-slate-500 mb-3">
+                    <div className="flex items-center gap-2 md:gap-3 text-xs font-medium text-slate-500 mb-2 md:mb-3">
                       <time className="group-hover:text-[#e86b47] transition-colors">
                         {new Date(blog.metadata.date).toLocaleDateString('en-US', {
                           year: 'numeric',
@@ -323,26 +323,26 @@ export default function BlogIndexPage() {
                         })}
                       </time>
                       <span>•</span>
-                      <span className="group-hover:text-slate-700 transition-colors">{blog.metadata.author}</span>
+                      <span className="group-hover:text-slate-700 transition-colors truncate">{blog.metadata.author}</span>
                     </div>
 
                     {/* Title */}
-                    <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-[#e86b47] transition-colors duration-300 line-clamp-2 leading-tight">
+                    <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-2 md:mb-3 group-hover:text-[#e86b47] transition-colors duration-300 line-clamp-2 leading-tight">
                       {blog.metadata.title}
                     </h2>
 
                     {/* Description */}
-                    <p className="text-slate-600 text-sm leading-relaxed mb-4 line-clamp-3">
+                    <p className="text-slate-600 text-sm leading-relaxed mb-3 md:mb-4 line-clamp-3">
                       {blog.metadata.description}
                     </p>
 
                     {/* Tags */}
                     {blog.metadata.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                      <div className="flex flex-wrap gap-1.5 md:gap-2 pt-2 border-t border-slate-100">
                         {blog.metadata.tags.slice(0, 3).map((tag) => (
                           <span
                             key={tag}
-                            className="px-3 py-1 bg-slate-100 text-slate-600 text-xs rounded-full font-semibold group-hover:bg-[#e86b47]/10 group-hover:text-[#e86b47] transition-colors"
+                            className="px-2 md:px-3 py-1 bg-slate-100 text-slate-600 text-xs rounded-full font-semibold group-hover:bg-[#e86b47]/10 group-hover:text-[#e86b47] transition-colors"
                           >
                             {tag}
                           </span>
@@ -351,7 +351,7 @@ export default function BlogIndexPage() {
                     )}
                     
                     {/* Read more indicator */}
-                    <div className="flex items-center gap-2 mt-4 text-[#e86b47] font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="flex items-center gap-2 mt-3 md:mt-4 text-[#e86b47] font-semibold text-sm opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                       <span>Read article</span>
                       <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
