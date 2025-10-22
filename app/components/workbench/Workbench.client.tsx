@@ -72,6 +72,27 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
     workbenchStore.currentView.set(view);
   };
 
+  const handleDownloadProject = useCallback(async () => {
+    const currentFiles = workbenchStore.files.get();
+    const currentChatId = chatId.get();
+    const projectName = workbenchStore.firstArtifact?.title || currentChatId || 'otterai-project';
+    
+    if (Object.keys(currentFiles).length === 0) {
+      toast.error('No files to download');
+      return;
+    }
+    
+    try {
+      const { createProjectZip, downloadBlob } = await import('~/utils/zip');
+      const zipBlob = await createProjectZip(currentFiles, projectName);
+      downloadBlob(zipBlob, `${projectName}.zip`);
+      toast.success('Project downloaded successfully!');
+    } catch (error) {
+      console.error('Failed to download project:', error);
+      toast.error('Failed to download project');
+    }
+  }, []);
+
   const handleSaveProject = useCallback(async () => {
     if (!isSignedIn) {
       toast.error('Please sign in to save your project');
@@ -177,6 +198,13 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                     Toggle Terminal
                   </PanelHeaderButton>
                 )}
+                <PanelHeaderButton
+                  className="mr-1 text-sm"
+                  onClick={handleDownloadProject}
+                >
+                  <div className="i-ph:download-simple" />
+                  Download ZIP
+                </PanelHeaderButton>
                 <PanelHeaderButton
                   className="mr-1 text-sm"
                   onClick={handleSaveProject}
