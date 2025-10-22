@@ -19,10 +19,10 @@
  * - Handles window resize events
  */
 
-export const BETA_BANNER_ENABLED = true;
+export const BETA_BANNER_ENABLED = false;
 
 /**
  * Beta banner height in pixels (approximate)
  * This is used as a fallback if dynamic measurement fails
  */
-export const BETA_BANNER_HEIGHT = 48; // Approximate height in pixels
+export const BETA_BANNER_HEIGHT = 36; // Approximate height in pixels (smaller, compact design)

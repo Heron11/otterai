@@ -47,23 +47,24 @@ export function BetaBanner() {
   }
 
   return (
-    <div ref={bannerRef} className="bg-[#e86b47]/10 border-b border-[#e86b47]/20 px-4 py-2.5 relative">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        <p className="text-sm text-black flex items-center gap-2 flex-1">
-          <span className="text-base" role="img" aria-label="warning">
+    <div ref={bannerRef} className="bg-[#e86b47]/10 border-b border-[#e86b47]/20 px-4 py-2 relative">
+      <div className="max-w-7xl mx-auto flex items-center justify-center">
+        <p className="text-xs md:text-sm text-black dark:text-white/90 flex items-center gap-1.5">
+          <span className="text-sm" role="img" aria-label="warning">
             ⚠️
           </span>
           <span>
-            <strong>Beta Notice:</strong> OtterAI is in active development. Please save important work locally.
-            We're working hard to make it great!
+            <strong>Beta:</strong> OtterAI is in active development. Save work locally.
           </span>
         </p>
         <button
           onClick={handleDismiss}
-          className="text-black hover:text-gray-700 transition-colors px-2 py-1 rounded hover:bg-[#e86b47]/10 text-sm font-medium"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-black dark:text-white/70 hover:text-gray-700 dark:hover:text-white transition-colors p-1 rounded hover:bg-[#e86b47]/10"
           aria-label="Dismiss banner"
         >
-          Dismiss
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
     </div>
