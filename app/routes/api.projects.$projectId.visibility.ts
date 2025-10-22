@@ -17,10 +17,10 @@ export async function action({ request, params, context, ...args }: ActionFuncti
     return json({ error: 'Project ID is required' }, { status: 400 });
   }
 
-  const { visibility } = await request.json<{ visibility: 'private' | 'public' | 'unlisted' }>();
+  const { visibility } = await request.json<{ visibility: 'private' | 'public' }>();
 
-  if (!visibility || !['private', 'public', 'unlisted'].includes(visibility)) {
-    return json({ error: 'Invalid visibility value' }, { status: 400 });
+  if (!visibility || !['private', 'public'].includes(visibility)) {
+    return json({ error: 'Invalid visibility value. Must be "private" or "public"' }, { status: 400 });
   }
 
   const db = getDatabase(context.cloudflare.env);

@@ -22,11 +22,11 @@ export async function action({ request, params, context, ...args }: ActionFuncti
   const db = getDatabase(context.cloudflare.env);
   const bucket = context.cloudflare.env.R2_BUCKET;
 
-  // Check clone permissions
+  // Check clone permissions (only public projects can be cloned)
   const access = await checkProjectAccess(db, projectId, auth.userId);
 
   if (!access.canClone) {
-    return json({ error: 'Cannot clone this project' }, { status: 403 });
+    return json({ error: 'Cannot clone this project. Only public projects can be cloned.' }, { status: 403 });
   }
 
   // Check if user already has a clone

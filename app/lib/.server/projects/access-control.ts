@@ -42,7 +42,6 @@ export async function checkProjectAccess(
   
   const isOwner = userId === project.user_id;
   const isPublic = project.visibility === 'public';
-  const isUnlisted = project.visibility === 'unlisted';
   
   // Check if user has a cloned version
   const clonedProject = userId ? await queryFirst<{ id: string }>(db,
@@ -54,13 +53,13 @@ export async function checkProjectAccess(
   const isCloned = !!clonedProject;
   
   return {
-    canView: isOwner || isPublic || isUnlisted,
+    canView: isOwner || isPublic,
     canEdit: isOwner || isCloned, // Only owner or user with cloned version
-    canClone: isPublic || isUnlisted,
+    canClone: isPublic,
     isOwner,
     isCloned,
     clonedProjectId: clonedProject?.id,
-    accessType: isOwner ? 'owner' : (isCloned ? 'viewer' : (isPublic || isUnlisted ? 'viewer' : 'none'))
+    accessType: isOwner ? 'owner' : (isCloned ? 'viewer' : (isPublic ? 'viewer' : 'none'))
   };
 }
 
