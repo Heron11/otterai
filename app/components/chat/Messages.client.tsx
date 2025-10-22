@@ -33,7 +33,7 @@ export const Messages = React.forwardRef<HTMLDivElement, MessagesProps>((props: 
                 {isUserMessage ? (
                   // User message - right aligned with background
                   <div className="flex justify-end">
-                    <div className="max-w-[80%] bg-bolt-elements-messages-background rounded-2xl px-4 py-3 shadow-sm">
+                    <div className="max-w-[80%] bg-bolt-elements-messages-background rounded-full px-6 py-3 shadow-sm flex items-center">
                       <UserMessage content={content} />
                     </div>
                   </div>
