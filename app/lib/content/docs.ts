@@ -73,11 +73,8 @@ const docsModules = import.meta.glob('../../content/docs/*.md', {
   eager: true,
 }) as Record<string, string>;
 
-console.log('[docs] Loaded docs modules:', Object.keys(docsModules));
-
 // Parse all docs at module load time
 const allDocs: Doc[] = Object.entries(docsModules).map(([filepath, content]) => {
-  console.log('[docs] Processing file:', filepath);
   
   // Extract slug from filepath (e.g., "../../content/docs/privacy-policy.md" -> "privacy-policy")
   const filename = filepath.split('/').pop() || '';
@@ -92,8 +89,6 @@ const allDocs: Doc[] = Object.entries(docsModules).map(([filepath, content]) => 
   };
 });
 
-console.log('[docs] Parsed docs:', allDocs.map(d => d.slug));
-
 /**
  * Get all available documentation files
  */
@@ -107,7 +102,6 @@ export function getAllDocs(): Doc[] {
 export function getDocBySlug(slug: string): Doc | null {
   const doc = allDocs.find(d => d.slug === slug);
   if (!doc) {
-    console.log('[docs] Doc not found for slug:', slug);
     return null;
   }
   return doc;

@@ -59,9 +59,6 @@ async function chatAction(args: ActionFunctionArgs) {
   const stream = new SwitchableStream();
 
   try {
-    // Log the incoming messages for debugging
-    console.log('Received messages:', JSON.stringify(messages, null, 2));
-
     const options: StreamingOptions = {
       toolChoice: 'none',
       onFinish: async ({ text: content, finishReason }) => {
@@ -74,8 +71,6 @@ async function chatAction(args: ActionFunctionArgs) {
         }
 
         const switchesLeft = MAX_RESPONSE_SEGMENTS - stream.switches;
-
-        console.log(`Reached max token limit (${MAX_TOKENS}): Continuing message (${switchesLeft} switches left)`);
 
         messages.push({ role: 'assistant', content });
         messages.push({ role: 'user', content: CONTINUE_PROMPT });

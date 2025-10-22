@@ -40,8 +40,6 @@ export async function action(args: ActionFunctionArgs) {
       status: stripeSubscription.status as any,
     });
 
-    console.log(`Subscription ${subscription.id} reactivated`);
-
     return json({ success: true });
   } catch (error) {
     console.error('Failed to reactivate subscription:', error);

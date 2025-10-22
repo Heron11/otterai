@@ -11,7 +11,6 @@ export async function initializeMCPServers() {
   for (const config of serverConfigs) {
     try {
       await mcpClientManager.addServer(config);
-      console.log(`✅ Connected to MCP server: ${config.name}`);
     } catch (error) {
       console.error(`❌ Failed to connect to MCP server ${config.name}:`, error);
     }

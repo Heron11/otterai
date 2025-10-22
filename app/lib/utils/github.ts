@@ -30,7 +30,6 @@ export const parseGitHubUrl = (url: string): GitHubRepo | null => {
 
 export const fetchRepoContent = async (githubUrl: string): Promise<any> => {
   // Placeholder - will implement actual GitHub API call
-  console.log('Fetching repo content from:', githubUrl);
   
   // Mock response
   return {
@@ -42,7 +41,6 @@ export const fetchRepoContent = async (githubUrl: string): Promise<any> => {
 
 export const getRepoReadme = async (githubUrl: string): Promise<string | null> => {
   // Placeholder - will implement actual GitHub API call
-  console.log('Fetching README from:', githubUrl);
   return null;
 };
 

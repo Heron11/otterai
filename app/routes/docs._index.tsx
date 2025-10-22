@@ -13,10 +13,8 @@ export const meta: MetaFunction = () => {
 
 export async function loader({}: LoaderFunctionArgs) {
   try {
-    console.log('[docs._index] Loading all docs...');
     const { getAllDocs } = await import('~/lib/content/docs');
     const docs = getAllDocs();
-    console.log('[docs._index] Loaded docs count:', docs.length);
     return json({ docs });
   } catch (error) {
     console.error('[docs._index] Error loading docs:', error);

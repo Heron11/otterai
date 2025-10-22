@@ -59,8 +59,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return new Response('Invalid signature', { status: 400 });
       }
 
-  console.log(`Stripe webhook received: ${event.type}`);
-
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -94,7 +92,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       default:
-        console.log(`Unhandled webhook event: ${event.type}`);
+        // Unhandled webhook event
+        break;
     }
 
     return new Response(JSON.stringify({ received: true }), {
@@ -154,8 +153,6 @@ async function handleCheckoutComplete(
     currentPeriodEnd: new Date(subscription.current_period_end * 1000),
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
   });
-
-  console.log(`Checkout completed for user ${userId}, tier: ${tier}`);
 }
 
 /**
@@ -196,8 +193,6 @@ async function handleSubscriptionUpdate(
   if (subscription.status === 'active') {
     await updateUserTier(db, userId, tier);
   }
-
-  console.log(`Subscription updated for user ${userId}, status: ${subscription.status}`);
 }
 
 /**
@@ -221,8 +216,6 @@ async function handleSubscriptionCancel(
 
   // Downgrade user to free tier
   await updateUserTier(db, userId, 'free');
-
-  console.log(`Subscription canceled for user ${userId}`);
 }
 
 /**
@@ -242,8 +235,6 @@ async function handlePaymentSuccess(
   await updateSubscription(db, subscriptionId, {
     status: 'active',
   });
-
-  console.log(`Payment succeeded for subscription ${subscriptionId}`);
 }
 
 /**
@@ -263,7 +254,5 @@ async function handlePaymentFailed(
   await updateSubscription(db, subscriptionId, {
     status: 'past_due',
   });
-
-  console.log(`Payment failed for subscription ${subscriptionId}`);
 }
 

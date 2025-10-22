@@ -27,13 +27,11 @@ function getDocsPath(): string {
 
   for (const p of possiblePaths) {
     if (fs.existsSync(p)) {
-      console.log('[docs.server] Using docs path:', p);
       return p;
     }
   }
 
   // Fallback to first path
-  console.warn('[docs.server] No docs path found, using fallback:', possiblePaths[0]);
   return possiblePaths[0];
 }
 
@@ -82,8 +80,6 @@ function parseFrontmatter(content: string): { metadata: DocMetadata; content: st
  */
 export async function getAllDocs(): Promise<Doc[]> {
   try {
-    console.log('[docs.server] Reading docs from:', DOCS_PATH);
-    
     // Check if directory exists
     if (!fs.existsSync(DOCS_PATH)) {
       console.error('[docs.server] Docs directory does not exist:', DOCS_PATH);
@@ -92,12 +88,9 @@ export async function getAllDocs(): Promise<Doc[]> {
 
     const files = fs.readdirSync(DOCS_PATH);
     const markdownFiles = files.filter((file) => file.endsWith('.md'));
-    
-    console.log('[docs.server] Found markdown files:', markdownFiles);
 
     const docs = markdownFiles.map((file) => {
       const filePath = path.join(DOCS_PATH, file);
-      console.log('[docs.server] Reading file:', filePath);
       const content = fs.readFileSync(filePath, 'utf-8');
       const { metadata, content: markdownContent } = parseFrontmatter(content);
       const slug = file.replace('.md', '');
@@ -109,7 +102,6 @@ export async function getAllDocs(): Promise<Doc[]> {
       };
     });
 
-    console.log('[docs.server] Successfully loaded', docs.length, 'docs');
     return docs;
   } catch (error) {
     console.error('[docs.server] Error reading docs:', error);
@@ -124,8 +116,6 @@ export async function getDocBySlug(slug: string): Promise<Doc | null> {
   try {
     const filePath = path.join(DOCS_PATH, `${slug}.md`);
     
-    console.log('[docs.server] Reading doc from:', filePath);
-    
     if (!fs.existsSync(filePath)) {
       console.error('[docs.server] Doc file does not exist:', filePath);
       return null;
@@ -133,8 +123,6 @@ export async function getDocBySlug(slug: string): Promise<Doc | null> {
 
     const content = fs.readFileSync(filePath, 'utf-8');
     const { metadata, content: markdownContent } = parseFrontmatter(content);
-
-    console.log('[docs.server] Successfully loaded doc:', slug);
     return {
       slug,
       metadata,

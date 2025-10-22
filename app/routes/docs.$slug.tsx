@@ -24,17 +24,12 @@ export async function loader({ params }: LoaderFunctionArgs) {
   }
 
   try {
-    console.log(`[docs.$slug] Loading doc for slug: ${slug}`);
     const { getAllDocs, getDocBySlug } = await import('~/lib/content/docs');
 
     const doc = getDocBySlug(slug);
     const allDocs = getAllDocs();
     
-    console.log(`[docs.$slug] Doc loaded:`, doc ? 'yes' : 'no');
-    console.log(`[docs.$slug] All docs count:`, allDocs.length);
-    
     if (!doc) {
-      console.log(`[docs.$slug] Doc not found for slug: ${slug}`);
       throw new Response('Not Found', { status: 404 });
     }
     

@@ -58,24 +58,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
     switch (type) {
       case 'user.created': {
         await createUser(db, data);
-        console.log(`User created: ${data.id}`);
         break;
       }
 
       case 'user.updated': {
         await updateUser(db, data);
-        console.log(`User updated: ${data.id}`);
         break;
       }
 
       case 'user.deleted': {
         await deleteUser(db, data.id);
-        console.log(`User deleted: ${data.id}`);
         break;
       }
 
       default:
-        console.log(`Unhandled webhook event: ${type}`);
+        // Unhandled webhook event
+        break;
     }
 
     return new Response(JSON.stringify({ success: true }), {

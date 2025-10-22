@@ -35,8 +35,6 @@ export async function action(args: ActionFunctionArgs) {
       cancelAtPeriodEnd: true,
     });
 
-    console.log(`Subscription ${subscription.id} set to cancel at period end`);
-
     return json({
       success: true,
       cancelAt: new Date(stripeSubscription.current_period_end * 1000),

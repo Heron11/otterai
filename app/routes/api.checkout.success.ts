@@ -42,8 +42,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       return redirect('/pricing?error=invalid_metadata');
     }
 
-    console.log(`Checkout session complete for user ${userId}, tier: ${tier}. Webhook will sync data.`);
-
     // Redirect to billing page - webhook will have synced the data
     return redirect('/settings/billing?upgrade=success');
   } catch (error) {

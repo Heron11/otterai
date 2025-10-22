@@ -86,11 +86,8 @@ const blogsModules = import.meta.glob('../../content/blogs/*.md', {
   eager: true,
 }) as Record<string, string>;
 
-console.log('[blogs] Loaded blog modules:', Object.keys(blogsModules));
-
 // Parse all blogs at module load time
 const allBlogs: Blog[] = Object.entries(blogsModules).map(([filepath, content]) => {
-  console.log('[blogs] Processing file:', filepath);
 
   // Extract slug from filepath (e.g., "../../content/blogs/introducing-otterai.md" -> "introducing-otterai")
   const filename = filepath.split('/').pop() || '';
@@ -107,8 +104,6 @@ const allBlogs: Blog[] = Object.entries(blogsModules).map(([filepath, content]) 
 
 // Sort blogs by date (newest first)
 allBlogs.sort((a, b) => new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime());
-
-console.log('[blogs] Parsed blogs:', allBlogs.map((b) => b.slug));
 
 /**
  * Get all available blog posts
@@ -148,7 +143,6 @@ export function getAllTags(): string[] {
 export function getBlogBySlug(slug: string): Blog | null {
   const blog = allBlogs.find((b) => b.slug === slug);
   if (!blog) {
-    console.log('[blogs] Blog not found for slug:', slug);
     return null;
   }
   return blog;
