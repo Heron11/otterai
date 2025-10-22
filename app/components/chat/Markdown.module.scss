@@ -9,23 +9,32 @@ $code-font-size: 13px;
 
 .MarkdownContent {
   line-height: 1.6;
-  color: var(--bolt-elements-textPrimary);
+  color: inherit; /* Inherit color from parent container */
+  
+  /* Fallback to bolt-elements color if no parent color is set */
+  &:not([style*="color"]) {
+    color: var(--bolt-elements-textPrimary);
+  }
   
   /* Ensure text is always visible in both light and dark modes */
   @media (prefers-color-scheme: light) {
-    color: #1f2937; /* gray-800 - dark text for light mode */
+    &:not([style*="color"]) {
+      color: #1f2937; /* gray-800 - dark text for light mode */
+    }
   }
   
   @media (prefers-color-scheme: dark) {
-    color: #ffffff; /* white text for dark mode */
+    &:not([style*="color"]) {
+      color: #ffffff; /* white text for dark mode */
+    }
   }
   
   /* Override with theme-specific colors when data-theme is set */
-  :root[data-theme='light'] & {
+  :root[data-theme='light'] &:not([style*="color"]) {
     color: #1f2937; /* gray-800 */
   }
   
-  :root[data-theme='dark'] & {
+  :root[data-theme='dark'] &:not([style*="color"]) {
     color: #ffffff; /* white */
   }
 
@@ -96,6 +105,7 @@ $code-font-size: 13px;
   p {
     white-space: pre-wrap;
     color: inherit; /* Inherit from parent .MarkdownContent */
+    margin: 0; /* Reset default margins for better control */
 
     &:not(:last-of-type) {
       margin-block-start: 0;

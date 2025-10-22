@@ -30,6 +30,10 @@ const MessageItem = memo(({
   
   // Check if user message has images to adjust bubble styling
   const hasImages = isUserMessage && Array.isArray(content) && content.some(c => c.type === 'image');
+  
+  // Determine content characteristics for dynamic styling
+  const isShortText = isUserMessage && typeof content === 'string' && content.length < 50;
+  const isLongText = isUserMessage && typeof content === 'string' && content.length > 200;
 
   return (
     <div
@@ -41,12 +45,12 @@ const MessageItem = memo(({
         // User message - right aligned with background
         <div className="flex justify-end">
           <div className={classNames(
-            'max-w-[80%] bg-bolt-elements-messages-background shadow-sm',
+            'max-w-[80%] bg-bolt-elements-messages-background shadow-sm text-bolt-elements-textPrimary',
             {
-              // Rounded pill shape for text-only messages
-              'rounded-full px-6 py-3': !hasImages,
-              // Rounded card shape for messages with images
-              'rounded-2xl px-4 py-4': hasImages,
+              // Dynamic corner radius based on content
+              'rounded-3xl px-4 py-3': hasImages || isLongText, // More rectangular for complex content
+              'rounded-2xl px-5 py-3': !hasImages && !isShortText && !isLongText, // Medium radius for normal text
+              'rounded-full px-6 py-3': !hasImages && isShortText, // Pill shape only for very short text
             }
           )}>
             <UserMessage content={content} />
@@ -55,7 +59,7 @@ const MessageItem = memo(({
       ) : (
         // AI message - left aligned, transparent background
         <div className="flex justify-start">
-          <div className={classNames('max-w-[90%] px-4 py-3', {
+          <div className={classNames('max-w-[90%] px-4 py-3 text-bolt-elements-textPrimary', {
             'bg-transparent': !isStreaming || (isStreaming && !isLast),
             'bg-gradient-to-b from-transparent from-30% to-transparent': isStreaming && isLast,
           })}>

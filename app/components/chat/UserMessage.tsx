@@ -34,7 +34,7 @@ export const UserMessage = memo(({ content }: UserMessageProps) => {
   }, [content]);
   
   return (
-    <div className="overflow-hidden w-full">
+    <div className="w-full">
       {/* Show images if any */}
       {hasImages && (
         <div className="flex flex-wrap gap-2 mb-3">
@@ -43,7 +43,7 @@ export const UserMessage = memo(({ content }: UserMessageProps) => {
               key={idx}
               src={img.image}
               alt="Uploaded"
-              className="rounded-xl max-w-full h-auto object-contain shadow-md"
+              className="rounded-lg max-w-full h-auto object-contain shadow-sm border border-gray-200 dark:border-gray-700"
               style={{ maxHeight: '300px' }}
             />
           ))}
@@ -52,7 +52,7 @@ export const UserMessage = memo(({ content }: UserMessageProps) => {
       
       {/* Show text */}
       {textContent && (
-        <div className="break-words whitespace-pre-wrap">
+        <div className="break-words whitespace-pre-wrap leading-relaxed text-bolt-elements-textPrimary">
           <Markdown limitedMarkdown>{textContent}</Markdown>
         </div>
       )}
