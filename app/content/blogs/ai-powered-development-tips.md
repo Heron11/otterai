@@ -1,7 +1,7 @@
 ---
 title: 10 Tips for Getting the Most Out of AI-Powered Development
 description: Learn how to write better prompts and work more effectively with AI coding assistants to build amazing applications faster.
-author: Sarah Chen
+author: OtterAI Team
 date: 2025-01-20
 tags: [Tips & Tricks, AI, Best Practices]
 featured: true

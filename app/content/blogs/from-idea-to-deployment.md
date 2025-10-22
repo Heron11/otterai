@@ -1,7 +1,7 @@
 ---
 title: From Idea to Deployment in 30 Minutes
 description: A real-world case study showing how OtterAI helped a startup founder launch their MVP in record time without writing a single line of code.
-author: Michael Rodriguez
+author: OtterAI Team
 date: 2025-01-25
 tags: [Case Study, Tutorial, Success Stories]
 featured: false
