@@ -212,6 +212,71 @@ export async function listProjectFiles(
 }
 
 /**
+ * Copy all files from one project to another
+ * Used for creating snapshots and cloning projects
+ */
+export async function copyProjectFiles(
+  bucket: R2Bucket,
+  sourceR2Path: string,
+  targetR2Path: string
+): Promise<{ success: boolean; copied: number; failed: number }> {
+  try {
+    // Ensure paths end with /
+    const sourcePath = sourceR2Path.endsWith('/') ? sourceR2Path : `${sourceR2Path}/`;
+    const targetPath = targetR2Path.endsWith('/') ? targetR2Path : `${targetR2Path}/`;
+    
+    // List all files in source
+    const listed = await bucket.list({ prefix: sourcePath });
+    
+    if (listed.objects.length === 0) {
+      return { success: true, copied: 0, failed: 0 };
+    }
+    
+    // Copy each file
+    const results = await Promise.allSettled(
+      listed.objects.map(async (obj) => {
+        const content = await bucket.get(obj.key);
+        if (!content) {
+          throw new Error(`Failed to read ${obj.key}`);
+        }
+        
+        // Calculate new key
+        const relativePath = obj.key.substring(sourcePath.length);
+        const newKey = `${targetPath}${relativePath}`;
+        
+        // Copy with metadata
+        await bucket.put(newKey, await content.arrayBuffer(), {
+          httpMetadata: obj.httpMetadata,
+          customMetadata: {
+            ...obj.customMetadata,
+            copiedFrom: obj.key,
+            copiedAt: new Date().toISOString(),
+          },
+        });
+        
+        return true;
+      })
+    );
+    
+    const copied = results.filter((r) => r.status === 'fulfilled').length;
+    const failed = results.length - copied;
+    
+    return {
+      success: failed === 0,
+      copied,
+      failed,
+    };
+  } catch (error) {
+    console.error('Error copying project files:', error);
+    return {
+      success: false,
+      copied: 0,
+      failed: 0,
+    };
+  }
+}
+
+/**
  * Get content type from file extension
  */
 function getContentType(filePath: string): string {

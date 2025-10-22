@@ -25,6 +25,9 @@ CREATE INDEX IF NOT EXISTS idx_access_logs_user ON project_access_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_access_logs_type ON project_access_logs(access_type);
 CREATE INDEX IF NOT EXISTS idx_access_logs_created ON project_access_logs(created_at);
 
+-- Add visibility column for public/private projects
+ALTER TABLE projects ADD COLUMN visibility TEXT DEFAULT 'private';
+
 -- Add view_count and clone_count if they don't exist
 -- (These might already exist from previous migrations)
 ALTER TABLE projects ADD COLUMN view_count INTEGER DEFAULT 0;

@@ -16,7 +16,7 @@ import { cubicEasingFn } from '~/utils/easings';
 import { renderLogger } from '~/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
-import { VisibilityToggle } from './VisibilityToggle';
+import { PublishToggle } from './PublishToggle';
 import { ViewOnlyBanner } from './ViewOnlyBanner';
 import { chatId } from '~/lib/persistence';
 import { syncProjectToServer } from '~/lib/services/project-sync.client';
@@ -214,9 +214,9 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                   <div className={isSaving ? "i-ph:circle-notch animate-spin" : "i-ph:floppy-disk-duotone"} />
                   {isSaving ? 'Saving...' : 'Save Project'}
                 </PanelHeaderButton>
-                <VisibilityToggle 
+                <PublishToggle 
                   projectId={currentChatId}
-                  currentVisibility="private" // TODO: Get from project data
+                  isPublished={false} // TODO: Get from project data
                 />
                 <IconButton
                   icon="i-ph:x-circle"
