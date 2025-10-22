@@ -9,6 +9,8 @@ import { Workbench } from '~/components/workbench/Workbench.client';
 import { classNames } from '~/utils/classNames';
 import { Messages } from './Messages.client';
 import { SendButton } from './SendButton.client';
+import { VoiceButton } from './VoiceButton';
+import { useVoiceInput } from '~/lib/hooks/useVoiceInput';
 
 import styles from './BaseChat.module.scss';
 
@@ -271,6 +273,14 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       setSelectedModel(model);
     }, []);
 
+    // Voice input functionality
+    const { isRecording, isSupported, toggleRecording } = useVoiceInput({
+      onTranscript: (text) => {
+        setInput?.(text);
+      },
+      language: 'en-US',
+    });
+
     return (
       <div
         ref={ref}
@@ -349,6 +359,14 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     placeholder="Describe what you want to build..."
                     translate="no"
                   />
+                  {/* Recording Indicator */}
+                  {isRecording && (
+                    <div className="absolute bottom-full left-4 mb-2 px-3 py-1.5 bg-red-500 text-white text-xs rounded-full shadow-lg animate-pulse flex items-center gap-2">
+                      <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+                      Recording... Click mic to stop
+                    </div>
+                  )}
+                  
                   <ClientOnly>
                     {() => (
                       <SendButton
@@ -366,7 +384,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     )}
                   </ClientOnly>
                   <div className="flex justify-between items-center text-sm p-3 md:p-5 pt-2">
-                    <div className="flex gap-1 items-center">
+                    <div className="flex gap-2 items-center">
                       <IconButton
                         title="Enhance prompt"
                         disabled={input.length === 0 || enhancingPrompt}
@@ -389,6 +407,14 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                           </>
                         )}
                       </IconButton>
+                      
+                      {/* Voice Input Button */}
+                      <VoiceButton
+                        isRecording={isRecording}
+                        isSupported={isSupported}
+                        onClick={toggleRecording}
+                        disabled={isStreaming}
+                      />
                     </div>
                     
                           <div className="flex items-center gap-3">
