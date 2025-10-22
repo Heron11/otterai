@@ -11,7 +11,7 @@ export function Header() {
   return (
     <header
       className={classNames(
-        'flex items-center bg-bolt-elements-background-depth-1 p-5 border-b h-[var(--header-height)]',
+        'sticky top-0 z-50 flex items-center bg-bolt-elements-background-depth-1 p-5 border-b h-[var(--header-height)]',
         {
           'border-transparent': !chat.started,
           'border-bolt-elements-borderColor': chat.started,

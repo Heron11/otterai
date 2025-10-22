@@ -28,7 +28,7 @@ export const FloatingUser = memo(function FloatingUser() {
   }, []);
 
   return (
-    <div className="fixed top-[calc(5rem+var(--beta-banner-height))] left-6 z-50 flex flex-col gap-3">
+    <div className="fixed top-[calc(var(--header-height)+var(--beta-banner-height)+1rem)] left-6 z-50 flex flex-col gap-3">
       {showMenuButton && isAuthenticated && (
         <button
           onClick={handleMenuToggle}

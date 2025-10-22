@@ -9,9 +9,9 @@ export const PlatformNav = memo(function PlatformNav() {
   const isBuildPage = useMemo(() => location.pathname === '/', [location.pathname]);
 
   return (
-    <nav className="border-b border-bolt-elements-borderColor bg-bolt-elements-background-depth-1">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <nav className="border-b border-bolt-elements-borderColor bg-bolt-elements-background-depth-1 h-[var(--header-height)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex items-center justify-between h-full">
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/home" className="flex items-center gap-2">
@@ -28,9 +28,9 @@ export const PlatformNav = memo(function PlatformNav() {
             </Link>
           </div>
 
-          {/* Center nav */}
+          {/* Center nav - positioned identically to logo but centered */}
           {isAuthenticated && (
-            <div className="hidden sm:flex sm:space-x-6 absolute left-1/2 transform -translate-x-1/2">
+            <div className="hidden sm:flex sm:space-x-6 items-center">
               <Link
                 to="/dashboard"
                 className="inline-flex items-center px-1 pt-1 text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
