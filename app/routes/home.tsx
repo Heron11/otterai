@@ -237,7 +237,7 @@ export default function HomePage() {
           </div>
           
           {/* Main Feature Card - Describe */}
-          <div className="relative mb-6 md:mb-10 py-12 md:py-20 px-4 md:px-8 lg:px-16 bg-gradient-to-br from-bg-3/50 to-bg-2/50 dark:from-neutral-900/40 dark:to-neutral-900/20 backdrop-blur-sm overflow-hidden border border-neutral-200 dark:border-neutral-800/60 rounded-2xl md:rounded-[2.5rem] shadow-elevation">
+          <div className="hidden md:block relative mb-6 md:mb-10 py-12 md:py-20 px-4 md:px-8 lg:px-16 bg-gradient-to-br from-bg-3/50 to-bg-2/50 dark:from-neutral-900/40 dark:to-neutral-900/20 backdrop-blur-sm overflow-hidden border border-neutral-200 dark:border-neutral-800/60 rounded-2xl md:rounded-[2.5rem] shadow-elevation">
             {/* Chat messages as background decoration */}
             <div className="absolute top-0 right-0 w-1/2 h-full overflow-hidden">
             <div className="absolute top-0 right-8 left-0 bottom-0 flex flex-col gap-2 overflow-hidden justify-center">
@@ -401,7 +401,7 @@ export default function HomePage() {
             </div>
             
             {/* Deploy Instantly Card */}
-            <div className="w-full md:w-1/2 p-5">
+            <div className="hidden md:block w-full md:w-1/2 p-5">
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
