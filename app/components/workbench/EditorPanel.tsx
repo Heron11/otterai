@@ -164,7 +164,7 @@ export const EditorPanel = memo(
                   </div>
                 )}
               </PanelHeader>
-              <div className="h-full flex-1 overflow-hidden relative">
+              <div className="h-full flex-1 overflow-hidden">
                 <CodeMirrorEditor
                   theme={theme}
                   editable={!isStreaming && editorDocument !== undefined}
@@ -175,23 +175,6 @@ export const EditorPanel = memo(
                   onChange={onEditorChange}
                   onSave={onFileSave}
                 />
-                
-                {/* Floating Clone Button - shows when viewing a public project (view-only) */}
-                {/* TODO: Add logic to check if current user is NOT the owner and project is public */}
-                {false && (
-                  <div className="absolute bottom-4 right-4 z-10">
-                    <button
-                      className="flex items-center gap-2 bg-[#e86b47] hover:bg-[#d45a36] text-white px-4 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all"
-                      onClick={() => {
-                        // TODO: Implement clone functionality
-                        console.log('Clone project');
-                      }}
-                    >
-                      <span>📋</span>
-                      <span>Clone to Edit</span>
-                    </button>
-                  </div>
-                )}
               </div>
             </Panel>
           </PanelGroup>

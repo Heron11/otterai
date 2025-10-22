@@ -16,8 +16,6 @@ import { cubicEasingFn } from '~/utils/easings';
 import { renderLogger } from '~/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
-import { PublishToggle } from './PublishToggle';
-import { ViewOnlyBanner } from './ViewOnlyBanner';
 import { chatId } from '~/lib/persistence';
 import { syncProjectToServer } from '~/lib/services/project-sync.client';
 import { useUser } from '@clerk/remix';
@@ -69,7 +67,6 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
   const selectedView = useStore(workbenchStore.currentView);
   const { isSignedIn } = useUser();
   const [isSaving, setIsSaving] = useState(false);
-  const currentChatId = useStore(chatId);
 
   const setSelectedView = (view: WorkbenchViewType) => {
     workbenchStore.currentView.set(view);
@@ -77,6 +74,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
 
   const handleDownloadProject = useCallback(async () => {
     const currentFiles = workbenchStore.files.get();
+    const currentChatId = chatId.get();
     const projectName = workbenchStore.firstArtifact?.title || currentChatId || 'otterai-project';
     
     if (Object.keys(currentFiles).length === 0) {
@@ -93,7 +91,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
       console.error('Failed to download project:', error);
       toast.error('Failed to download project');
     }
-  }, [currentChatId]);
+  }, []);
 
   const handleSaveProject = useCallback(async () => {
     if (!isSignedIn) {
@@ -101,6 +99,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
       return;
     }
 
+    const currentChatId = chatId.get();
     const currentFiles = workbenchStore.files.get();
     const projectName = workbenchStore.firstArtifact?.title || 'Untitled Project';
 
@@ -132,7 +131,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
     } finally {
       setIsSaving(false);
     }
-  }, [isSignedIn, currentChatId]);
+  }, [isSignedIn]);
 
   useEffect(() => {
     if (hasPreview) {
@@ -214,10 +213,6 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                   <div className={isSaving ? "i-ph:circle-notch animate-spin" : "i-ph:floppy-disk-duotone"} />
                   {isSaving ? 'Saving...' : 'Save Project'}
                 </PanelHeaderButton>
-                <PublishToggle 
-                  projectId={currentChatId}
-                  isPublished={false} // TODO: Get from project data
-                />
                 <IconButton
                   icon="i-ph:x-circle"
                   className="-mr-1"
@@ -227,16 +222,6 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                   }}
                 />
               </div>
-              
-              {/* View-Only Banner - shows when viewing someone else's public project */}
-              {/* TODO: Add logic to check if current user is NOT the owner and project is public */}
-              {false && (
-                <ViewOnlyBanner 
-                  projectId={currentChatId || ''} 
-                  projectName={workbenchStore.firstArtifact?.title || 'this project'}
-                />
-              )}
-              
               <div className="relative flex-1 overflow-hidden">
                 <View
                   initial={{ x: selectedView === 'code' ? 0 : '-100%' }}

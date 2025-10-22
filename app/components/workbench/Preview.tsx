@@ -112,28 +112,9 @@ export const Preview = memo(() => {
           />
         )}
       </div>
-      <div className="flex-1 border-t border-bolt-elements-borderColor relative">
+      <div className="flex-1 border-t border-bolt-elements-borderColor">
         {activePreview ? (
-          <>
-            <iframe ref={iframeRef} className="border-none w-full h-full bg-white" src={iframeUrl} />
-            
-            {/* Floating Clone Button - shows when viewing a public project (view-only) */}
-            {/* TODO: Add logic to check if current user is NOT the owner and project is public */}
-            {false && (
-              <div className="absolute bottom-4 right-4 z-10">
-                <button
-                  className="flex items-center gap-2 bg-[#e86b47] hover:bg-[#d45a36] text-white px-4 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all"
-                  onClick={() => {
-                    // TODO: Implement clone functionality
-                    console.log('Clone project');
-                  }}
-                >
-                  <span>📋</span>
-                  <span>Clone to Edit</span>
-                </button>
-              </div>
-            )}
-          </>
+          <iframe ref={iframeRef} className="border-none w-full h-full bg-white" src={iframeUrl} />
         ) : (
           <div className="flex w-full h-full justify-center items-center bg-white">No preview available</div>
         )}

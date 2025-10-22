@@ -12,15 +12,13 @@ import { json } from '@remix-run/cloudflare';
  * GET /api/projects/:projectId/files
  * Load all files for a project from R2
  */
-export async function loader(loaderArgs: LoaderFunctionArgs) {
-  const { params, context, request } = loaderArgs;
+export async function loader({ params, context, ...args }: LoaderFunctionArgs) {
   // Import server-only modules inside the function
-  const { getOptionalUserId } = await import('~/lib/.server/auth/clerk.server');
-  const { getDatabase } = await import('~/lib/.server/db/client');
-  const { checkProjectAccess, logProjectAccess } = await import('~/lib/.server/projects/access-control');
+  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase, queryFirst } = await import('~/lib/.server/db/client');
   const { getProjectFiles } = await import('~/lib/.server/storage/r2');
 
-  const userId = await getOptionalUserId(loaderArgs);
+  const auth = await requireAuth(args);
   const { projectId } = params;
 
   if (!projectId) {
@@ -30,39 +28,26 @@ export async function loader(loaderArgs: LoaderFunctionArgs) {
   const db = getDatabase(context.cloudflare.env);
   const bucket = context.cloudflare.env.R2_BUCKET;
 
-  // Check access permissions
-  const access = await checkProjectAccess(db, projectId, userId || undefined);
+  // Verify user owns this project
+  const project = await queryFirst<{ user_id: string }>(
+    db,
+    'SELECT user_id FROM projects WHERE id = ? AND user_id = ?',
+    projectId,
+    auth.userId
+  );
 
-  if (!access.canView) {
-    return json({ error: 'Access denied' }, { status: 403 });
+  if (!project) {
+    return json({ error: 'Project not found' }, { status: 404 });
   }
 
   // Load files from R2
   const files = await getProjectFiles(bucket, projectId);
-
-  // Log the view action
-  await logProjectAccess(
-    db,
-    projectId,
-    userId,
-    'view',
-    request.headers.get('x-forwarded-for') || undefined,
-    request.headers.get('user-agent') || undefined
-  );
 
   return json({
     success: true,
     projectId,
     files,
     count: Object.keys(files).length,
-    access: {
-      canEdit: access.canEdit,
-      canClone: access.canClone,
-      isOwner: access.isOwner,
-      isCloned: access.isCloned,
-      clonedProjectId: access.clonedProjectId,
-      accessType: access.accessType
-    }
   });
 }
 
@@ -70,15 +55,13 @@ export async function loader(loaderArgs: LoaderFunctionArgs) {
  * POST /api/projects/:projectId/files
  * Save/update files for a project
  */
-export async function action(actionArgs: ActionFunctionArgs) {
-  const { request, params, context } = actionArgs;
+export async function action({ request, params, context, ...args }: ActionFunctionArgs) {
   // Import server-only modules inside the function
   const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
-  const { getDatabase, queryFirst, execute } = await import('~/lib/.server/db/client');
-  const { checkProjectAccess, logProjectAccess } = await import('~/lib/.server/projects/access-control');
-  const { saveFiles, copyProjectFiles } = await import('~/lib/.server/storage/r2');
+  const { getDatabase, queryFirst } = await import('~/lib/.server/db/client');
+  const { saveFiles } = await import('~/lib/.server/storage/r2');
 
-  const auth = await requireAuth(actionArgs);
+  const auth = await requireAuth(args);
   const { projectId } = params;
 
   if (!projectId) {
@@ -94,15 +77,16 @@ export async function action(actionArgs: ActionFunctionArgs) {
   const db = getDatabase(context.cloudflare.env);
   const bucket = context.cloudflare.env.R2_BUCKET;
 
-  // Check edit permissions
-  const access = await checkProjectAccess(db, projectId, auth.userId);
+  // Verify user owns this project
+  const project = await queryFirst<{ user_id: string; id: string }>(
+    db,
+    'SELECT id, user_id FROM projects WHERE id = ? AND user_id = ?',
+    projectId,
+    auth.userId
+  );
 
-  if (!access.canEdit) {
-    return json({ 
-      error: 'Edit access denied. Clone the project to make changes.',
-      code: 'EDIT_ACCESS_DENIED',
-      canClone: access.canClone
-    }, { status: 403 });
+  if (!project) {
+    return json({ error: 'Project not found' }, { status: 404 });
   }
 
   // Save files to R2
@@ -113,50 +97,6 @@ export async function action(actionArgs: ActionFunctionArgs) {
       { error: 'Failed to save some files', ...result },
       { status: 500 }
     );
-  }
-
-  // Log the edit action
-  await logProjectAccess(
-    db,
-    projectId,
-    auth.userId,
-    'edit',
-    request.headers.get('x-forwarded-for') || undefined,
-    request.headers.get('user-agent') || undefined
-  );
-
-  // ===== AUTO-SYNC TO PUBLISHED SNAPSHOT =====
-  // If this project is published, sync changes to the public snapshot
-  const projectInfo = await queryFirst<{ 
-    is_published: boolean; 
-    published_snapshot_id: string | null;
-    r2_path: string;
-  }>(
-    db,
-    'SELECT is_published, published_snapshot_id, r2_path FROM projects WHERE id = ?',
-    projectId
-  );
-
-  if (projectInfo?.is_published && projectInfo.published_snapshot_id) {
-    try {
-      // Copy updated files to snapshot
-      const sourceR2Path = projectInfo.r2_path || `projects/${projectId}/`;
-      const snapshotR2Path = `projects/${projectInfo.published_snapshot_id}/`;
-      
-      await copyProjectFiles(bucket, sourceR2Path, snapshotR2Path);
-      
-      // Update snapshot's updated_at timestamp
-      await execute(
-        db,
-        'UPDATE projects SET updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        projectInfo.published_snapshot_id
-      );
-      
-      console.log(`✅ Auto-synced to published snapshot: ${projectInfo.published_snapshot_id}`);
-    } catch (syncError) {
-      console.error('Failed to sync to published snapshot:', syncError);
-      // Don't fail the save if sync fails, just log it
-    }
   }
 
   // Update file index in D1
@@ -180,31 +120,26 @@ export async function action(actionArgs: ActionFunctionArgs) {
     projectId
   );
 
-  // Index each file in D1 (if project_files table exists)
-  try {
-    for (const [filePath, content] of Object.entries(files)) {
-      const fileSize = new Blob([content]).size;
-      const r2Key = `projects/${projectId}/${filePath.startsWith('/') ? filePath.slice(1) : filePath}`;
+  // Index each file in D1
+  for (const [filePath, content] of Object.entries(files)) {
+    const fileSize = new Blob([content]).size;
+    const r2Key = getFileKey(projectId, filePath);
 
-      await execute(
-        db,
-        `INSERT INTO project_files (project_id, user_id, file_path, r2_key, file_size, content_type, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-         ON CONFLICT(project_id, file_path) DO UPDATE SET
-           file_size = excluded.file_size,
-           r2_key = excluded.r2_key,
-           updated_at = CURRENT_TIMESTAMP`,
-        projectId,
-        auth.userId,
-        filePath,
-        r2Key,
-        fileSize,
-        getContentType(filePath)
-      );
-    }
-  } catch (fileIndexError) {
-    // Table might not exist yet, ignore
-    console.log('File indexing skipped:', fileIndexError);
+    await execute(
+      db,
+      `INSERT INTO project_files (project_id, user_id, file_path, r2_key, file_size, content_type, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+       ON CONFLICT(project_id, file_path) DO UPDATE SET
+         file_size = excluded.file_size,
+         r2_key = excluded.r2_key,
+         updated_at = CURRENT_TIMESTAMP`,
+      projectId,
+      auth.userId,
+      filePath,
+      r2Key,
+      fileSize,
+      getContentType(filePath)
+    );
   }
 
   return json({
@@ -213,7 +148,6 @@ export async function action(actionArgs: ActionFunctionArgs) {
     saved: result.saved,
     failed: result.failed,
     totalSize,
-    synced: projectInfo?.is_published ? true : false,
   });
 }
 
