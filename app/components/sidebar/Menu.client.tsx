@@ -106,13 +106,22 @@ export function Menu() {
   }, []);
 
   return (
-    <motion.div
-      ref={menuRef}
-      initial="closed"
-      animate={open ? 'open' : 'closed'}
-      variants={menuVariants}
-      className="flex flex-col side-menu fixed top-0 w-[350px] h-full bg-bolt-elements-background-depth-2 border-r rounded-r-3xl border-bolt-elements-borderColor z-sidebar shadow-xl shadow-bolt-elements-sidebar-dropdownShadow text-sm"
-    >
+    <>
+      {/* Backdrop for mobile */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[996] md:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
+      
+      <motion.div
+        ref={menuRef}
+        initial="closed"
+        animate={open ? 'open' : 'closed'}
+        variants={menuVariants}
+        className="flex flex-col side-menu fixed top-0 w-[280px] md:w-[350px] h-full bg-bolt-elements-background-depth-2 border-r rounded-r-3xl border-bolt-elements-borderColor z-sidebar shadow-xl shadow-bolt-elements-sidebar-dropdownShadow text-sm"
+      >
       <div className="flex items-center h-[var(--header-height)]">{/* Placeholder */}</div>
       <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
         <div className="p-4">
@@ -174,5 +183,6 @@ export function Menu() {
         </div>
       </div>
     </motion.div>
+    </>
   );
 }
