@@ -69,6 +69,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
   const selectedView = useStore(workbenchStore.currentView);
   const { isSignedIn } = useUser();
   const [isSaving, setIsSaving] = useState(false);
+  const currentChatId = useStore(chatId);
 
   const setSelectedView = (view: WorkbenchViewType) => {
     workbenchStore.currentView.set(view);
@@ -76,7 +77,6 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
 
   const handleDownloadProject = useCallback(async () => {
     const currentFiles = workbenchStore.files.get();
-    const currentChatId = chatId.get();
     const projectName = workbenchStore.firstArtifact?.title || currentChatId || 'otterai-project';
     
     if (Object.keys(currentFiles).length === 0) {
@@ -93,7 +93,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
       console.error('Failed to download project:', error);
       toast.error('Failed to download project');
     }
-  }, []);
+  }, [currentChatId]);
 
   const handleSaveProject = useCallback(async () => {
     if (!isSignedIn) {
@@ -101,7 +101,6 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
       return;
     }
 
-    const currentChatId = chatId.get();
     const currentFiles = workbenchStore.files.get();
     const projectName = workbenchStore.firstArtifact?.title || 'Untitled Project';
 
@@ -133,7 +132,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
     } finally {
       setIsSaving(false);
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, currentChatId]);
 
   useEffect(() => {
     if (hasPreview) {
