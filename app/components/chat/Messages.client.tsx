@@ -26,35 +26,38 @@ export const Messages = React.forwardRef<HTMLDivElement, MessagesProps>((props: 
             return (
               <div
                 key={index}
-                className={classNames('flex gap-4 p-6 w-full rounded-[calc(0.75rem-1px)]', {
-                  'bg-bolt-elements-messages-background border-l-4 border-[#e86b47]': isUserMessage,
-                  'bg-bolt-elements-messages-background': !isUserMessage && (!isStreaming || (isStreaming && !isLast)),
-                  'bg-gradient-to-b from-bolt-elements-messages-background from-30% to-transparent':
-                    isStreaming && isLast && !isUserMessage,
+                className={classNames('w-full', {
                   'mt-4': !isFirst,
                 })}
               >
                 {isUserMessage ? (
-                  <div className="flex items-center justify-center w-[34px] h-[34px] overflow-hidden bg-white dark:bg-neutral-700 rounded-full shrink-0 self-start">
-                    <svg className="w-5 h-5 text-[#e86b47]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                  // User message - right aligned with background
+                  <div className="flex justify-end">
+                    <div className="max-w-[80%] bg-bolt-elements-messages-background rounded-2xl px-4 py-3 shadow-sm">
+                      <UserMessage content={content} />
+                    </div>
                   </div>
                 ) : (
-                  <div className="w-[34px] h-[34px] shrink-0 self-start">
-                    <img src="/lightmodeavatar.svg" alt="AI" className="w-full h-full dark:hidden" />
-                    <img src="/darkmodeavatar.svg" alt="AI" className="w-full h-full hidden dark:block" />
+                  // AI message - left aligned, transparent background
+                  <div className="flex justify-start">
+                    <div className={classNames('max-w-[90%] px-4 py-3', {
+                      'bg-transparent': !isStreaming || (isStreaming && !isLast),
+                      'bg-gradient-to-b from-transparent from-30% to-transparent': isStreaming && isLast,
+                    })}>
+                      <AssistantMessage content={content} />
+                    </div>
                   </div>
                 )}
-                <div className="grid grid-col-1 w-full">
-                  {isUserMessage ? <UserMessage content={content} /> : <AssistantMessage content={content} />}
-                </div>
               </div>
             );
           })
         : null}
       {isStreaming && (
-        <div className="text-center w-full text-[#e86b47] i-svg-spinners:3-dots-fade text-4xl mt-4"></div>
+        <div className="flex justify-start mt-4">
+          <div className="max-w-[90%] px-4 py-3">
+            <div className="text-[#e86b47] i-svg-spinners:3-dots-fade text-2xl"></div>
+          </div>
+        </div>
       )}
     </div>
   );
