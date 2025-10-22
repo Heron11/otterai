@@ -10,6 +10,24 @@ $code-font-size: 13px;
 .MarkdownContent {
   line-height: 1.6;
   color: var(--bolt-elements-textPrimary);
+  
+  /* Ensure text is always visible in both light and dark modes */
+  @media (prefers-color-scheme: light) {
+    color: #1f2937; /* gray-800 - dark text for light mode */
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    color: #ffffff; /* white text for dark mode */
+  }
+  
+  /* Override with theme-specific colors when data-theme is set */
+  :root[data-theme='light'] & {
+    color: #1f2937; /* gray-800 */
+  }
+  
+  :root[data-theme='dark'] & {
+    color: #ffffff; /* white */
+  }
 
   > *:not(:last-child) {
     margin-block-end: 16px;
@@ -26,6 +44,23 @@ $code-font-size: 13px;
       font-weight: 600;
       line-height: 1.25;
       color: var(--bolt-elements-textPrimary);
+      
+      /* Ensure headings are always visible */
+      @media (prefers-color-scheme: light) {
+        color: #111827; /* gray-900 - darker for headings in light mode */
+      }
+      
+      @media (prefers-color-scheme: dark) {
+        color: #ffffff; /* white for headings in dark mode */
+      }
+      
+      :root[data-theme='light'] & {
+        color: #111827; /* gray-900 */
+      }
+      
+      :root[data-theme='dark'] & {
+        color: #ffffff; /* white */
+      }
     }
   }
 
@@ -60,6 +95,7 @@ $code-font-size: 13px;
 
   p {
     white-space: pre-wrap;
+    color: inherit; /* Inherit from parent .MarkdownContent */
 
     &:not(:last-of-type) {
       margin-block-start: 0;
@@ -108,6 +144,23 @@ $code-font-size: 13px;
     padding: 0 1em;
     color: var(--bolt-elements-textTertiary);
     border-left: 0.25em solid #e86b47;
+    
+    /* Ensure blockquote text is visible */
+    @media (prefers-color-scheme: light) {
+      color: #6b7280; /* gray-500 for light mode */
+    }
+    
+    @media (prefers-color-scheme: dark) {
+      color: #d1d5db; /* gray-300 for dark mode */
+    }
+    
+    :root[data-theme='light'] & {
+      color: #6b7280; /* gray-500 */
+    }
+    
+    :root[data-theme='dark'] & {
+      color: #d1d5db; /* gray-300 */
+    }
   }
 
   :is(ul, ol) {
@@ -132,6 +185,8 @@ $code-font-size: 13px;
 
   li {
     @include not-inside-actions {
+      color: inherit; /* Inherit from parent .MarkdownContent */
+      
       & + li {
         margin-block-start: 8px;
       }
