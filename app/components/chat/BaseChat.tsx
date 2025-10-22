@@ -155,11 +155,11 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               })}
             >
               {!chatStarted && isBuildPage && (
-                <div id="intro" className="max-w-chat mx-auto px-4 mb-8">
-                  <h1 className="text-5xl md:text-6xl text-center font-bold text-bolt-elements-textPrimary mb-4 tracking-tight">
+                <div id="intro" className="max-w-chat mx-auto px-4 mb-6 md:mb-8">
+                  <h1 className="text-3xl sm:text-4xl md:text-6xl text-center font-bold text-bolt-elements-textPrimary mb-3 md:mb-4 tracking-tight">
                     Build anything, instantly
                   </h1>
-                  <p className="mb-0 text-center text-bolt-elements-textSecondary text-lg">
+                  <p className="mb-0 text-center text-bolt-elements-textSecondary text-base md:text-lg">
                     Describe your vision and watch Otter create full-stack applications in real-time.
                   </p>
                 </div>
@@ -183,7 +183,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               >
                 <div
                   className={classNames(
-                    'bg-white/80 dark:bg-white/15 backdrop-blur-sm border border-gray-200 dark:border-white/30 rounded-2xl overflow-hidden transition-all duration-200 shadow-sm',
+                    'bg-white/80 dark:bg-white/15 backdrop-blur-sm border border-gray-200 dark:border-white/30 rounded-xl md:rounded-2xl overflow-hidden transition-all duration-200 shadow-sm',
                     {
                       'ring-2 ring-[#e86b47]/50': input.length > 0,
                     }
@@ -191,7 +191,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 >
                   <textarea
                     ref={textareaRef}
-                    className={`w-full pl-5 pt-5 pr-16 focus:outline-none resize-none text-md text-bolt-elements-textPrimary placeholder:text-bolt-elements-textTertiary dark:placeholder:text-white/50 bg-transparent`}
+                    className={`w-full pl-4 md:pl-5 pt-4 md:pt-5 pr-14 md:pr-16 focus:outline-none resize-none text-sm md:text-md text-bolt-elements-textPrimary placeholder:text-bolt-elements-textTertiary dark:placeholder:text-white/50 bg-transparent`}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') {
                         if (event.shiftKey) {
@@ -230,7 +230,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                       />
                     )}
                   </ClientOnly>
-                  <div className="flex justify-between items-center text-sm p-5 pt-2">
+                  <div className="flex justify-between items-center text-sm p-3 md:p-5 pt-2">
                     <div className="flex gap-1 items-center">
                       <IconButton
                         title="Enhance prompt"
@@ -261,7 +261,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                               <button
                                 ref={buttonRef}
                                 onClick={() => setModelPickerOpen(!modelPickerOpen)}
-                                className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 hover:border-[#e86b47]/50 hover:bg-[#e86b47]/5 transition-all duration-200 group"
+                                className="flex items-center gap-1.5 md:gap-2.5 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 hover:border-[#e86b47]/50 hover:bg-[#e86b47]/5 transition-all duration-200 group"
                               >
                                 <div 
                                   className="w-2 h-2 rounded-full shadow-sm" 
@@ -270,7 +270,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                                     boxShadow: `0 0 8px ${selectedModel.color}40`
                                   }}
                                 ></div>
-                                <span className="text-xs font-medium text-bolt-elements-textTertiary dark:text-white/60 group-hover:text-[#e86b47] transition-colors">
+                                <span className="text-xs font-medium text-bolt-elements-textTertiary dark:text-white/60 group-hover:text-[#e86b47] transition-colors hidden sm:inline">
                                   {selectedModel.name}
                                 </span>
                                 <svg 
@@ -360,23 +360,23 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 
                 {/* Prompt Examples */}
                 {!chatStarted && isBuildPage && (
-                  <div id="examples" className="mt-8 mb-6">
-                    <div className="text-center mb-4">
-                      <p className="text-sm text-bolt-elements-textSecondary dark:text-white/70">
+                  <div id="examples" className="mt-6 md:mt-8 mb-4 md:mb-6">
+                    <div className="text-center mb-3 md:mb-4">
+                      <p className="text-xs md:text-sm text-bolt-elements-textSecondary dark:text-white/70">
                         Not sure where to start? Try one of these:
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-3 justify-center max-w-4xl mx-auto">
+                    <div className="flex flex-wrap gap-2 md:gap-3 justify-center max-w-4xl mx-auto">
                       {PROMPT_EXAMPLES.map((example, index) => (
                         <button
                           key={index}
                           onClick={() => setInput?.(example.prompt)}
-                          className="flex items-center gap-3 px-5 py-3 bg-white/80 dark:bg-white/15 border border-gray-200 dark:border-white/30 hover:border-[#e86b47]/50 dark:hover:border-[#e86b47]/50 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-[#e86b47]/20 group backdrop-blur-sm hover:bg-[#e86b47]/5 dark:hover:bg-[#e86b47]/10"
+                          className="flex items-center gap-2 md:gap-3 px-3 md:px-5 py-2 md:py-3 bg-white/80 dark:bg-white/15 border border-gray-200 dark:border-white/30 hover:border-[#e86b47]/50 dark:hover:border-[#e86b47]/50 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-[#e86b47]/20 group backdrop-blur-sm hover:bg-[#e86b47]/5 dark:hover:bg-[#e86b47]/10"
                         >
                           <div className="text-[#e86b47]/80 dark:text-[#e86b47]/70 group-hover:text-[#e86b47] transition-colors duration-300 group-hover:scale-110">
                             {example.icon}
                           </div>
-                          <span className="text-sm font-medium text-gray-700 dark:text-white/80 group-hover:text-[#e86b47] transition-colors duration-300">
+                          <span className="text-xs md:text-sm font-medium text-gray-700 dark:text-white/80 group-hover:text-[#e86b47] transition-colors duration-300">
                             {example.title}
                           </span>
                         </button>
