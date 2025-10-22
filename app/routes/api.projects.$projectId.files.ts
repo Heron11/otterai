@@ -14,11 +14,12 @@ import { json } from '@remix-run/cloudflare';
  */
 export async function loader({ params, context, ...args }: LoaderFunctionArgs) {
   // Import server-only modules inside the function
-  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
-  const { getDatabase, queryFirst } = await import('~/lib/.server/db/client');
+  const { getOptionalUserId } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase } = await import('~/lib/.server/db/client');
+  const { checkProjectAccess, logProjectAccess } = await import('~/lib/.server/projects/access-control');
   const { getProjectFiles } = await import('~/lib/.server/storage/r2');
 
-  const auth = await requireAuth(args);
+  const userId = await getOptionalUserId(args);
   const { projectId } = params;
 
   if (!projectId) {
@@ -28,26 +29,39 @@ export async function loader({ params, context, ...args }: LoaderFunctionArgs) {
   const db = getDatabase(context.cloudflare.env);
   const bucket = context.cloudflare.env.R2_BUCKET;
 
-  // Verify user owns this project
-  const project = await queryFirst<{ user_id: string }>(
-    db,
-    'SELECT user_id FROM projects WHERE id = ? AND user_id = ?',
-    projectId,
-    auth.userId
-  );
+  // Check access permissions
+  const access = await checkProjectAccess(db, projectId, userId);
 
-  if (!project) {
-    return json({ error: 'Project not found' }, { status: 404 });
+  if (!access.canView) {
+    return json({ error: 'Access denied' }, { status: 403 });
   }
 
   // Load files from R2
   const files = await getProjectFiles(bucket, projectId);
+
+  // Log the view action
+  await logProjectAccess(
+    db,
+    projectId,
+    userId,
+    'view',
+    args.request.headers.get('x-forwarded-for') || undefined,
+    args.request.headers.get('user-agent') || undefined
+  );
 
   return json({
     success: true,
     projectId,
     files,
     count: Object.keys(files).length,
+    access: {
+      canEdit: access.canEdit,
+      canClone: access.canClone,
+      isOwner: access.isOwner,
+      isCloned: access.isCloned,
+      clonedProjectId: access.clonedProjectId,
+      accessType: access.accessType
+    }
   });
 }
 
@@ -58,7 +72,8 @@ export async function loader({ params, context, ...args }: LoaderFunctionArgs) {
 export async function action({ request, params, context, ...args }: ActionFunctionArgs) {
   // Import server-only modules inside the function
   const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
-  const { getDatabase, queryFirst } = await import('~/lib/.server/db/client');
+  const { getDatabase } = await import('~/lib/.server/db/client');
+  const { checkProjectAccess, logProjectAccess } = await import('~/lib/.server/projects/access-control');
   const { saveFiles } = await import('~/lib/.server/storage/r2');
 
   const auth = await requireAuth(args);
@@ -77,16 +92,15 @@ export async function action({ request, params, context, ...args }: ActionFuncti
   const db = getDatabase(context.cloudflare.env);
   const bucket = context.cloudflare.env.R2_BUCKET;
 
-  // Verify user owns this project
-  const project = await queryFirst<{ user_id: string; id: string }>(
-    db,
-    'SELECT id, user_id FROM projects WHERE id = ? AND user_id = ?',
-    projectId,
-    auth.userId
-  );
+  // Check edit permissions
+  const access = await checkProjectAccess(db, projectId, auth.userId);
 
-  if (!project) {
-    return json({ error: 'Project not found' }, { status: 404 });
+  if (!access.canEdit) {
+    return json({ 
+      error: 'Edit access denied. Clone the project to make changes.',
+      code: 'EDIT_ACCESS_DENIED',
+      canClone: access.canClone
+    }, { status: 403 });
   }
 
   // Save files to R2
@@ -98,6 +112,16 @@ export async function action({ request, params, context, ...args }: ActionFuncti
       { status: 500 }
     );
   }
+
+  // Log the edit action
+  await logProjectAccess(
+    db,
+    projectId,
+    auth.userId,
+    'edit',
+    request.headers.get('x-forwarded-for') || undefined,
+    request.headers.get('user-agent') || undefined
+  );
 
   // Update file index in D1
   const totalSize = Object.values(files).reduce(

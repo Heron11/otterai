@@ -16,6 +16,8 @@ import { cubicEasingFn } from '~/utils/easings';
 import { renderLogger } from '~/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
+import { VisibilityToggle } from './VisibilityToggle';
+import { ViewOnlyBanner } from './ViewOnlyBanner';
 import { chatId } from '~/lib/persistence';
 import { syncProjectToServer } from '~/lib/services/project-sync.client';
 import { useUser } from '@clerk/remix';
@@ -213,6 +215,10 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                   <div className={isSaving ? "i-ph:circle-notch animate-spin" : "i-ph:floppy-disk-duotone"} />
                   {isSaving ? 'Saving...' : 'Save Project'}
                 </PanelHeaderButton>
+                <VisibilityToggle 
+                  projectId={currentChatId}
+                  currentVisibility="private" // TODO: Get from project data
+                />
                 <IconButton
                   icon="i-ph:x-circle"
                   className="-mr-1"
@@ -222,6 +228,16 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                   }}
                 />
               </div>
+              
+              {/* View-Only Banner - shows when viewing someone else's public project */}
+              {/* TODO: Add logic to check if current user is NOT the owner and project is public */}
+              {false && (
+                <ViewOnlyBanner 
+                  projectId={currentChatId || ''} 
+                  projectName={workbenchStore.firstArtifact?.title || 'this project'}
+                />
+              )}
+              
               <div className="relative flex-1 overflow-hidden">
                 <View
                   initial={{ x: selectedView === 'code' ? 0 : '-100%' }}
