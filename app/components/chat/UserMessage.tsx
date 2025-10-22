@@ -2,16 +2,60 @@ import { memo, useMemo } from 'react';
 import { modificationsRegex } from '~/utils/diff';
 import { Markdown } from './Markdown';
 
+type ContentBlock = {
+  type: 'text' | 'image';
+  text?: string;
+  image?: string; // data URL format: data:image/jpeg;base64,xxx
+};
+
 interface UserMessageProps {
-  content: string;
+  content: string | ContentBlock[];
 }
 
 export const UserMessage = memo(({ content }: UserMessageProps) => {
-  const sanitizedContent = useMemo(() => sanitizeUserMessage(content), [content]);
+  const { textContent, images, hasImages } = useMemo(() => {
+    if (typeof content === 'string') {
+      return { 
+        textContent: sanitizeUserMessage(content), 
+        images: [] as ContentBlock[],
+        hasImages: false
+      };
+    }
+
+    // Multimodal content - separate text and images
+    const textParts = content.filter(c => c.type === 'text');
+    const imageParts = content.filter(c => c.type === 'image');
+    
+    return {
+      textContent: sanitizeUserMessage(textParts.map(c => c.text || '').join('\n')),
+      images: imageParts,
+      hasImages: imageParts.length > 0
+    };
+  }, [content]);
   
   return (
-    <div className="overflow-hidden break-words whitespace-pre-wrap">
-      <Markdown limitedMarkdown>{sanitizedContent}</Markdown>
+    <div className="overflow-hidden w-full">
+      {/* Show images if any */}
+      {hasImages && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {images.map((img, idx) => (
+            <img
+              key={idx}
+              src={img.image}
+              alt="Uploaded"
+              className="rounded-xl max-w-full h-auto object-contain shadow-md"
+              style={{ maxHeight: '300px' }}
+            />
+          ))}
+        </div>
+      )}
+      
+      {/* Show text */}
+      {textContent && (
+        <div className="break-words whitespace-pre-wrap">
+          <Markdown limitedMarkdown>{textContent}</Markdown>
+        </div>
+      )}
     </div>
   );
 });

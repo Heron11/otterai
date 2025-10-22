@@ -11,6 +11,7 @@ import { Messages } from './Messages.client';
 import { SendButton } from './SendButton.client';
 import { VoiceButton } from './VoiceButton';
 import { useVoiceInput } from '~/lib/hooks/useVoiceInput';
+import { ImageUploadButton, type UploadedImage } from './ImageUploadButton';
 
 import styles from './BaseChat.module.scss';
 
@@ -79,6 +80,9 @@ interface BaseChatProps {
   sendMessage?: (event: React.UIEvent, messageInput?: string) => void;
   handleInputChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
   enhancePrompt?: () => void;
+  uploadedImages?: UploadedImage[];
+  onImagesSelected?: (images: UploadedImage[]) => void;
+  onRemoveImage?: (index: number) => void;
 }
 
 const EXAMPLE_PROMPTS = [
@@ -238,6 +242,9 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       handleInputChange,
       enhancePrompt,
       handleStop,
+      uploadedImages = [],
+      onImagesSelected,
+      onRemoveImage,
     },
     ref,
   ) => {
@@ -334,6 +341,34 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     }
                   )}
                 >
+                  {/* Image Previews */}
+                  {uploadedImages && uploadedImages.length > 0 && (
+                    <div className="px-4 pt-3 pb-2 flex flex-wrap gap-2 border-b border-gray-200 dark:border-white/20">
+                      {uploadedImages.map((image, index) => (
+                        <div 
+                          key={index}
+                          className="relative group rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-600 hover:border-[#e86b47] transition-all duration-200"
+                        >
+                          <img
+                            src={`data:${image.mimeType};base64,${image.data}`}
+                            alt={image.name}
+                            className="h-20 w-20 object-cover"
+                          />
+                          <button
+                            onClick={() => onRemoveImage?.(index)}
+                            className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                            title="Remove image"
+                          >
+                            ×
+                          </button>
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs px-1 py-0.5 truncate">
+                            {image.name}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
                   <textarea
                     ref={textareaRef}
                     className={`w-full pl-4 md:pl-5 pt-4 md:pt-5 pr-14 md:pr-16 focus:outline-none resize-none text-sm md:text-md text-bolt-elements-textPrimary placeholder:text-bolt-elements-textTertiary dark:placeholder:text-white/50 bg-transparent`}
@@ -414,6 +449,13 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         isSupported={isSupported}
                         onClick={toggleRecording}
                         disabled={isStreaming}
+                      />
+                      
+                      {/* Image Upload Button */}
+                      <ImageUploadButton
+                        onImagesSelected={onImagesSelected!}
+                        disabled={isStreaming}
+                        maxImages={5}
                       />
                     </div>
                     

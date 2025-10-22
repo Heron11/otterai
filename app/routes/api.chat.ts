@@ -59,6 +59,9 @@ async function chatAction(args: ActionFunctionArgs) {
   const stream = new SwitchableStream();
 
   try {
+    // Log the incoming messages for debugging
+    console.log('Received messages:', JSON.stringify(messages, null, 2));
+
     const options: StreamingOptions = {
       toolChoice: 'none',
       onFinish: async ({ text: content, finishReason }) => {
@@ -94,11 +97,18 @@ async function chatAction(args: ActionFunctionArgs) {
       },
     });
   } catch (error) {
-    console.log(error);
+    console.error('Chat API Error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
 
-    throw new Response(null, {
+    throw new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'Internal Server Error',
+      stack: error instanceof Error ? error.stack : undefined 
+    }), {
       status: 500,
       statusText: 'Internal Server Error',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
   }
 }

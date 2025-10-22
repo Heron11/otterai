@@ -16,6 +16,7 @@ import { SignInModal } from '~/components/auth/SignInModal';
 import { BaseChat } from './BaseChat';
 import { syncProjectToServer } from '~/lib/services/project-sync.client';
 import { useSearchParams } from '@remix-run/react';
+import type { UploadedImage } from './ImageUploadButton';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -76,6 +77,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
 
   const [chatStarted, setChatStarted] = useState(initialMessages.length > 0);
 
@@ -185,6 +187,14 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     workbenchStore.abortAllActions();
   }, [stop]);
 
+  const handleImagesSelected = useCallback((images: UploadedImage[]) => {
+    setUploadedImages(prev => [...prev, ...images]);
+  }, []);
+
+  const handleRemoveImage = useCallback((index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
   useEffect(() => {
     const textarea = textareaRef.current;
 
@@ -261,33 +271,50 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
     runAnimation();
 
-    if (fileModifications !== undefined) {
+    // Build message content - support both text and multimodal
+    let messageContent: any = _input;
+    
+    if (uploadedImages.length > 0) {
+      // Convert to multimodal format for Claude API
+      const contentParts: any[] = [];
+      
+      // Add images first (Claude expects image-then-text structure)
+      uploadedImages.forEach(img => {
+        contentParts.push({
+          type: 'image',
+          image: `data:${img.mimeType};base64,${img.data}`, // Full data URL format
+        });
+      });
+      
+      // Add text with file modifications if any
+      const textContent = fileModifications 
+        ? `${fileModificationsToHTML(fileModifications)}\n\n${_input}`
+        : _input;
+      
+      contentParts.push({
+        type: 'text',
+        text: textContent,
+      });
+      
+      messageContent = contentParts;
+      
+      if (fileModifications !== undefined) {
+        workbenchStore.resetAllFileModifications();
+      }
+    } else if (fileModifications !== undefined) {
       const diff = fileModificationsToHTML(fileModifications);
-
-      /**
-       * If we have file modifications we append a new user message manually since we have to prefix
-       * the user input with the file modifications and we don't want the new user input to appear
-       * in the prompt. Using `append` is almost the same as `handleSubmit` except that we have to
-       * manually reset the input and we'd have to manually pass in file attachments. However, those
-       * aren't relevant here.
-       */
-      append({ role: 'user', content: `${diff}\n\n${_input}` });
-
-      /**
-       * After sending a new message we reset all modifications since the model
-       * should now be aware of all the changes.
-       */
+      messageContent = `${diff}\n\n${_input}`;
       workbenchStore.resetAllFileModifications();
-    } else {
-      append({ role: 'user', content: _input });
     }
 
+    append({ role: 'user', content: messageContent });
+
+    // Clear images and input after sending
+    setUploadedImages([]);
     setInput('');
-
     resetEnhancer();
-
     textareaRef.current?.blur();
-  }, [input, isLoading, isLoaded, isAuthenticated, append, setInput, resetEnhancer, runAnimation]);
+  }, [input, isLoading, isLoaded, isAuthenticated, append, setInput, resetEnhancer, runAnimation, uploadedImages]);
 
   const [messageRef, scrollRef] = useSnapScroll();
 
@@ -336,6 +363,9 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
         handleStop={abort}
         messages={processedMessages}
         enhancePrompt={handleEnhancePrompt}
+        uploadedImages={uploadedImages}
+        onImagesSelected={handleImagesSelected}
+        onRemoveImage={handleRemoveImage}
       />
       
       <SignInModal 

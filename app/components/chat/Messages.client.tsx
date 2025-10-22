@@ -27,6 +27,9 @@ const MessageItem = memo(({
 }) => {
   const { role, content } = message;
   const isUserMessage = role === 'user';
+  
+  // Check if user message has images to adjust bubble styling
+  const hasImages = isUserMessage && Array.isArray(content) && content.some(c => c.type === 'image');
 
   return (
     <div
@@ -37,7 +40,15 @@ const MessageItem = memo(({
       {isUserMessage ? (
         // User message - right aligned with background
         <div className="flex justify-end">
-          <div className="max-w-[80%] bg-bolt-elements-messages-background rounded-full px-6 py-3 shadow-sm flex items-center">
+          <div className={classNames(
+            'max-w-[80%] bg-bolt-elements-messages-background shadow-sm',
+            {
+              // Rounded pill shape for text-only messages
+              'rounded-full px-6 py-3': !hasImages,
+              // Rounded card shape for messages with images
+              'rounded-2xl px-4 py-4': hasImages,
+            }
+          )}>
             <UserMessage content={content} />
           </div>
         </div>

@@ -11,9 +11,18 @@ interface ToolResult<Name extends string, Args, Result> {
   result: Result;
 }
 
+// Support both simple string content and multimodal content (text + images)
+type MessageContent = 
+  | string 
+  | Array<{
+      type: 'text' | 'image';
+      text?: string;
+      image?: string;
+    }>;
+
 interface Message {
   role: 'user' | 'assistant';
-  content: string;
+  content: MessageContent;
   toolInvocations?: ToolResult<string, unknown, unknown>[];
 }
 
@@ -26,7 +35,7 @@ export function streamText(messages: Messages, env: Env, options?: StreamingOpti
     model: getAnthropicModel(getAPIKey(env)),
     system: getSystemPrompt(),
     maxTokens: MAX_TOKENS,
-    messages: convertToCoreMessages(messages),
+    messages: convertToCoreMessages(messages as any),
     ...options,
   });
 }
