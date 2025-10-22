@@ -138,7 +138,7 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  className="font-heading mb-6 md:mb-10 text-4xl md:text-7xl lg:text-8xl xl:text-[6.5rem] text-text-primary dark:text-white tracking-tighter leading-tight px-4"
+                  className="font-heading mb-4 md:mb-10 text-3xl sm:text-4xl md:text-7xl lg:text-8xl xl:text-[6.5rem] text-text-primary dark:text-white tracking-tighter leading-tight px-4"
                 >
                   What should we build today?
                 </motion.h1>
@@ -233,7 +233,7 @@ export default function HomePage() {
         <div className="container px-4 mx-auto">
           <div className="mb-12 md:mb-20 md:max-w-xl text-center mx-auto relative">
             <span className="inline-block mb-3 md:mb-4 text-xs md:text-sm text-[#e86b47] font-medium tracking-tight">How It Works</span>
-            <h2 className="font-heading text-4xl md:text-7xl lg:text-8xl text-text-primary dark:text-white tracking-tighter px-4">From idea to production</h2>
+            <h2 className="font-heading text-3xl sm:text-4xl md:text-7xl lg:text-8xl text-text-primary dark:text-white tracking-tighter px-4">From idea to production</h2>
           </div>
           
           {/* Main Feature Card - Describe */}
@@ -467,7 +467,7 @@ export default function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="font-heading text-7xl lg:text-8xl text-text-primary dark:text-white tracking-tighter"
+              className="font-heading text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-text-primary dark:text-white tracking-tighter px-4"
             >
               Start with proven designs
             </motion.h2>
@@ -486,11 +486,11 @@ export default function HomePage() {
                 <div className="text-8xl mb-6 opacity-30">📁</div>
                 <div className="absolute inset-0 bg-[#e86b47]/10 rounded-full blur-2xl"></div>
               </div>
-              <p className="text-text-secondary dark:text-white/70 text-lg mb-6">
+              <p className="text-text-secondary dark:text-white/70 text-base md:text-lg mb-6 px-4">
                 No public templates available yet. Be the first to share a project!
               </p>
-              <div className="inline-flex items-center gap-2 px-6 py-3 bg-[#e86b47]/10 dark:bg-[#e86b47]/20 border border-[#e86b47]/20 rounded-full">
-                <span className="text-[#e86b47] text-sm font-medium">Create your first project to get started</span>
+              <div className="inline-flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-[#e86b47]/10 dark:bg-[#e86b47]/20 border border-[#e86b47]/20 rounded-full">
+                <span className="text-[#e86b47] text-xs md:text-sm font-medium">Create your first project to get started</span>
               </div>
             </motion.div>
           ) : (
@@ -552,7 +552,7 @@ export default function HomePage() {
             
             <div className="text-center md:max-w-2xl mx-auto relative z-20">
               <span className="inline-block mb-4 text-sm text-white font-medium tracking-tight">Get Started</span>
-              <h2 className="font-heading mb-6 text-7xl lg:text-8xl text-white tracking-tighter">
+              <h2 className="font-heading mb-6 text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-white tracking-tighter px-4">
                 Ready to build something amazing?
               </h2>
               <p className="mb-8 text-white/90 text-lg max-w-xl mx-auto">
