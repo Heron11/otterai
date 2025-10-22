@@ -25,28 +25,49 @@ export async function action({ request, params, context, ...args }: ActionFuncti
 
   const db = getDatabase(context.cloudflare.env);
 
-  // Verify user owns this project
-  const project = await queryFirst<{ user_id: string }>(
+  // Look up project by ID or chat ID (for backward compatibility)
+  let project = await queryFirst<{ id: string; user_id: string }>(
     db,
-    'SELECT user_id FROM projects WHERE id = ? AND user_id = ?',
+    'SELECT id, user_id FROM projects WHERE id = ? AND user_id = ?',
     projectId,
     auth.userId
   );
+
+  // If not found by ID, try by chat ID
+  if (!project) {
+    project = await queryFirst<{ id: string; user_id: string }>(
+      db,
+      'SELECT id, user_id FROM projects WHERE chat_id = ? AND user_id = ?',
+      projectId,
+      auth.userId
+    );
+  }
 
   if (!project) {
     return json({ error: 'Project not found or access denied' }, { status: 404 });
   }
 
-  // Update visibility
-  const result = await execute(
-    db,
-    'UPDATE projects SET visibility = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-    visibility,
-    projectId
-  );
+  const actualProjectId = project.id;
 
-  if (!result.success) {
-    return json({ error: 'Failed to update visibility' }, { status: 500 });
+  // Update visibility
+  try {
+    const result = await execute(
+      db,
+      'UPDATE projects SET visibility = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      visibility,
+      actualProjectId
+    );
+
+    if (!result.success) {
+      console.error('Database update failed:', result);
+      return json({ error: 'Failed to update visibility in database' }, { status: 500 });
+    }
+  } catch (error) {
+    console.error('Visibility update error:', error);
+    return json({ 
+      error: 'Database error while updating visibility',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 
   return json({ 
