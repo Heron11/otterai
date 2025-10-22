@@ -77,7 +77,7 @@ export default function DocPage() {
               <img
                 src="/lightmodelogonew.svg"
                 alt="OtterAI"
-                className="h-8"
+                style={{ width: '90px', height: 'auto' }}
               />
             </a>
             <a

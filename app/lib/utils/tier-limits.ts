@@ -74,13 +74,14 @@ export const getTierFeatures = (tier: UserTier): string[] => {
   
   features.push(limits.projects === -1 ? 'Unlimited projects' : `Up to ${limits.projects} projects`);
   
-  if (limits.templates === 'all') {
-    features.push('Access to all templates');
-  } else if (limits.templates === 'basic') {
-    features.push('Access to Plus templates');
-  } else {
-    features.push('Access to Free templates');
-  }
+  // Templates feature removed - not implemented yet
+  // if (limits.templates === 'all') {
+  //   features.push('Access to all templates');
+  // } else if (limits.templates === 'basic') {
+  //   features.push('Access to Plus templates');
+  // } else {
+  //   features.push('Access to Free templates');
+  // }
   
   features.push(
     limits.support === 'priority' ? 'Priority support' : 

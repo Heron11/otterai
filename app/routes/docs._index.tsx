@@ -61,7 +61,7 @@ export default function DocsIndexPage() {
               <img
                 src="/lightmodelogonew.svg"
                 alt="OtterAI"
-                className="h-8"
+                style={{ width: '90px', height: 'auto' }}
               />
             </Link>
             <Link
