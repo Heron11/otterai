@@ -71,7 +71,7 @@ export default function BlogPostPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
+      <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-2">
@@ -89,12 +89,14 @@ export default function BlogPostPage() {
 
       {/* Cover Image */}
       {blog.metadata.coverImage && (
-        <div className="w-full h-[400px] bg-gradient-to-br from-[#e86b47]/20 to-[#d45a36]/20 overflow-hidden">
+        <div className="relative w-full h-[500px] bg-gradient-to-br from-[#e86b47]/20 to-[#d45a36]/20 overflow-hidden">
           <img
             src={blog.metadata.coverImage}
             alt={blog.metadata.title}
             className="w-full h-full object-cover"
           />
+          {/* Gradient overlay for better text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent"></div>
         </div>
       )}
 
@@ -104,43 +106,60 @@ export default function BlogPostPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 lg:p-12"
+          className="bg-white rounded-3xl border-2 border-slate-200 shadow-xl shadow-slate-200/50 p-8 lg:p-16 relative overflow-hidden"
         >
+          {/* Decorative corner accent */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#e86b47]/5 to-transparent rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-slate-100 to-transparent rounded-full blur-3xl"></div>
+          
           {/* Meta Info */}
-          <div className="mb-8">
-            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600 mb-6">
-              <span className="font-medium text-[#e86b47]">{blog.metadata.author}</span>
-              <span>•</span>
-              <time dateTime={blog.metadata.date}>
+          <div className="mb-10 relative z-10">
+            <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-slate-600 mb-8">
+              <div className="flex items-center gap-2 px-3 py-1 bg-[#e86b47]/10 rounded-full">
+                <svg className="w-4 h-4 text-[#e86b47]" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[#e86b47] font-semibold">{blog.metadata.author}</span>
+              </div>
+              <span className="text-slate-400">•</span>
+              <time dateTime={blog.metadata.date} className="flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
                 {new Date(blog.metadata.date).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                 })}
               </time>
-              <span>•</span>
-              <span>{readingTime} min read</span>
+              <span className="text-slate-400">•</span>
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {readingTime} min read
+              </span>
             </div>
 
             {/* Title */}
-            <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6 leading-tight">
+            <h1 className="text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6 leading-[1.1] tracking-tight">
               {blog.metadata.title}
             </h1>
 
             {/* Description */}
-            <p className="text-xl text-slate-600 leading-relaxed mb-6">
+            <p className="text-xl lg:text-2xl text-slate-600 leading-relaxed mb-8 font-light">
               {blog.metadata.description}
             </p>
 
             {/* Tags */}
             {blog.metadata.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 pt-4 border-t-2 border-slate-100">
                 {blog.metadata.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1 bg-slate-100 text-slate-700 text-sm rounded-full font-medium"
+                    className="px-4 py-2 bg-gradient-to-r from-slate-100 to-slate-50 text-slate-700 text-sm rounded-full font-semibold hover:from-[#e86b47]/10 hover:to-[#e86b47]/5 hover:text-[#e86b47] transition-all duration-300 border border-slate-200"
                   >
-                    {tag}
+                    #{tag}
                   </span>
                 ))}
               </div>
@@ -148,11 +167,11 @@ export default function BlogPostPage() {
           </div>
 
           {/* Article Content */}
-          <div className="markdown-content">
+          <div className="markdown-content relative z-10">
             <style dangerouslySetInnerHTML={{__html: `
               .markdown-content {
-                font-size: 18px;
-                line-height: 1.8;
+                font-size: 19px;
+                line-height: 1.9;
                 color: #475569;
               }
               
@@ -391,34 +410,45 @@ export default function BlogPostPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-16"
+            className="mt-20"
           >
-            <h2 className="text-3xl font-bold text-slate-900 mb-8">Related Posts</h2>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="h-1 w-12 bg-gradient-to-r from-[#e86b47] to-[#d45a36] rounded-full"></div>
+              <h2 className="text-3xl font-bold text-slate-900">Related Articles</h2>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {relatedPosts.map((post) => (
                 <Link
                   key={post.slug}
                   to={`/blog/${post.slug}`}
-                  className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all duration-300"
+                  className="group bg-white rounded-2xl border-2 border-slate-200 overflow-hidden hover:shadow-2xl hover:shadow-[#e86b47]/20 hover:border-[#e86b47]/30 transition-all duration-500 hover:-translate-y-2"
                 >
                   {post.metadata.coverImage ? (
-                    <div className="aspect-video bg-gradient-to-br from-[#e86b47]/20 to-[#d45a36]/20 overflow-hidden">
+                    <div className="aspect-video bg-gradient-to-br from-[#e86b47]/20 to-[#d45a36]/20 overflow-hidden relative">
                       <img
                         src={post.metadata.coverImage}
                         alt={post.metadata.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     </div>
                   ) : (
-                    <div className="aspect-video bg-gradient-to-br from-[#e86b47]/20 to-[#d45a36]/20 flex items-center justify-center">
-                      <span className="text-4xl opacity-50">📝</span>
+                    <div className="aspect-video bg-gradient-to-br from-[#e86b47]/20 to-[#d45a36]/20 flex items-center justify-center relative overflow-hidden">
+                      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
+                      <span className="text-4xl opacity-40 group-hover:scale-110 transition-transform duration-500 relative z-10">📝</span>
                     </div>
                   )}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-slate-900 mb-2 group-hover:text-[#e86b47] transition-colors line-clamp-2">
+                  <div className="p-5">
+                    <h3 className="font-bold text-slate-900 mb-2 group-hover:text-[#e86b47] transition-colors line-clamp-2 leading-tight">
                       {post.metadata.title}
                     </h3>
-                    <p className="text-sm text-slate-600 line-clamp-2">{post.metadata.description}</p>
+                    <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">{post.metadata.description}</p>
+                    <div className="flex items-center gap-2 mt-3 text-[#e86b47] font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span>Read more</span>
+                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </div>
                   </div>
                 </Link>
               ))}
@@ -429,4 +459,5 @@ export default function BlogPostPage() {
     </div>
   );
 }
+
 
