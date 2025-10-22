@@ -1,25 +1,53 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { BETA_BANNER_ENABLED, BETA_BANNER_HEIGHT } from '~/config/banner';
 
 export function BetaBanner() {
   const [isVisible, setIsVisible] = useState(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Check if user has dismissed the banner in this session
     const dismissed = sessionStorage.getItem('beta-banner-dismissed');
-    setIsVisible(!dismissed);
+    setIsVisible(BETA_BANNER_ENABLED && !dismissed);
   }, []);
+
+  useEffect(() => {
+    // Update CSS variable when banner visibility changes
+    const updateBannerHeight = () => {
+      if (!BETA_BANNER_ENABLED) {
+        document.documentElement.style.setProperty('--beta-banner-height', '0px');
+        return;
+      }
+      
+      if (bannerRef.current) {
+        const height = isVisible ? `${bannerRef.current.offsetHeight}px` : '0px';
+        document.documentElement.style.setProperty('--beta-banner-height', height);
+      } else if (isVisible) {
+        // Fallback to configured height if ref is not available
+        document.documentElement.style.setProperty('--beta-banner-height', `${BETA_BANNER_HEIGHT}px`);
+      } else {
+        document.documentElement.style.setProperty('--beta-banner-height', '0px');
+      }
+    };
+
+    updateBannerHeight();
+    
+    // Update on window resize
+    window.addEventListener('resize', updateBannerHeight);
+    return () => window.removeEventListener('resize', updateBannerHeight);
+  }, [isVisible]);
 
   const handleDismiss = () => {
     setIsVisible(false);
     sessionStorage.setItem('beta-banner-dismissed', 'true');
   };
 
-  if (!isVisible) {
+  if (!BETA_BANNER_ENABLED || !isVisible) {
     return null;
   }
 
   return (
-    <div className="bg-[#e86b47]/10 border-b border-[#e86b47]/20 px-4 py-2.5 relative">
+    <div ref={bannerRef} className="bg-[#e86b47]/10 border-b border-[#e86b47]/20 px-4 py-2.5 relative">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         <p className="text-sm text-black flex items-center gap-2 flex-1">
           <span className="text-base" role="img" aria-label="warning">

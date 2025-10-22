@@ -22,7 +22,7 @@ export function FloatingUser() {
   };
 
   return (
-    <div className="fixed top-20 left-6 z-50 flex flex-col gap-3">
+    <div className="fixed top-[calc(5rem+var(--beta-banner-height))] left-6 z-50 flex flex-col gap-3">
       {showMenuButton && isAuthenticated && (
         <button
           onClick={() => {

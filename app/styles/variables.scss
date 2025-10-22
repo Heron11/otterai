@@ -217,6 +217,7 @@
  */
 :root {
   --header-height: 54px;
+  --beta-banner-height: 0px; /* Set to 0 when banner is removed, or actual height when present */
   --chat-max-width: 37rem;
   --chat-min-width: 640px;
   --workbench-width: min(calc(100% - var(--chat-min-width)), 1536px);
