@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { Link, useLoaderData } from '@remix-run/react';
 import { motion } from 'framer-motion';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 
 export const meta: MetaFunction = () => {
   return [
@@ -24,6 +24,9 @@ export default function BlogIndexPage() {
   const { blogs, tags } = useLoaderData<typeof loader>();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [visibleBlogs, setVisibleBlogs] = useState(6); // Start with 6 posts
+  const [isLoading, setIsLoading] = useState(false);
+  const observerRef = useRef<HTMLDivElement>(null);
 
   // Filter blogs based on search query and selected tag
   const filteredBlogs = useMemo(() => {
@@ -51,7 +54,38 @@ export default function BlogIndexPage() {
 
   const handleTagClick = (tag: string) => {
     setSelectedTag(selectedTag === tag ? null : tag);
+    setVisibleBlogs(6); // Reset visible blogs when filtering
   };
+
+  // Intersection Observer for lazy loading
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoading) {
+          setIsLoading(true);
+          setTimeout(() => {
+            setVisibleBlogs(prev => Math.min(prev + 6, filteredBlogs.length));
+            setIsLoading(false);
+          }, 300); // Small delay for smooth loading
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [filteredBlogs.length, isLoading]);
+
+  // Reset visible blogs when search/filter changes
+  useEffect(() => {
+    setVisibleBlogs(6);
+  }, [searchQuery, selectedTag]);
+
+  const displayedBlogs = filteredBlogs.slice(0, visibleBlogs);
+  const hasMoreBlogs = visibleBlogs < filteredBlogs.length;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -131,7 +165,7 @@ export default function BlogIndexPage() {
           </div>
         </motion.div>
 
-        {/* Tags */}
+        {/* Tags - Horizontally Scrollable */}
         {tags.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -139,20 +173,35 @@ export default function BlogIndexPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mb-12"
           >
-            <div className="flex flex-wrap gap-2 justify-center">
-              {tags.map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => handleTagClick(tag)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                    selectedTag === tag
-                      ? 'bg-[#e86b47] text-white shadow-lg shadow-[#e86b47]/30'
-                      : 'bg-white border border-slate-200 text-slate-700 hover:border-[#e86b47] hover:text-[#e86b47]'
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
+            <div className="relative">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex gap-2 min-w-max px-1">
+                  {tags.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => handleTagClick(tag)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                        selectedTag === tag
+                          ? 'bg-[#e86b47] text-white shadow-lg shadow-[#e86b47]/30'
+                          : 'bg-white border border-slate-200 text-slate-700 hover:border-[#e86b47] hover:text-[#e86b47]'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Scroll indicator - fade gradient on the right */}
+              <div className="absolute top-0 right-0 bottom-2 w-8 bg-gradient-to-l from-slate-50 to-transparent pointer-events-none"></div>
+              
+              {/* Scroll hint text */}
+              <div className="absolute -bottom-6 right-0 text-xs text-slate-400 flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+                <span>Scroll for more</span>
+              </div>
             </div>
           </motion.div>
         )}
@@ -178,7 +227,7 @@ export default function BlogIndexPage() {
         )}
 
         {/* Blog Posts Grid */}
-        {filteredBlogs.length === 0 ? (
+        {displayedBlogs.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -216,8 +265,9 @@ export default function BlogIndexPage() {
             )}
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredBlogs.map((blog, index) => (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {displayedBlogs.map((blog, index) => (
               <motion.div
                 key={blog.slug}
                 initial={{ opacity: 0, y: 20 }}
@@ -282,8 +332,32 @@ export default function BlogIndexPage() {
                   </div>
                 </Link>
               </motion.div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {/* Loading Indicator and Intersection Observer */}
+            {hasMoreBlogs && (
+              <div ref={observerRef} className="mt-12 text-center">
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2 text-slate-600">
+                    <div className="w-5 h-5 border-2 border-[#e86b47] border-t-transparent rounded-full animate-spin"></div>
+                    <span>Loading more posts...</span>
+                  </div>
+                ) : (
+                  <div className="text-slate-400 text-sm">
+                    Scroll down to load more posts
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Show total count when all posts are loaded */}
+            {!hasMoreBlogs && displayedBlogs.length > 6 && (
+              <div className="mt-8 text-center text-slate-500 text-sm">
+                Showing all {displayedBlogs.length} posts
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

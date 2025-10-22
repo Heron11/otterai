@@ -103,6 +103,7 @@ export default defineConfig({
     'transition-theme': 'transition-[background-color,border-color,color] duration-150 bolt-ease-cubic-bezier',
     kdb: 'bg-bolt-elements-code-background text-bolt-elements-code-text py-1 px-1.5 rounded-md',
     'max-w-chat': 'max-w-[var(--chat-max-width)]',
+    'scrollbar-hide': 'scrollbar-width-none [&::-webkit-scrollbar]:hidden',
   },
   rules: [
     /**
