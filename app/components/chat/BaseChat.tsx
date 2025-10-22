@@ -420,28 +420,33 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   </ClientOnly>
                   <div className="flex justify-between items-center text-sm p-3 md:p-5 pt-2">
                     <div className="flex gap-2 items-center">
-                      <IconButton
+                      {/* Enhance Prompt Button */}
+                      <button
                         title="Enhance prompt"
                         disabled={input.length === 0 || enhancingPrompt}
-                        className={classNames('transition-all duration-200', {
-                          'opacity-100!': enhancingPrompt,
-                          'text-[#e86b47]! pr-1.5 enabled:hover:bg-[#e86b47]/10!':
-                            promptEnhanced,
-                        })}
                         onClick={() => enhancePrompt?.()}
+                        className={classNames(
+                          'flex items-center justify-center gap-1.5 rounded-full transition-all duration-200 px-3 py-1.5',
+                          'bg-bolt-elements-item-backgroundDefault hover:bg-bolt-elements-item-backgroundActive',
+                          'text-bolt-elements-item-contentDefault hover:text-[#e86b47]',
+                          'disabled:opacity-50 disabled:cursor-not-allowed',
+                          {
+                            'text-[#e86b47]': promptEnhanced,
+                          }
+                        )}
                       >
                         {enhancingPrompt ? (
                           <>
-                            <div className="i-svg-spinners:90-ring-with-bg text-[#e86b47] text-xl"></div>
-                            <div className="ml-1.5 text-bolt-elements-textSecondary">Enhancing...</div>
+                            <div className="i-svg-spinners:90-ring-with-bg text-[#e86b47] text-lg"></div>
+                            <span className="text-xs">Enhancing...</span>
                           </>
                         ) : (
                           <>
-                            <div className="i-bolt:stars text-xl"></div>
-                            {promptEnhanced && <div className="ml-1.5 text-[#e86b47]">Enhanced</div>}
+                            <div className="i-bolt:stars text-lg"></div>
+                            {promptEnhanced && <span className="text-xs">Enhanced</span>}
                           </>
                         )}
-                      </IconButton>
+                      </button>
                       
                       {/* Voice Input Button */}
                       <VoiceButton

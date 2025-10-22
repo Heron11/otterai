@@ -101,11 +101,10 @@ export const ImageUploadButton = memo(function ImageUploadButton({
         disabled={disabled || isProcessing}
         title="Upload image (JPG, PNG, GIF, WebP)"
         className={classNames(
-          'transition-all duration-200 rounded-full w-9 h-9 flex items-center justify-center',
-          {
-            'opacity-50 cursor-not-allowed': disabled || isProcessing,
-            'bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/10 hover:border-[#e86b47]/50 hover:bg-[#e86b47]/5 text-bolt-elements-textTertiary dark:text-white/60 hover:text-[#e86b47]': !disabled && !isProcessing,
-          }
+          'flex items-center justify-center w-9 h-9 rounded-full transition-all duration-200',
+          'bg-bolt-elements-item-backgroundDefault hover:bg-bolt-elements-item-backgroundActive',
+          'text-bolt-elements-item-contentDefault hover:text-[#e86b47]',
+          'disabled:opacity-50 disabled:cursor-not-allowed'
         )}
       >
         {isProcessing ? (

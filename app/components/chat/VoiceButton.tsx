@@ -24,10 +24,10 @@ export const VoiceButton = memo(function VoiceButton({
       disabled={disabled}
       title={isRecording ? "Stop recording" : "Start voice input (Click to toggle)"}
       className={classNames(
-        'flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed',
+        'flex items-center justify-center w-9 h-9 rounded-full transition-all duration-200',
         {
-          'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse': isRecording,
-          'bg-bolt-elements-item-backgroundDefault hover:bg-bolt-elements-item-backgroundActive text-bolt-elements-item-contentDefault hover:text-[#e86b47] hover:shadow-md': !isRecording,
+          'bg-red-500 hover:bg-red-600 text-white shadow-lg animate-pulse': isRecording,
+          'bg-bolt-elements-item-backgroundDefault hover:bg-bolt-elements-item-backgroundActive text-bolt-elements-item-contentDefault hover:text-[#e86b47] disabled:opacity-50 disabled:cursor-not-allowed': !isRecording,
         }
       )}
     >
