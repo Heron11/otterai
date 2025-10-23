@@ -20,7 +20,14 @@ export class PreviewsStore {
   }
 
   async #init() {
-    const webcontainer = await this.#webcontainer;
+    let webcontainer: WebContainer | undefined;
+    try {
+      webcontainer = await this.#webcontainer;
+    } catch (err) {
+      // Gracefully degrade if WebContainer is unavailable
+      console.warn('[OtterAI] Previews disabled: WebContainer not available.');
+      return;
+    }
 
     webcontainer.on('port', (port, type, url) => {
       let previewInfo = this.#availablePreviews.get(port);

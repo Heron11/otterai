@@ -114,7 +114,13 @@ export class FilesStore {
   }
 
   async #init() {
-    const webcontainer = await this.#webcontainer;
+    let webcontainer: WebContainer | undefined;
+    try {
+      webcontainer = await this.#webcontainer;
+    } catch (err) {
+      logger.warn('FilesStore disabled: WebContainer not available.');
+      return;
+    }
 
     webcontainer.internal.watchPaths(
       { include: [`${WORK_DIR}/**`], exclude: ['**/node_modules', '.git'], includeContent: true },
