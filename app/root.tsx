@@ -64,37 +64,22 @@ const inlineThemeCode = stripIndents`
 `;
 
 export const loader = (args: LoaderFunctionArgs) => {
-  // Check if environment variables exist
-  // In local development, they're in args.context directly
-  // In production, they're in args.context.cloudflare.env
-  const publishableKey = args.context.CLERK_PUBLISHABLE_KEY || args.context.cloudflare?.env?.CLERK_PUBLISHABLE_KEY;
-  const secretKey = args.context.CLERK_SECRET_KEY || args.context.cloudflare?.env?.CLERK_SECRET_KEY;
-  
-  // Only log critical errors in production
-  if (!publishableKey) {
-    console.error('CLERK_PUBLISHABLE_KEY is missing');
-  }
-  if (!secretKey) {
-    console.error('CLERK_SECRET_KEY is missing');
-  }
-
   return rootAuthLoader(
     args,
     ({ request }) => {
       const { sessionId, userId, sessionClaims } = request.auth;
-      
       return { 
         sessionId, 
         userId, 
         sessionClaims,
         ENV: {
-          CLERK_PUBLISHABLE_KEY: publishableKey,
+          CLERK_PUBLISHABLE_KEY: args.context.CLERK_PUBLISHABLE_KEY,
         },
       };
     },
     {
-      publishableKey: publishableKey,
-      secretKey: secretKey,
+      publishableKey: args.context.CLERK_PUBLISHABLE_KEY,
+      secretKey: args.context.CLERK_SECRET_KEY,
     }
   );
 };
@@ -123,30 +108,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <ScrollRestoration />
       <script
         dangerouslySetInnerHTML={{
-          __html: `window.ENV = ${JSON.stringify(data?.ENV || {})};`,
+          __html: `window.ENV = ${JSON.stringify(data?.ENV || {})}`,
         }}
       />
       <Scripts />
     </>
-  );
-}
-
-export function ErrorBoundary() {
-  return (
-    <html>
-      <head>
-        <title>Oh no!</title>
-        <Meta />
-        <Links />
-      </head>
-      <body>
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          <h1>Something went wrong</h1>
-          <p>Please try refreshing the page.</p>
-        </div>
-        <Scripts />
-      </body>
-    </html>
   );
 }
 
@@ -156,6 +122,30 @@ function App() {
       <BetaBanner />
       <Outlet />
     </>
+  );
+}
+
+export function ErrorBoundary() {
+  return (
+    <html>
+      <head>
+        <title>Oh no!</title>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script dangerouslySetInnerHTML={{ __html: inlineThemeCode }} />
+      </head>
+      <body>
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <h1>Something went wrong</h1>
+          <p>Please try refreshing the page.</p>
+        </div>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = {};`,
+          }}
+        />
+      </body>
+    </html>
   );
 }
 
