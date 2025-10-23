@@ -96,8 +96,9 @@ export const Head = createHead(() => (
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const theme = useStore(themeStore);
-  // Use useRouteLoaderData instead of useLoaderData - it returns undefined in error boundaries
-  const data = useRouteLoaderData<typeof loader>('root');
+  
+  // Use optional chaining - useRouteLoaderData returns undefined in error boundaries
+  const data = useRouteLoaderData<typeof loader>('root') ?? { ENV: {} };
 
   useEffect(() => {
     document.querySelector('html')?.setAttribute('data-theme', theme);
@@ -109,7 +110,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <ScrollRestoration />
       <script
         dangerouslySetInnerHTML={{
-          __html: `window.ENV = ${JSON.stringify(data?.ENV || {})}`,
+          __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
         }}
       />
       <Scripts />
