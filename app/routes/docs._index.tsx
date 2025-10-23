@@ -53,13 +53,13 @@ export default function DocsIndexPage() {
     <div className="min-h-screen bg-slate-50">
       {/* Simple Header */}
       <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-2">
               <img
                 src="/lightmodelogonew.svg"
                 alt="OtterAI"
-                style={{ width: '90px', height: 'auto' }}
+                style={{ width: '72px', height: 'auto' }}
               />
             </Link>
             <Link

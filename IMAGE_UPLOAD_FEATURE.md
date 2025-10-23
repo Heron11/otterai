@@ -208,3 +208,4 @@ Potential improvements:
 - [Vercel AI SDK - Multimodal Messages](https://sdk.vercel.ai/docs/ai-sdk-core/multimodal-messages)
 - [Web File API](https://developer.mozilla.org/en-US/docs/Web/API/File_API)
 
+

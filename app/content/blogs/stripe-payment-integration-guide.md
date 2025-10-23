@@ -451,3 +451,4 @@ Ready to start accepting payments? The sooner you set up Stripe, the sooner you 
 *Need help integrating Stripe into your website? [OtterAI](https://otterai.net) can generate a complete Stripe integration based on your requirements - just describe what you need.*
 
 
+
