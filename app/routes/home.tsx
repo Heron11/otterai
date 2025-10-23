@@ -29,6 +29,7 @@ export default function HomePage() {
   const { featuredTemplates } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
   const [query, setQuery] = useState('');
 
   const placeholderPhrases = useMemo(() => [
@@ -56,7 +57,45 @@ export default function HomePage() {
     adjustTextareaHeight();
   }, []);
 
+  // Idle‑preload featured template thumbnails to avoid decode spikes on scroll
   useEffect(() => {
+    const urls: string[] = (featuredTemplates || [])
+      .map((t: any) => t.thumbnailUrl || t.previewUrl)
+      .filter(Boolean);
+
+    const preload = () => {
+      urls.slice(0, 6).forEach((url) => {
+        const img = new Image();
+        img.decoding = 'async';
+        img.loading = 'eager';
+        img.src = url;
+      });
+    };
+
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(preload, { timeout: 1500 });
+    } else {
+      setTimeout(preload, 600);
+    }
+  }, [featuredTemplates]);
+
+  // Pause the typing effect when hero is not visible to avoid unnecessary re-renders
+  const [isHeroVisible, setIsHeroVisible] = useState(true);
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        setIsHeroVisible(entries[0].isIntersecting);
+      },
+      { threshold: 0.2 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isHeroVisible) return; // throttle when offscreen
     const currentPhrase = placeholderPhrases[currentPlaceholderPhraseIndex];
 
     if (isPlaceholderTyping) {
@@ -82,7 +121,7 @@ export default function HomePage() {
         setIsPlaceholderTyping(true);
       }
     }
-  }, [currentPlaceholderText, currentPlaceholderPhraseIndex, isPlaceholderTyping, placeholderPhrases]);
+  }, [currentPlaceholderText, currentPlaceholderPhraseIndex, isPlaceholderTyping, placeholderPhrases, isHeroVisible]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,13 +142,19 @@ export default function HomePage() {
       </div>
 
       {/* Hero Section - Full viewport height */}
-      <section className="relative overflow-hidden bg-bg-1 dark:bg-black min-h-screen flex items-center justify-center pt-16">
+      <section ref={heroRef} className="relative overflow-hidden bg-bg-1 dark:bg-black min-h-screen flex items-center justify-center pt-16">
         {/* Background Image */}
         <div className="absolute inset-0 w-full h-full">
           <img 
             src="/bgimage.webp" 
-            alt="Background" 
+            alt="" 
+            aria-hidden="true"
             className="w-full h-full object-cover object-center blur-sm"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            width="1920"
+            height="1080"
           />
         </div>
         
@@ -236,144 +281,7 @@ export default function HomePage() {
             <h2 className="font-heading text-3xl sm:text-4xl md:text-7xl lg:text-8xl text-text-primary dark:text-white tracking-tighter px-4">From idea to production</h2>
           </div>
           
-          {/* Main Feature Card - Describe */}
-          <div className="hidden md:block relative mb-6 md:mb-10 py-12 md:py-20 px-4 md:px-8 lg:px-16 bg-gradient-to-br from-bg-3/50 to-bg-2/50 dark:from-neutral-900/40 dark:to-neutral-900/20 backdrop-blur-sm overflow-hidden border border-neutral-200 dark:border-neutral-800/60 rounded-2xl md:rounded-[2.5rem] shadow-elevation">
-            {/* Chat messages as background decoration */}
-            <div className="absolute top-0 right-0 w-1/2 h-full overflow-hidden">
-            <div className="absolute top-0 right-8 left-0 bottom-0 flex flex-col gap-2 overflow-hidden justify-center">
-              {/* User message 1 - will be cut off at top */}
-              <div className="flex justify-end gap-2 items-end">
-                <div className="max-w-[70%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
-                  <p className="text-sm leading-relaxed">
-                    Add authentication with Google and GitHub
-                  </p>
-                </div>
-                <div className="w-7 h-7 mb-1 flex-shrink-0 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-[#e86b47]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* AI message 1 */}
-              <div className="flex justify-start gap-2 items-end">
-                <img src="/lightmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 dark:hidden" />
-                <img src="/darkmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 hidden dark:block" />
-                <div className="max-w-[85%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
-                  <p className="text-sm leading-relaxed">
-                    Done! I've integrated OAuth for both providers with secure session management. Users can now sign in with their preferred method.
-                  </p>
-                </div>
-              </div>
-
-              {/* User message 2 */}
-              <div className="flex justify-end gap-2 items-end">
-                <div className="max-w-[75%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
-                  <p className="text-sm leading-relaxed">
-                    Can you add Stripe for subscription payments?
-                  </p>
-                </div>
-                <div className="w-7 h-7 mb-1 flex-shrink-0 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-[#e86b47]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* AI message 2 */}
-              <div className="flex justify-start gap-2 items-end">
-                <img src="/lightmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 dark:hidden" />
-                <img src="/darkmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 hidden dark:block" />
-                <div className="max-w-[80%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
-                  <p className="text-sm leading-relaxed">
-                    Perfect! Setting up Stripe with three pricing tiers, webhooks for subscription events, and a customer portal for managing billing.
-                  </p>
-                </div>
-              </div>
-
-              {/* User message 3 */}
-              <div className="flex justify-end gap-2 items-end">
-                <div className="max-w-[60%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
-                  <p className="text-sm leading-relaxed">
-                    Make it mobile responsive
-                  </p>
-                </div>
-                <div className="w-7 h-7 mb-1 flex-shrink-0 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-[#e86b47]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* AI message 3 */}
-              <div className="flex justify-start gap-2 items-end">
-                <img src="/lightmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 dark:hidden" />
-                <img src="/darkmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 hidden dark:block" />
-                <div className="max-w-[78%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
-                  <p className="text-sm leading-relaxed">
-                    On it! Implementing responsive breakpoints and touch-optimized UI. Your app will look great on any device.
-                  </p>
-                </div>
-              </div>
-
-              {/* User message 4 */}
-              <div className="flex justify-end gap-2 items-end">
-                <div className="max-w-[55%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
-                  <p className="text-sm leading-relaxed">
-                    Looks amazing! Deploy it
-                  </p>
-                </div>
-                <div className="w-7 h-7 mb-1 flex-shrink-0 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-[#e86b47]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* AI message 4 */}
-              <div className="flex justify-start gap-2 items-end">
-                <img src="/lightmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 dark:hidden" />
-                <img src="/darkmodeavatar.svg" alt="AI" className="w-7 h-7 mb-1 flex-shrink-0 hidden dark:block" />
-                <div className="max-w-[88%] px-5 py-3 bg-white dark:bg-white/10 text-text-primary dark:text-white rounded-3xl rounded-bl-md shadow-sm backdrop-blur-sm border border-white/20 dark:border-white/10">
-                  <p className="text-sm leading-relaxed">
-                    🚀 Deploying to production now! Setting up CI/CD, configuring your domain, and optimizing for performance. You'll be live in moments!
-                  </p>
-                </div>
-              </div>
-
-              {/* User message 5 - will be cut off at bottom */}
-              <div className="flex justify-end gap-2 items-end">
-                <div className="max-w-[85%] px-5 py-3 bg-[#e86b47] text-white rounded-3xl rounded-br-md shadow-sm">
-                  <p className="text-sm leading-relaxed">
-                    Build me a SaaS platform with user dashboards, team collaboration, and real-time analytics
-                  </p>
-                </div>
-                <div className="w-7 h-7 mb-1 flex-shrink-0 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-[#e86b47]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-            </div>
-
-            <div className="max-w-6xl mx-auto">
-              <div className="relative z-10 flex flex-wrap items-center -m-8">
-                <div className="w-full md:w-1/2 p-8">
-                  <div className="max-w-md mx-auto text-center md:text-left">
-                    <h2 className="mb-6 text-7xl text-text-primary dark:text-white tracking-tighter">Describe your vision</h2>
-                    <p className="text-text-tertiary dark:text-white/60 text-lg">Tell OtterAI what you want to build. Be as detailed or as brief as you like - our AI understands both.</p>
-                  </div>
-                </div>
-                {/* Empty right side - messages are now in background */}
-                <div className="w-full md:w-1/2 p-8">
-                </div>
-              </div>
-            </div>
-            {/* Background decorations */}
-            <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#e86b47]/5 dark:bg-[#e86b47]/6 rounded-full blur-3xl"></div>
-            <div className="absolute top-0 right-0 w-56 h-56 bg-[#e86b47]/4 dark:bg-[#e86b47]/5 rounded-full blur-3xl"></div>
-          </div>
+          {/* Removed: Describe your vision card */}
           
           {/* Two Feature Cards */}
           <div className="flex flex-wrap -m-5">
@@ -500,18 +408,12 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 transform-gpu"
               >
-                {featuredTemplates.slice(0, 3).map((template, index) => (
-                  <motion.div
-                    key={template.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.1 + (index * 0.1) }}
-                  >
+                {featuredTemplates.slice(0, 3).map((template) => (
+                  <div key={template.id} className="transform-gpu">
                     <TemplateCard template={template} />
-                  </motion.div>
+                  </div>
                 ))}
               </motion.div>
 
@@ -525,6 +427,7 @@ export default function HomePage() {
               >
                 <Link
                   to="/templates"
+                  prefetch="intent"
                   className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white rounded-full font-medium transition-all duration-300 hover:scale-105"
                 >
                   Browse All Templates

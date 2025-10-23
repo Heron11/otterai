@@ -39,6 +39,7 @@ export const PlatformNav = memo(function PlatformNav() {
               </Link>
               <Link
                 to="/templates"
+                prefetch="intent"
                 className="inline-flex items-center px-1 pt-1 text-sm font-medium text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
               >
                 Templates
@@ -102,6 +103,5 @@ export const PlatformNav = memo(function PlatformNav() {
     </nav>
   );
 });
-
 
 

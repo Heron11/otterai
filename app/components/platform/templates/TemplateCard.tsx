@@ -1,4 +1,5 @@
 import { Link } from '@remix-run/react';
+import { memo } from 'react';
 import type { Template } from '~/lib/types/platform/template';
 import { useSubscription } from '~/lib/hooks/platform/useSubscription';
 
@@ -6,7 +7,7 @@ interface TemplateCardProps {
   template: Template;
 }
 
-export function TemplateCard({ template }: TemplateCardProps) {
+export const TemplateCard = memo(function TemplateCard({ template }: TemplateCardProps) {
   const { canAccessTemplate } = useSubscription();
   const hasAccess = canAccessTemplate(template.requiredTier);
 
@@ -30,6 +31,11 @@ export function TemplateCard({ template }: TemplateCardProps) {
             src={template.thumbnailUrl}
             alt={template.name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
+            width="1600"
+            height="900"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
         <div className="w-full h-full flex items-center justify-center">
@@ -128,7 +134,6 @@ export function TemplateCard({ template }: TemplateCardProps) {
       </div>
     </div>
   );
-}
-
+});
 
 
