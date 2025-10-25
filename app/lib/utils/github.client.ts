@@ -14,8 +14,11 @@ export interface GitHubFile {
 /**
  * Fetch GitHub repository files from client-side
  * This calls our server API endpoint to avoid CORS issues
+ * ONLY REAL FILES - No fallbacks to fake files!
  */
 export async function fetchGithubRepoFiles(githubUrl: string): Promise<GitHubFile[]> {
+  console.log('🔄 Fetching REAL files from GitHub:', githubUrl);
+  
   const response = await fetch('/api/fetch-github-repo', {
     method: 'POST',
     headers: {
@@ -25,85 +28,18 @@ export async function fetchGithubRepoFiles(githubUrl: string): Promise<GitHubFil
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch repository: ${response.statusText}`);
+    const errorText = await response.text();
+    throw new Error(`GitHub fetch failed (${response.status}): ${errorText || response.statusText}`);
   }
 
-  return await response.json();
+  const files = await response.json();
+  
+  if (!Array.isArray(files) || files.length === 0) {
+    throw new Error('No files found in GitHub repository');
+  }
+
+  console.log('✅ Successfully fetched', files.length, 'REAL files from GitHub');
+  return files;
 }
 
-/**
- * Generate fallback files for a template
- */
-export function generateFallbackFiles(template: any): GitHubFile[] {
-  return [
-    {
-      path: 'package.json',
-      content: JSON.stringify({
-        name: template.name.toLowerCase().replace(/\s+/g, '-'),
-        version: '1.0.0',
-        description: template.description,
-        main: 'index.js',
-        scripts: {
-          dev: 'vite',
-          build: 'vite build',
-          start: 'vite preview'
-        },
-        dependencies: {
-          react: '^18.2.0',
-          'react-dom': '^18.2.0'
-        },
-        devDependencies: {
-          vite: '^4.0.0',
-          '@vitejs/plugin-react': '^4.0.0'
-        }
-      }, null, 2),
-      type: 'file'
-    },
-    {
-      path: 'index.html',
-      content: `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${template.name}</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>`,
-      type: 'file'
-    },
-    {
-      path: 'src/main.jsx',
-      content: `import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)`,
-      type: 'file'
-    },
-    {
-      path: 'src/App.jsx',
-      content: `import React from 'react'
-
-function App() {
-  return (
-    <div>
-      <h1>${template.name}</h1>
-      <p>${template.description}</p>
-      <p>Template loaded successfully! Start building your app.</p>
-    </div>
-  )
-}
-
-export default App`,
-      type: 'file'
-    }
-  ];
-}
+// generateFallbackFiles REMOVED - We only use real GitHub files, no fake fallbacks!

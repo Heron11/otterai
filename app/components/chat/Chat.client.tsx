@@ -17,7 +17,7 @@ import { BaseChat } from './BaseChat';
 import { syncProjectToServer } from '~/lib/services/project-sync.client';
 import { useSearchParams } from '@remix-run/react';
 import type { UploadedImage } from './ImageUploadButton';
-import { fetchGithubRepoFiles, generateFallbackFiles } from '~/lib/utils/github.client';
+import { fetchGithubRepoFiles } from '~/lib/utils/github.client';
 import { webcontainer } from '~/lib/webcontainer';
 import { WORK_DIR } from '~/utils/constants';
 
@@ -263,7 +263,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
             sessionStorage.setItem(toastKey, 'true');
           }
 
-          // Fetch template files from GitHub (client-side)
+          // Fetch template files from GitHub (client-side) - REAL FILES ONLY
           let templateFiles;
           try {
             console.log('Fetching template files from:', templateData.template.githubUrl);
@@ -273,10 +273,10 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
               throw new Error('No files fetched from repository');
             }
             
-            console.log('Successfully fetched', templateFiles.length, 'files from GitHub');
+            console.log('Successfully fetched', templateFiles.length, 'REAL files from GitHub');
           } catch (error) {
-            console.warn('Failed to fetch from GitHub, using placeholder files:', error);
-            templateFiles = generateFallbackFiles(templateData.template);
+            console.error('Failed to fetch real files from GitHub:', error);
+            throw new Error(`Cannot load template: ${error.message || 'GitHub fetch failed'}`);
           }
 
           // Wait for WebContainer to be ready
@@ -334,18 +334,30 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
         // Race between initialization and timeout
         await Promise.race([initPromise, timeoutPromise]);
 
-      } catch (error) {
-        console.error('Failed to initialize template:', error);
-        toast.error('Failed to load template. You can still start from scratch.');
-        setTemplateInitialized(true); // Mark as attempted to prevent retries
-        workbenchStore.setIsLoadingFiles(false); // Clear loading state on error
-      } finally {
-        setIsInitializingTemplate(false);
-        if (initializationTimeoutRef.current) {
-          clearTimeout(initializationTimeoutRef.current);
-          initializationTimeoutRef.current = null;
+        } catch (error) {
+          console.error('Failed to initialize template:', error);
+          const errorMessage = error.message || 'Unknown error occurred';
+          
+          if (errorMessage.includes('GitHub fetch failed') || errorMessage.includes('No files found')) {
+            toast.error(`Failed to load real files from GitHub: ${errorMessage}. Please try a different template.`);
+          } else {
+            toast.error(`Failed to load template: ${errorMessage}. You can start from scratch.`);
+          }
+          
+          setTemplateInitialized(true); // Mark as attempted to prevent retries
+          workbenchStore.setIsLoadingFiles(false); // Clear loading state on error
+          
+          // Clear the session storage to allow retry if user wants
+          if (templateData?.templateId) {
+            sessionStorage.removeItem(`template-init-${templateData.templateId}`);
+          }
+        } finally {
+          setIsInitializingTemplate(false);
+          if (initializationTimeoutRef.current) {
+            clearTimeout(initializationTimeoutRef.current);
+            initializationTimeoutRef.current = null;
+          }
         }
-      }
     };
 
     // Mark as processing and run initialization
