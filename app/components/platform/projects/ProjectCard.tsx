@@ -19,7 +19,7 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
 
   return (
     <Link
-      to={project.chatId ? `/chat/${project.chatId}` : '/'}
+      to={`/project/${project.id}`}
       className="group relative block aspect-square bg-white/80 dark:bg-white/5 backdrop-blur-sm border border-neutral-200/50 dark:border-white/10 rounded-2xl p-6 hover:border-[#e86b47]/30 hover:shadow-xl dark:hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden"
     >
       {/* Delete button - top right corner */}

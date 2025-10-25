@@ -31,9 +31,10 @@ const logger = createScopedLogger('Chat');
 
 interface ChatWrapperProps {
   templateData?: any;
+  projectData?: any;
 }
 
-export function Chat({ templateData }: ChatWrapperProps) {
+export function Chat({ templateData, projectData }: ChatWrapperProps) {
   renderLogger.trace('Chat');
 
   const { ready, initialMessages, storeMessageHistory } = useChatHistory();
@@ -44,7 +45,8 @@ export function Chat({ templateData }: ChatWrapperProps) {
         <ChatImpl 
           initialMessages={initialMessages} 
           storeMessageHistory={storeMessageHistory}
-          templateData={templateData} 
+          templateData={templateData}
+          projectData={projectData}
         />
       )}
       <ToastContainer
@@ -82,9 +84,10 @@ interface ChatProps {
   initialMessages: Message[];
   storeMessageHistory: (messages: Message[]) => Promise<void>;
   templateData?: any;
+  projectData?: any;
 }
 
-export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateData }: ChatProps) => {
+export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateData, projectData }: ChatProps) => {
   useShortcuts();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -99,6 +102,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
   const [isInitializingTemplate, setIsInitializingTemplate] = useState(false);
   const [projectFilesLoaded, setProjectFilesLoaded] = useState(false);
   const [isLoadingProjectFiles, setIsLoadingProjectFiles] = useState(false);
+  const [projectInitialized, setProjectInitialized] = useState(false);
   const initializationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { showChat } = useStore(chatStore);
@@ -394,8 +398,9 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
             // Continue anyway - the directory might not exist yet
           }
 
-          // Write files to the working directory AND sync to workbench store
-          // This ensures both WebContainer and AI have access to the files
+          // Write files to the working directory one at a time with small delays
+          // This ensures WebContainer can properly flush each file and file watcher can read content
+          console.log(`[Template Init] Writing ${templateFiles.filter(f => f.type === 'file').length} files to WebContainer...`);
           for (const file of templateFiles) {
             if (file.type === 'file') {
               try {
@@ -410,27 +415,23 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
                 
                 // Write the file to the working directory
                 await container.fs.writeFile(fullPath, file.content);
-                console.log(`[Template Init] Wrote file: ${fullPath}`);
-
-                    // IMPORTANT: Also add to workbench store for immediate AI context
-                    // This ensures the AI can see the files without waiting for file watcher
-                    // Use normalized relative path for consistency with file watcher
-                    const relativePath = normalizeToRelativePath(file.path);
-                    if (relativePath) {
-                      workbenchStore.files.setKey(relativePath, {
-                        type: 'file',
-                        content: file.content,
-                        isBinary: false
-                      });
-                    }
+                console.log(`[Template Init] Wrote file: ${fullPath} (${file.content.length} chars)`);
+                
+                // CRITICAL: Small delay to allow WebContainer to flush the file and file watcher to read it
+                // Without this, file watcher may read empty buffers
+                await new Promise(resolve => setTimeout(resolve, 50)); // 50ms per file
+                
               } catch (error) {
                 console.warn(`[Template Init] Failed to write file ${file.path}:`, error);
               }
             }
           }
+          console.log('[Template Init] All files written to WebContainer');
 
-          // Give a moment for file watcher to sync, then clear loading state
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // CRITICAL: Give file watcher final time to complete all pending reads
+          // The file watcher processes events in batches
+          console.log('[Template Init] Waiting for file watcher to complete final sync...');
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second final wait
           workbenchStore.setIsLoadingFiles(false);
           
           // Log final file count for debugging
@@ -500,7 +501,108 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
 
   }, [templateData?.templateId]); // Only depend on templateId to prevent re-runs
 
+  // Project initialization effect - for when opening an existing project via /project/:id
+  useEffect(() => {
+    // Early return if no project data or already initialized
+    if (!projectData?.hasProject || projectInitialized) {
+      return;
+    }
+
+    // Don't proceed if user is not loaded yet
+    if (!isLoaded) {
+      return;
+    }
+
+    // Skip if template is being initialized
+    if (templateData?.hasTemplate || isInitializingTemplate) {
+      return;
+    }
+
+    // Check session storage to prevent re-initialization on re-renders
+    const projectKey = `project-init-${projectData.project?.id}`;
+    if (sessionStorage.getItem(projectKey)) {
+      console.log('[Project Init] Already initialized:', projectData.project?.name);
+      setProjectInitialized(true);
+      return;
+    }
+
+    console.log('[Project Init] Starting project initialization for:', projectData.project?.name);
+    setProjectInitialized(true); // Mark as initialized BEFORE async work
+    sessionStorage.setItem(projectKey, 'true');
+
+    const initializeProject = async () => {
+      try {
+        // Clear workbench store before loading project files
+        workbenchStore.files.set({});
+        console.log('[Project Init] Cleared workbench store for fresh project load');
+
+        // Show workbench with loading state
+        workbenchStore.setShowWorkbench(true);
+        workbenchStore.setIsLoadingFiles(true);
+
+        // Clear WebContainer working directory
+        const container = await webcontainer;
+        await container.fs.rm(WORK_DIR, { recursive: true, force: true });
+        await container.fs.mkdir(WORK_DIR, { recursive: true });
+
+        // Write project files to WebContainer one at a time with small delays
+        const projectFiles = projectData.files || {};
+        console.log(`[Project Init] Writing ${Object.keys(projectFiles).length} files to WebContainer...`);
+        for (const [filePath, content] of Object.entries(projectFiles)) {
+          try {
+            const fullPath = `${WORK_DIR}/${filePath}`;
+            
+            // Create directory structure if needed
+            const dirPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+            if (dirPath !== WORK_DIR) {
+              await container.fs.mkdir(dirPath, { recursive: true });
+            }
+            
+            // Write the file
+            const stringContent = content as string;
+            await container.fs.writeFile(fullPath, stringContent);
+            console.log(`[Project Init] Wrote file: ${fullPath} (${stringContent.length} chars)`);
+
+            // CRITICAL: Small delay to allow WebContainer to flush and file watcher to read
+            await new Promise(resolve => setTimeout(resolve, 50)); // 50ms per file
+            
+          } catch (error) {
+            console.warn(`[Project Init] Failed to write file ${filePath}:`, error);
+          }
+        }
+        console.log('[Project Init] All files written to WebContainer');
+
+        // Send initial greeting to start fresh chat session
+        append({
+          role: 'user',
+          content: `Hello! I've opened the project "${projectData.project?.name}". The project files are now loaded in the workbench. What would you like to work on?`
+        });
+
+        setChatStarted(true);
+        
+        // CRITICAL: Give file watcher final time to complete all pending reads
+        console.log('[Project Init] Waiting for file watcher to complete final sync...');
+        await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second final wait
+        workbenchStore.setIsLoadingFiles(false);
+        
+        toast.success(`Project "${projectData.project?.name}" loaded successfully!`);
+        console.log(`[Project Init] Files in workbench store:`, Object.keys(workbenchStore.files.get()).length);
+
+      } catch (error) {
+        console.error('Failed to initialize project:', error);
+        toast.error('Failed to load project files');
+        workbenchStore.setIsLoadingFiles(false);
+        // Reset flag on error so user can retry
+        setProjectInitialized(false);
+        sessionStorage.removeItem(projectKey);
+      }
+    };
+
+    initializeProject();
+  }, [projectData?.hasProject, projectData?.project?.id, isLoaded, templateData?.hasTemplate, isInitializingTemplate, projectInitialized]);
+
   // Load existing project files when opening a project (not a template)
+  // LEGACY: This is for old chat-based project loading, will be deprecated
   useEffect(() => {
     // Early return conditions
     if (
@@ -509,6 +611,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
       projectFilesLoaded ||
       isLoadingProjectFiles ||
       templateData?.hasTemplate || // Skip if this is a template
+      projectData?.hasProject || // Skip if this is a project-based load (new system)
       initialMessages.length === 0  // Skip if no chat history (new chat)
     ) {
       return;
@@ -582,7 +685,8 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
             // Continue anyway - the directory might not exist yet
           }
 
-          // Write files to the working directory AND sync to workbench store
+          // Write files to WebContainer one at a time with small delays
+          console.log(`[Project Files] Writing ${Object.keys(data.files).length} files to WebContainer...`);
           for (const [filePath, content] of Object.entries(data.files)) {
             try {
               // Create the full path in the working directory
@@ -595,26 +699,22 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
               }
               
               // Write the file to the working directory
-              await container.fs.writeFile(fullPath, content as string);
-              console.log(`[Project Files] Wrote file: ${fullPath}`);
+              const stringContent = content as string;
+              await container.fs.writeFile(fullPath, stringContent);
+              console.log(`[Project Files] Wrote file: ${fullPath} (${stringContent.length} chars)`);
 
-              // IMPORTANT: Also add to workbench store for immediate AI context
-              // Use normalized relative path for consistency with file watcher
-              const relativePath = normalizeToRelativePath(filePath);
-              if (relativePath) {
-                workbenchStore.files.setKey(relativePath, {
-                  type: 'file',
-                  content: content as string,
-                  isBinary: false
-                });
-              }
+              // CRITICAL: Small delay to allow WebContainer to flush and file watcher to read
+              await new Promise(resolve => setTimeout(resolve, 50)); // 50ms per file
+              
             } catch (error) {
               console.warn(`[Project Files] Failed to write file ${filePath}:`, error);
             }
           }
+          console.log('[Project Files] All files written to WebContainer');
 
-          // Give a moment for file watcher to sync, then clear loading state
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // CRITICAL: Give file watcher final time to complete all pending reads
+          console.log('[Project Files] Waiting for file watcher to complete final sync...');
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second final wait
           workbenchStore.setIsLoadingFiles(false);
           
           toast.success(`Project "${data.projectName}" loaded successfully!`);

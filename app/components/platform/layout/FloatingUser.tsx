@@ -8,8 +8,8 @@ export const FloatingUser = memo(function FloatingUser() {
   const { user } = useUser();
   const location = useLocation();
   const isBuildPage = useMemo(() => location.pathname === '/', [location.pathname]);
-  const isChatPage = useMemo(() => location.pathname.startsWith('/chat/'), [location.pathname]);
-  const showMenuButton = useMemo(() => isBuildPage || isChatPage, [isBuildPage, isChatPage]);
+  const isProjectPage = useMemo(() => location.pathname.startsWith('/project/'), [location.pathname]);
+  const showMenuButton = useMemo(() => isBuildPage || isProjectPage, [isBuildPage, isProjectPage]);
 
   const handleProfileClick = useCallback(() => {
     if (!isAuthenticated) {

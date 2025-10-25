@@ -153,7 +153,12 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
   }, []);
 
   const onFileSelect = useCallback((filePath: string | undefined) => {
-    workbenchStore.setSelectedFile(filePath);
+    // CRITICAL: FileTree passes paths with leading slash (e.g., "/src/App.js")
+    // but files in store are keyed without leading slash (e.g., "src/App.js")
+    // Remove leading slash to match store keys
+    const normalizedPath = filePath?.startsWith('/') ? filePath.slice(1) : filePath;
+    console.log('[Workbench] File selected:', filePath, '-> normalized:', normalizedPath);
+    workbenchStore.setSelectedFile(normalizedPath);
   }, []);
 
   const onFileSave = useCallback(() => {

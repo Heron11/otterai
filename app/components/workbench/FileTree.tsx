@@ -123,12 +123,21 @@ export const FileTree = memo(
           filteredFileList.map((fileOrFolder) => {
             switch (fileOrFolder.kind) {
               case 'file': {
+                // CRITICAL: selectedFile from store doesn't have leading slash, but fullPath does
+                // Normalize for comparison by removing leading slash from fullPath
+                const normalizedFullPath = fileOrFolder.fullPath.startsWith('/') 
+                  ? fileOrFolder.fullPath.slice(1) 
+                  : fileOrFolder.fullPath;
+                const normalizedUnsavedPath = fileOrFolder.fullPath.startsWith('/')
+                  ? fileOrFolder.fullPath.slice(1)
+                  : fileOrFolder.fullPath;
+                
                 return (
                   <File
                     key={fileOrFolder.id}
-                    selected={selectedFile === fileOrFolder.fullPath}
+                    selected={selectedFile === normalizedFullPath}
                     file={fileOrFolder}
-                    unsavedChanges={unsavedFiles?.has(fileOrFolder.fullPath)}
+                    unsavedChanges={unsavedFiles?.has(normalizedUnsavedPath)}
                     onClick={() => {
                       onFileSelect?.(fileOrFolder.fullPath);
                     }}
@@ -136,11 +145,15 @@ export const FileTree = memo(
                 );
               }
               case 'folder': {
+                const normalizedFullPath = fileOrFolder.fullPath.startsWith('/')
+                  ? fileOrFolder.fullPath.slice(1)
+                  : fileOrFolder.fullPath;
+                
                 return (
                   <Folder
                     key={fileOrFolder.id}
                     folder={fileOrFolder}
-                    selected={allowFolderSelection && selectedFile === fileOrFolder.fullPath}
+                    selected={allowFolderSelection && selectedFile === normalizedFullPath}
                     collapsed={collapsedFolders.has(fileOrFolder.fullPath)}
                     onClick={() => {
                       toggleCollapseState(fileOrFolder.fullPath);

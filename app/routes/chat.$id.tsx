@@ -1,8 +1,7 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { default as IndexRoute } from './_index';
+import { redirect, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 
 export async function loader(args: LoaderFunctionArgs) {
-  return json({ id: args.params.id });
+  // Legacy chat URLs - redirect to build page for a fresh start
+  // The new project-based architecture uses /project/:id instead
+  return redirect('/');
 }
-
-export default IndexRoute;

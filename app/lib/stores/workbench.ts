@@ -100,12 +100,18 @@ export class WorkbenchStore {
   }
 
   setDocuments(files: FileMap) {
+    console.log('[WorkbenchStore] setDocuments called with', Object.keys(files).length, 'files');
     this.#editorStore.setDocuments(files);
+
+    // Log the documents after setting them
+    const docs = this.#editorStore.documents.get();
+    console.log('[WorkbenchStore] Editor documents after setDocuments:', Object.keys(docs).length);
 
     if (this.#filesStore.filesCount > 0 && this.currentDocument.get() === undefined) {
       // we find the first file and select it
       for (const [filePath, dirent] of Object.entries(files)) {
         if (dirent?.type === 'file') {
+          console.log('[WorkbenchStore] Auto-selecting first file:', filePath);
           this.setSelectedFile(filePath);
           break;
         }
@@ -167,7 +173,22 @@ export class WorkbenchStore {
   }
 
   setSelectedFile(filePath: string | undefined) {
+    console.log('[WorkbenchStore] setSelectedFile called with:', filePath);
+    const currentDocs = this.#editorStore.documents.get();
+    console.log('[WorkbenchStore] Available documents:', Object.keys(currentDocs));
+    console.log('[WorkbenchStore] Document exists for path?', !!currentDocs[filePath || '']);
+    
+    if (filePath && currentDocs[filePath]) {
+      console.log('[WorkbenchStore] Document found, content length:', currentDocs[filePath].value?.length || 0);
+    }
+    
     this.#editorStore.setSelectedFile(filePath);
+    
+    // Log what was actually set
+    setTimeout(() => {
+      const doc = this.currentDocument.get();
+      console.log('[WorkbenchStore] Current document after set:', doc ? `${doc.filePath} (${doc.value?.length} chars)` : 'undefined');
+    }, 100);
   }
 
   async saveFile(filePath: string) {

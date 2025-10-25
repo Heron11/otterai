@@ -32,28 +32,33 @@ export class EditorStore {
   setDocuments(files: FileMap) {
     const previousDocuments = this.documents.value;
 
-    this.documents.set(
-      Object.fromEntries<EditorDocument>(
-        Object.entries(files)
-          .map(([filePath, dirent]) => {
-            if (dirent === undefined || dirent.type === 'folder') {
-              return undefined;
-            }
+    console.log('[EditorStore] setDocuments called, processing', Object.keys(files).length, 'files');
+    
+    const newDocuments = Object.fromEntries<EditorDocument>(
+      Object.entries(files)
+        .map(([filePath, dirent]) => {
+          if (dirent === undefined || dirent.type === 'folder') {
+            return undefined;
+          }
 
-            const previousDocument = previousDocuments?.[filePath];
+          const previousDocument = previousDocuments?.[filePath];
 
-            return [
+          console.log('[EditorStore] Creating document for:', filePath, '- content length:', dirent.content?.length || 0);
+
+          return [
+            filePath,
+            {
+              value: dirent.content,
               filePath,
-              {
-                value: dirent.content,
-                filePath,
-                scroll: previousDocument?.scroll,
-              },
-            ] as [string, EditorDocument];
-          })
-          .filter(Boolean) as Array<[string, EditorDocument]>,
-      ),
+              scroll: previousDocument?.scroll,
+            },
+          ] as [string, EditorDocument];
+        })
+        .filter(Boolean) as Array<[string, EditorDocument]>,
     );
+
+    console.log('[EditorStore] Setting', Object.keys(newDocuments).length, 'documents');
+    this.documents.set(newDocuments);
   }
 
   setSelectedFile(filePath: string | undefined) {
