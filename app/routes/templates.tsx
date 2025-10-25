@@ -1,25 +1,21 @@
-import type { MetaFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
-import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
-import { getDatabase } from '~/lib/.server/db/client';
-import { getPublicTemplates } from '~/lib/.server/projects/queries';
+import { TemplateGrid } from '~/components/platform/templates/TemplateGrid';
+import { mockTemplates } from '~/lib/mock/templates';
 
 export const meta: MetaFunction = () => {
   return [
     { title: 'Templates - OtterAI' },
-    { name: 'description', content: 'Browse community templates - public projects you can clone' },
+    { name: 'description', content: 'Browse curated templates to start your project' },
   ];
 };
 
-export async function loader({ context }: LoaderFunctionArgs) {
-  const db = getDatabase(context.cloudflare.env);
-  const templates = await getPublicTemplates(db, 50); // Get up to 50 public projects
-
-  return json({ templates });
+export async function loader() {
+  return json({ templates: mockTemplates });
 }
 
 export default function TemplatesPage() {
@@ -97,9 +93,9 @@ export default function TemplatesPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <ProjectGrid 
-              projects={filteredTemplates} 
-              emptyMessage="No public templates available yet. Be the first to share a project!"
+            <TemplateGrid 
+              templates={filteredTemplates} 
+              emptyMessage="No templates match your search criteria."
             />
           </motion.div>
         </div>

@@ -2,7 +2,6 @@ import type { MetaFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, Link } from '@remix-run/react';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { getTemplateById } from '~/lib/mock/templates';
-import { useSubscription } from '~/lib/hooks/platform/useSubscription';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.template) {
@@ -27,8 +26,8 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function TemplateDetailPage() {
   const { template } = useLoaderData<typeof loader>();
-  const { canAccessTemplate } = useSubscription();
-  const hasAccess = canAccessTemplate(template.requiredTier);
+  // Removed subscription checking - all templates are now accessible
+  const hasAccess = true;
 
   return (
     <PlatformLayout>
@@ -57,13 +56,7 @@ export default function TemplateDetailPage() {
               <span className="px-3 py-1 bg-bolt-elements-background-depth-2 rounded-full text-sm text-bolt-elements-textSecondary">
                 {template.usageCount.toLocaleString()} uses
               </span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                template.requiredTier === 'pro' ? 'bg-purple-500/20 text-purple-400' :
-                template.requiredTier === 'plus' ? 'bg-blue-500/20 text-blue-400' :
-                'bg-green-500/20 text-green-400'
-              }`}>
-                {template.requiredTier.charAt(0).toUpperCase() + template.requiredTier.slice(1)}
-              </span>
+              {/* Removed tier badge since all templates are now accessible */}
             </div>
           </div>
 
@@ -125,10 +118,7 @@ export default function TemplateDetailPage() {
               <dt className="text-sm text-bolt-elements-textSecondary mb-1">Framework</dt>
               <dd className="text-bolt-elements-textPrimary capitalize">{template.framework}</dd>
             </div>
-            <div>
-              <dt className="text-sm text-bolt-elements-textSecondary mb-1">Required Tier</dt>
-              <dd className="text-bolt-elements-textPrimary capitalize">{template.requiredTier}</dd>
-            </div>
+            {/* Removed required tier info since all templates are now accessible */}
             <div>
               <dt className="text-sm text-bolt-elements-textSecondary mb-1">Last Updated</dt>
               <dd className="text-bolt-elements-textPrimary">{new Date(template.updatedAt).toLocaleDateString()}</dd>
@@ -138,21 +128,12 @@ export default function TemplateDetailPage() {
 
         {/* CTA */}
         <div className="flex gap-4">
-          {hasAccess ? (
-            <Link
-              to={`/?template=${template.id}`}
-              className="flex-1 px-6 py-3 text-center bg-bolt-elements-button-primary-background text-bolt-elements-button-primary-text rounded-md font-medium hover:bg-bolt-elements-button-primary-backgroundHover transition-colors"
-            >
-              Use This Template
-            </Link>
-          ) : (
-            <Link
-              to="/pricing"
-              className="flex-1 px-6 py-3 text-center bg-bolt-elements-button-primary-background text-bolt-elements-button-primary-text rounded-md font-medium hover:bg-bolt-elements-button-primary-backgroundHover transition-colors"
-            >
-              Upgrade to Access
-            </Link>
-          )}
+          <Link
+            to={`/?template=${template.id}`}
+            className="flex-1 px-6 py-3 text-center bg-bolt-elements-button-primary-background text-bolt-elements-button-primary-text rounded-md font-medium hover:bg-bolt-elements-button-primary-backgroundHover transition-colors"
+          >
+            Use This Template
+          </Link>
           
           <a
             href={template.githubUrl}

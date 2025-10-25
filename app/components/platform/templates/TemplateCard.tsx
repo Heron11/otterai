@@ -1,26 +1,16 @@
 import { Link } from '@remix-run/react';
 import { memo } from 'react';
 import type { Template } from '~/lib/types/platform/template';
-import { useSubscription } from '~/lib/hooks/platform/useSubscription';
 
 interface TemplateCardProps {
   template: Template;
 }
 
 export const TemplateCard = memo(function TemplateCard({ template }: TemplateCardProps) {
-  const { canAccessTemplate } = useSubscription();
-  const hasAccess = canAccessTemplate(template.requiredTier);
+  // Removed subscription checking - all templates are now accessible
+  const hasAccess = true;
 
-  const getTierBadgeColor = (tier: string) => {
-    switch (tier) {
-      case 'pro':
-        return 'bg-[#e86b47]/20 text-[#e86b47] border-[#e86b47]/30';
-      case 'plus':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      default:
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
-    }
-  };
+  // Removed tier badge logic since all templates are now accessible
 
   return (
     <div className="group bg-white/80 dark:bg-neutral-900/90 backdrop-blur-sm border border-neutral-200/50 dark:border-neutral-700/50 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-xl dark:hover:shadow-2xl hover:-translate-y-1 hover:border-[#e86b47]/30 dark:hover:border-[#e86b47]/30 cursor-pointer">
@@ -58,10 +48,7 @@ export const TemplateCard = memo(function TemplateCard({ template }: TemplateCar
           </div>
         )}
         
-        {/* Tier badge */}
-        <div className={`absolute top-4 right-4 px-3 py-1.5 border rounded-lg text-xs font-semibold backdrop-blur-sm shadow-sm ${getTierBadgeColor(template.requiredTier)}`}>
-          {template.requiredTier.charAt(0).toUpperCase() + template.requiredTier.slice(1)}
-        </div>
+        {/* Removed tier badge since all templates are now accessible */}
 
         {/* Hover Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
@@ -113,21 +100,12 @@ export const TemplateCard = memo(function TemplateCard({ template }: TemplateCar
                 Preview
               </Link>
               
-              {hasAccess ? (
-                <Link
-                  to={`/?template=${template.id}`}
-                  className="flex-1 px-3 py-2 text-sm text-center bg-[#e86b47] text-white rounded-lg hover:bg-[#d45a36] transition-all duration-300"
-                >
-                  Use Template
-                </Link>
-              ) : (
-                <Link
-                  to="/pricing"
-                  className="flex-1 px-3 py-2 text-sm text-center bg-[#e86b47] text-white rounded-lg hover:bg-[#d45a36] transition-all duration-300"
-                >
-                  Upgrade
-                </Link>
-              )}
+              <Link
+                to={`/?template=${template.id}`}
+                className="flex-1 px-3 py-2 text-sm text-center bg-[#e86b47] text-white rounded-lg hover:bg-[#d45a36] transition-all duration-300"
+              >
+                Use Template
+              </Link>
             </div>
           </div>
         </div>

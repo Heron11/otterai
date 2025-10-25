@@ -17,6 +17,9 @@ import { BaseChat } from './BaseChat';
 import { syncProjectToServer } from '~/lib/services/project-sync.client';
 import { useSearchParams } from '@remix-run/react';
 import type { UploadedImage } from './ImageUploadButton';
+import { convertToWebContainerFormat } from '~/lib/utils/github.client';
+import { webcontainer } from '~/lib/webcontainer';
+import { createProjectFromTemplate } from '~/lib/services/project-creation.client';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -25,14 +28,24 @@ const toastAnimation = cssTransition({
 
 const logger = createScopedLogger('Chat');
 
-export function Chat() {
+interface ChatWrapperProps {
+  templateData?: any;
+}
+
+export function Chat({ templateData }: ChatWrapperProps) {
   renderLogger.trace('Chat');
 
   const { ready, initialMessages, storeMessageHistory } = useChatHistory();
 
   return (
     <>
-      {ready && <ChatImpl initialMessages={initialMessages} storeMessageHistory={storeMessageHistory} />}
+      {ready && (
+        <ChatImpl 
+          initialMessages={initialMessages} 
+          storeMessageHistory={storeMessageHistory}
+          templateData={templateData} 
+        />
+      )}
       <ToastContainer
         closeButton={({ closeToast }) => {
           return (
@@ -67,9 +80,10 @@ export function Chat() {
 interface ChatProps {
   initialMessages: Message[];
   storeMessageHistory: (messages: Message[]) => Promise<void>;
+  templateData?: any;
 }
 
-export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProps) => {
+export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateData }: ChatProps) => {
   useShortcuts();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -80,41 +94,25 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
 
   const [chatStarted, setChatStarted] = useState(initialMessages.length > 0);
+  const [templateInitialized, setTemplateInitialized] = useState(false);
+  const [isInitializingTemplate, setIsInitializingTemplate] = useState(false);
+  const initializationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { showChat } = useStore(chatStore);
 
   const [animationScope, animate] = useAnimate();
 
-  // Check for message parameter from landing page
+  // Check for message parameter from landing page (prevent infinite URL updates)
   useEffect(() => {
     const messageParam = searchParams.get('message');
-    if (messageParam) {
+    if (messageParam && !pendingMessage) {
       setPendingMessage(messageParam);
       // Remove the message parameter from URL
-      searchParams.delete('message');
-      setSearchParams(searchParams, { replace: true });
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('message');
+      setSearchParams(newSearchParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
-
-  // Reset sign in modal when authentication state changes
-  useEffect(() => {
-    if (isAuthenticated && showSignInModal) {
-      setShowSignInModal(false);
-    }
-  }, [isAuthenticated, showSignInModal]);
-
-  // Listen for custom events to show sign in modal
-  useEffect(() => {
-    const handleShowSignInModal = () => {
-      setShowSignInModal(true);
-    };
-
-    window.addEventListener('showSignInModal', handleShowSignInModal);
-    
-    return () => {
-      window.removeEventListener('showSignInModal', handleShowSignInModal);
-    };
-  }, []);
+  }, [searchParams.get('message'), pendingMessage]); // More specific dependency
 
   const { messages, isLoading, input, handleInputChange, setInput, stop, append } = useChat({
     api: '/api/chat',
@@ -165,13 +163,177 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     chatStore.setKey('started', initialMessages.length > 0);
   }, []);
 
+  // Update chat started state when messages change
+  useEffect(() => {
+    if (messages.length > 0 && !chatStarted) {
+      setChatStarted(true);
+      chatStore.setKey('started', true);
+    }
+  }, [messages.length, chatStarted]);
+
   useEffect(() => {
     parseMessages(messages, isLoading);
 
     if (messages.length > initialMessages.length) {
-      storeMessageHistory(messages).catch((error) => toast.error(error.message));
+      storeMessageHistory(messages).catch((error) => logger.error(error));
     }
-  }, [messages, isLoading, parseMessages]);
+  }, [messages, isLoading, parseMessages, storeMessageHistory, initialMessages.length]);
+
+  // Handle template initialization (with infinite loop prevention)
+  useEffect(() => {
+    // Early return conditions to prevent infinite loops
+    if (
+      !templateData?.hasTemplate || 
+      !templateData.templateFiles || 
+      !templateData.templateId ||
+      !append || 
+      templateInitialized || 
+      isInitializingTemplate ||
+      initialMessages.length > 0
+    ) {
+      return;
+    }
+
+    // Check if already processed this template
+    const templateKey = `template-init-${templateData.templateId}`;
+    if (sessionStorage.getItem(templateKey)) {
+      console.log('[Template Init] Template already processed:', templateData.templateId);
+      setTemplateInitialized(true);
+      return;
+    }
+
+    console.log('[Template Init] Starting template initialization:', templateData.templateId);
+    setIsInitializingTemplate(true);
+
+    const initializeTemplate = async () => {
+      try {
+        // Add timeout protection
+        const timeoutPromise = new Promise((_, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Template initialization timeout'));
+          }, 30000); // 30 second timeout
+          
+          initializationTimeoutRef.current = timeout;
+        });
+
+        const initPromise = (async () => {
+          // Only show toast if not already shown
+          const toastKey = `template-toast-${templateData.templateId}`;
+          if (!sessionStorage.getItem(toastKey)) {
+            toast.info(`Loading template: ${templateData.template.name}...`);
+            sessionStorage.setItem(toastKey, 'true');
+          }
+          
+          // Convert GitHub files to WebContainer format
+          const fileTree = convertToWebContainerFormat(templateData.templateFiles);
+          
+          // Wait for WebContainer to be ready
+          const container = await webcontainer;
+          
+          // Mount the file system
+          await container.mount(fileTree);
+          
+          // Show workbench
+          workbenchStore.setShowWorkbench(true);
+          
+          // Create project from template (only if authenticated)
+          // TODO: Implement project creation API route first
+          // if (isAuthenticated) {
+          //   await createProjectFromTemplate({
+          //     templateId: templateData.templateId,
+          //     templateName: templateData.template.name,
+          //     files: fileTree,
+          //     userId: 'current-user'
+          //   });
+          // }
+          
+          // Mark as initialized BEFORE sending message
+          setTemplateInitialized(true);
+          
+          // Send initial message immediately to transition to chat interface
+          const sessionKey = `template-msg-sent-${templateData.templateId}`;
+          if (!sessionStorage.getItem(sessionKey)) {
+            console.log('[Template Init] Sending initial template message');
+            sessionStorage.setItem(sessionKey, 'true');
+            
+            // Send a simple message to start the chat and transition the UI
+            append({ 
+              role: 'user', 
+              content: 'Hello' 
+            });
+            
+            // Set chat started after sending the message
+            setTimeout(() => {
+              setChatStarted(true);
+            }, 100);
+          } else {
+            setChatStarted(true);
+          }
+          
+          // Only show success toast once
+          const successKey = `template-success-${templateData.templateId}`;
+          if (!sessionStorage.getItem(successKey)) {
+            toast.success(`Template "${templateData.template.name}" loaded successfully!`);
+            sessionStorage.setItem(successKey, 'true');
+          }
+        })();
+
+        // Race between initialization and timeout
+        await Promise.race([initPromise, timeoutPromise]);
+        
+      } catch (error) {
+        console.error('Failed to initialize template:', error);
+        toast.error('Failed to load template. You can still start from scratch.');
+        setTemplateInitialized(true); // Mark as attempted to prevent retries
+      } finally {
+        setIsInitializingTemplate(false);
+        if (initializationTimeoutRef.current) {
+          clearTimeout(initializationTimeoutRef.current);
+          initializationTimeoutRef.current = null;
+        }
+      }
+    };
+
+    // Mark as processing and run initialization
+    sessionStorage.setItem(templateKey, 'true');
+    initializeTemplate();
+
+  }, [templateData?.templateId]); // Only depend on templateId to prevent re-runs
+
+  // Reset sign in modal when authentication state changes
+  useEffect(() => {
+    if (isAuthenticated && showSignInModal) {
+      setShowSignInModal(false);
+    }
+  }, [isAuthenticated, showSignInModal]);
+
+  // Listen for custom events to show sign in modal
+  useEffect(() => {
+    const handleShowSignInModal = () => {
+      setShowSignInModal(true);
+    };
+
+    window.addEventListener('showSignInModal', handleShowSignInModal);
+    
+    return () => {
+      window.removeEventListener('showSignInModal', handleShowSignInModal);
+    };
+  }, []);
+
+  // Cleanup timeout on unmount and clear session flags
+  useEffect(() => {
+    return () => {
+      if (initializationTimeoutRef.current) {
+        clearTimeout(initializationTimeoutRef.current);
+      }
+      // Clear session storage when component unmounts to allow fresh initialization next time
+      if (templateData?.templateId) {
+        sessionStorage.removeItem(`template-init-${templateData.templateId}`);
+        sessionStorage.removeItem(`template-msg-sent-${templateData.templateId}`);
+      }
+    };
+  }, [templateData?.templateId]);
+
 
   const scrollTextArea = useCallback(() => {
     const textarea = textareaRef.current;
