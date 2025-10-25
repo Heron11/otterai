@@ -1,9 +1,13 @@
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
 
-export function getAnthropicModel(apiKey: string) {
-  const anthropic = createAnthropic({
+export function getXAIModel(apiKey: string) {
+  const xai = createOpenAI({
     apiKey,
+    baseURL: 'https://api.x.ai/v1',
   });
 
-  return anthropic('claude-haiku-4-5-20251001');
+  return xai('grok-4-fast-reasoning');
 }
+
+// Keep backward compatibility
+export const getAnthropicModel = getXAIModel;

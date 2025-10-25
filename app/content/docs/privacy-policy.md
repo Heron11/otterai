@@ -52,7 +52,7 @@ We use trusted third-party services to operate our platform:
 
 - **Clerk** - Account authentication and security
 - **Stripe** - Payment processing (handles all payment card details securely)
-- **Anthropic (Claude)** - AI language model for code generation
+- **xAI (Grok)** - AI language model for code generation
 - **Cloudflare** - Secure hosting and data storage
 
 Each service has its own privacy policy and handles your data according to industry standards.

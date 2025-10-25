@@ -102,8 +102,8 @@ type Model = {
 };
 
 const MOCK_MODELS: Model[] = [
-  { id: 'claude-4.5-haiku', name: 'Claude 4.5 Haiku', description: 'Fast & efficient', color: '#e86b47', active: true },
-  { id: 'claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', description: 'Most capable', color: '#3b82f6', active: false },
+  { id: 'grok-4-fast-reasoning', name: 'Grok 4 Fast Reasoning', description: 'Fast & efficient', color: '#e86b47', active: true },
+  { id: 'grok-4-beta', name: 'Grok 4 Beta', description: 'Most capable', color: '#3b82f6', active: false },
   { id: 'gpt-4o', name: 'GPT-4o', description: 'Versatile & creative', color: '#10b981', active: false },
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Lightning fast', color: '#8b5cf6', active: false },
   { id: 'deepseek-coder', name: 'DeepSeek Coder V2', description: 'Open source', color: '#f59e0b', active: false },

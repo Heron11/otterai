@@ -126,17 +126,6 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
     body: {
       chatId: chatId.get(),
       uploadedImages,
-      // Pass current files to the API for AI context
-      files: useMemo(() => {
-        const files = workbenchStore.files.get();
-        const fileContents: Record<string, string> = {};
-        for (const [path, dirent] of Object.entries(files)) {
-          if (dirent?.type === 'file' && !dirent.isBinary) {
-            fileContents[path] = dirent.content;
-          }
-        }
-        return fileContents;
-      }, [workbenchStore.files.get()]),
     },
     onError: async (error) => {
       logger.error('Request failed\n\n', error);
@@ -279,13 +268,16 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
         sessionStorage.removeItem(`template-toast-${templateData.templateId}`);
         sessionStorage.removeItem(`template-success-${templateData.templateId}`);
       }
-      // Clear project files session storage as well
+      // Clear project session storage as well
       const currentChatId = chatId.get();
       if (currentChatId) {
         sessionStorage.removeItem(`project-files-${currentChatId}`);
       }
+      if (projectData?.project?.id) {
+        sessionStorage.removeItem(`project-init-${projectData.project.id}`);
+      }
     };
-  }, [templateData?.templateId]);
+  }, [templateData?.templateId, projectData?.project?.id]);
 
   useEffect(() => {
     parseMessages(messages, isLoading);
@@ -503,30 +495,50 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
 
   // Project initialization effect - for when opening an existing project via /project/:id
   useEffect(() => {
+    console.log('[Project Init] Effect triggered with:', {
+      hasProject: projectData?.hasProject,
+      projectInitialized,
+      isLoaded,
+      hasTemplate: templateData?.hasTemplate,
+      isInitializingTemplate,
+      projectId: projectData?.project?.id,
+      projectName: projectData?.project?.name,
+      filesCount: Object.keys(projectData?.files || {}).length
+    });
+
     // Early return if no project data or already initialized
     if (!projectData?.hasProject || projectInitialized) {
+      console.log('[Project Init] Skipping: no project or already initialized');
       return;
     }
 
     // Don't proceed if user is not loaded yet
     if (!isLoaded) {
+      console.log('[Project Init] Skipping: user not loaded');
       return;
     }
 
     // Skip if template is being initialized
     if (templateData?.hasTemplate || isInitializingTemplate) {
+      console.log('[Project Init] Skipping: template is being initialized');
+      return;
+    }
+
+    // CRITICAL: Skip if append is not yet available
+    if (!append) {
+      console.log('[Project Init] Skipping: append not available yet');
       return;
     }
 
     // Check session storage to prevent re-initialization on re-renders
     const projectKey = `project-init-${projectData.project?.id}`;
     if (sessionStorage.getItem(projectKey)) {
-      console.log('[Project Init] Already initialized:', projectData.project?.name);
+      console.log('[Project Init] Already initialized (session storage):', projectData.project?.name);
       setProjectInitialized(true);
       return;
     }
 
-    console.log('[Project Init] Starting project initialization for:', projectData.project?.name);
+    console.log('[Project Init] ✅ Starting project initialization for:', projectData.project?.name);
     setProjectInitialized(true); // Mark as initialized BEFORE async work
     sessionStorage.setItem(projectKey, 'true');
 
@@ -594,12 +606,13 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
         workbenchStore.setIsLoadingFiles(false);
         // Reset flag on error so user can retry
         setProjectInitialized(false);
+        const projectKey = `project-init-${projectData.project?.id}`;
         sessionStorage.removeItem(projectKey);
       }
     };
 
     initializeProject();
-  }, [projectData?.hasProject, projectData?.project?.id, isLoaded, templateData?.hasTemplate, isInitializingTemplate, projectInitialized]);
+  }, [projectData?.hasProject, projectData?.project?.id, projectData?.files, isLoaded, templateData?.hasTemplate, isInitializingTemplate, projectInitialized, append]);
 
   // Load existing project files when opening a project (not a template)
   // LEGACY: This is for old chat-based project loading, will be deprecated
@@ -894,10 +907,10 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
     let messageContent: any = _input;
     
     if (uploadedImages.length > 0) {
-      // Convert to multimodal format for Claude API
+      // Convert to multimodal format for AI API
       const contentParts: any[] = [];
       
-      // Add images first (Claude expects image-then-text structure)
+      // Add images first
       uploadedImages.forEach(img => {
         contentParts.push({
           type: 'image',

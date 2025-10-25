@@ -1,31 +1,20 @@
 import { type ActionFunctionArgs } from '@remix-run/cloudflare';
-import type { Messages, StreamingOptions } from '~/lib/.server/llm/stream-text';
+import { MAX_RESPONSE_SEGMENTS, MAX_TOKENS } from '~/lib/.server/llm/constants';
+import { CONTINUE_PROMPT } from '~/lib/.server/llm/prompts';
+import { streamText, type Messages, type StreamingOptions } from '~/lib/.server/llm/stream-text';
+import SwitchableStream from '~/lib/.server/llm/switchable-stream';
+import { getOptionalUserId } from '~/lib/.server/auth/clerk.server';
+import { getDatabase } from '~/lib/.server/db/client';
+import { checkUserCredits, deductCredit } from '~/lib/.server/credits/manager';
+import { logUsage } from '~/lib/.server/credits/usage';
 
 export async function action(args: ActionFunctionArgs) {
   return chatAction(args);
 }
 
 async function chatAction(args: ActionFunctionArgs) {
-  // Import server-only modules inside the function
-  const { 
-    MAX_RESPONSE_SEGMENTS, 
-    MAX_TOKENS 
-  } = await import('~/lib/.server/llm/constants');
-  const { CONTINUE_PROMPT } = await import('~/lib/.server/llm/prompts');
-  const { streamText } = await import('~/lib/.server/llm/stream-text');
-  const SwitchableStream = (await import('~/lib/.server/llm/switchable-stream')).default;
-  const { getOptionalUserId } = await import('~/lib/.server/auth/clerk.server');
-  const { getDatabase } = await import('~/lib/.server/db/client');
-  const { checkUserCredits, deductCredit } = await import('~/lib/.server/credits/manager');
-  const { logUsage } = await import('~/lib/.server/credits/usage');
-
   const { context, request } = args;
-  const { messages, chatId, uploadedImages, files } = await request.json<{ 
-    messages: Messages;
-    chatId?: string;
-    uploadedImages?: any[];
-    files?: Record<string, string>;
-  }>();
+  const { messages } = await request.json<{ messages: Messages }>();
 
   // Check if user is authenticated and has credits
   const userId = await getOptionalUserId(args);
@@ -56,7 +45,7 @@ async function chatAction(args: ActionFunctionArgs) {
       await logUsage(db, userId, {
         messageCount: 1,
         creditsUsed: 1,
-        model: 'claude-haiku-4-5',
+        model: 'grok-4-fast-reasoning',
       });
     }
   }
@@ -65,7 +54,7 @@ async function chatAction(args: ActionFunctionArgs) {
 
   try {
     const options: StreamingOptions = {
-      toolChoice: 'auto', // Enable AI tools for file operations
+      toolChoice: 'none',
       onFinish: async ({ text: content, finishReason }) => {
         if (finishReason !== 'length') {
           return stream.close();
@@ -77,25 +66,18 @@ async function chatAction(args: ActionFunctionArgs) {
 
         const switchesLeft = MAX_RESPONSE_SEGMENTS - stream.switches;
 
+        console.log(`Reached max token limit (${MAX_TOKENS}): Continuing message (${switchesLeft} switches left)`);
+
         messages.push({ role: 'assistant', content });
         messages.push({ role: 'user', content: CONTINUE_PROMPT });
 
-        const result = await streamText(messages, context.cloudflare.env, {
-          ...options,
-          cwd: '/home/project',
-          files: files || {},
-        });
+        const result = await streamText(messages, context.cloudflare.env, options);
 
         return stream.switchSource(result.toAIStream());
       },
     };
 
-    const result = await streamText(messages, context.cloudflare.env, {
-      ...options,
-      // Pass file context to the AI
-      cwd: '/home/project',
-      files: files || {},
-    });
+    const result = await streamText(messages, context.cloudflare.env, options);
 
     stream.switchSource(result.toAIStream());
 
@@ -106,18 +88,11 @@ async function chatAction(args: ActionFunctionArgs) {
       },
     });
   } catch (error) {
-    console.error('Chat API Error:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.log(error);
 
-    throw new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Internal Server Error',
-      stack: error instanceof Error ? error.stack : undefined 
-    }), {
+    throw new Response(null, {
       status: 500,
       statusText: 'Internal Server Error',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
   }
 }

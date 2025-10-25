@@ -15,7 +15,7 @@ export interface UploadedImage {
   size: number;
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB (Claude API limit)
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
 const SUPPORTED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
 export const ImageUploadButton = memo(function ImageUploadButton({ 
