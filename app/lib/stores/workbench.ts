@@ -46,6 +46,17 @@ export class WorkbenchStore {
       import.meta.hot.data.currentView = this.currentView;
       import.meta.hot.data.isLoadingFiles = this.isLoadingFiles;
     }
+
+    // CRITICAL: Auto-sync editor documents when files change and show workbench
+    this.#filesStore.files.subscribe((files) => {
+      this.setDocuments(files);
+      
+      // Auto-show workbench when files are detected
+      if (Object.keys(files).length > 0 && !this.showWorkbench.get()) {
+        console.log('[WorkbenchStore] Files detected, showing workbench');
+        this.setShowWorkbench(true);
+      }
+    });
   }
 
   get previews() {
@@ -271,6 +282,32 @@ export class WorkbenchStore {
     }
 
     artifact.runner.runAction(data);
+  }
+
+  /**
+   * Get completed action results for a specific message/artifact
+   * This is used to send tool results back to the AI
+   */
+  getCompletedActionResults(messageId: string) {
+    const artifact = this.#getArtifact(messageId);
+    if (!artifact) {
+      return [];
+    }
+
+    const actions = artifact.runner.actions.get();
+    const completedActions = Object.entries(actions)
+      .filter(([_, action]) => action.status === 'complete' && action.result)
+      .map(([actionId, action]) => ({
+        state: 'result' as const,
+        toolCallId: actionId,
+        toolName: action.type,
+        args: action.type === 'shell' ? { command: action.content } : 
+              action.type === 'file' ? { filePath: action.filePath, content: action.content } : 
+              action.type === 'mcp-tool' ? JSON.parse(action.content) : {},
+        result: action.result!
+      }));
+
+    return completedActions;
   }
 
   #getArtifact(id: string) {

@@ -96,6 +96,41 @@ export async function getProjectById(
     description: row.description || '',
     templateId: row.template_id,
     templateName: row.template_name,
+    chatId: row.chat_id,
+    status: row.status,
+    lastModified: new Date(row.updated_at),
+    createdAt: new Date(row.created_at),
+    previewUrl: row.preview_url,
+  };
+}
+
+/**
+ * Get a specific project by chat ID
+ */
+export async function getProjectByChatId(
+  db: Database,
+  chatId: string,
+  userId: string
+): Promise<Project | null> {
+  const row = await queryFirst<any>(
+    db,
+    'SELECT * FROM projects WHERE chat_id = ? AND user_id = ? AND status = "active"',
+    chatId,
+    userId
+  );
+
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    userId: row.user_id,
+    name: row.name,
+    description: row.description || '',
+    templateId: row.template_id,
+    templateName: row.template_name,
+    chatId: row.chat_id,
     status: row.status,
     lastModified: new Date(row.updated_at),
     createdAt: new Date(row.created_at),

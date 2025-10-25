@@ -113,7 +113,7 @@ export const FileTree = memo(
     };
 
     return (
-      <div className={classNames('text-sm', className)}>
+      <div className={classNames('text-sm overflow-y-auto', className)}>
         {isLoading ? (
           <div className="flex flex-col items-center justify-center p-8 text-bolt-elements-textSecondary">
             <div className="i-ph:circle-notch animate-spin text-2xl mb-3 text-[#e86b47]" />
@@ -170,21 +170,31 @@ interface FolderProps {
 
 function Folder({ folder: { depth, name }, collapsed, selected = false, onClick }: FolderProps) {
   return (
-    <NodeButton
-      className={classNames('group', {
+    <button
+      className={classNames('group flex items-center gap-1.5 w-full pr-2 border-2 border-transparent text-faded py-0.5', {
         'bg-transparent text-bolt-elements-item-contentDefault hover:text-[#e86b47] hover:bg-white/10 dark:hover:bg-white/5':
           !selected,
         'bg-[#e86b47]/10 text-[#e86b47] dark:bg-[#e86b47]/15': selected,
       })}
-      depth={depth}
-      iconClasses={classNames({
-        'i-ph:caret-right scale-98': collapsed,
-        'i-ph:caret-down scale-98': !collapsed,
-      })}
+      style={{ paddingLeft: `${6 + depth * NODE_PADDING_LEFT}px` }}
       onClick={onClick}
     >
-      {name}
-    </NodeButton>
+      <div className="shrink-0 flex items-center gap-1">
+        <span
+          className={classNames('inline-block transition-transform duration-150 scale-98', {
+            'i-ph:caret-right text-bolt-elements-textSecondary group-hover:text-[#e86b47]': collapsed,
+            'i-ph:caret-down text-bolt-elements-textSecondary group-hover:text-[#e86b47]': !collapsed,
+          })}
+        />
+        <span
+          className={classNames('i-ph:folder-duotone inline-block scale-98', {
+            'text-bolt-elements-textSecondary group-hover:text-[#e86b47]': !selected,
+            'text-[#e86b47]': selected,
+          })}
+        />
+      </div>
+      <div className="truncate w-full text-left">{name}</div>
+    </button>
   );
 }
 
@@ -238,7 +248,7 @@ function NodeButton({ depth, iconClasses, onClick, className, children }: Button
       style={{ paddingLeft: `${6 + depth * NODE_PADDING_LEFT}px` }}
       onClick={() => onClick?.()}
     >
-      <div className={classNames('scale-120 shrink-0', iconClasses)}></div>
+      <div className={classNames('shrink-0 flex items-center', iconClasses)}></div>
       <div className="truncate w-full text-left">{children}</div>
     </button>
   );

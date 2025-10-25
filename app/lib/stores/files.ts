@@ -7,6 +7,7 @@ import { bufferWatchEvents } from '~/utils/buffer';
 import { WORK_DIR } from '~/utils/constants';
 import { computeFileModifications } from '~/utils/diff';
 import { createScopedLogger } from '~/utils/logger';
+import { normalizeToRelativePath } from '~/lib/utils/path';
 import { unreachable } from '~/utils/unreachable';
 
 const logger = createScopedLogger('FilesStore');
@@ -132,8 +133,16 @@ export class FilesStore {
     const watchEvents = events.flat(2);
 
     for (const { type, path, buffer } of watchEvents) {
-      // remove any trailing slashes
-      const sanitizedPath = path.replace(/\/+$/g, '');
+      // CRITICAL: Normalize path to relative path for consistency
+      // This prevents duplicate entries when files are added both manually and via watcher
+      const sanitizedPath = normalizeToRelativePath(path);
+      
+      // Skip if path is empty after normalization (work directory root)
+      if (!sanitizedPath) {
+        continue;
+      }
+      
+      logger.debug(`File watcher event: ${type} for ${sanitizedPath}`);
 
       switch (type) {
         case 'add_dir': {
@@ -174,6 +183,7 @@ export class FilesStore {
 
           this.files.setKey(sanitizedPath, { type: 'file', content, isBinary });
 
+          console.log(`[FilesStore] Added/Updated file: ${sanitizedPath} (${content.length} chars)`);
           break;
         }
         case 'remove_file': {

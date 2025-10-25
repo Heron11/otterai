@@ -5,6 +5,7 @@ import type { OtterAction } from '~/types/actions';
 import { mcpClientManager } from '~/lib/mcp/client';
 import { createScopedLogger } from '~/utils/logger';
 import { unreachable } from '~/utils/unreachable';
+import { WORK_DIR } from '~/utils/constants';
 import type { ActionCallbackData } from './message-parser';
 
 const logger = createScopedLogger('ActionRunner');
@@ -16,6 +17,7 @@ export type BaseActionState = OtterAction & {
   abort: () => void;
   executed: boolean;
   abortSignal: AbortSignal;
+  result?: string; // Store command output/results
 };
 
 export type FailedActionState = OtterAction &
@@ -26,7 +28,7 @@ export type FailedActionState = OtterAction &
 
 export type ActionState = BaseActionState | FailedActionState;
 
-type BaseActionUpdate = Partial<Pick<BaseActionState, 'status' | 'abort' | 'executed'>>;
+type BaseActionUpdate = Partial<Pick<BaseActionState, 'status' | 'abort' | 'executed' | 'result'>>;
 
 export type ActionStateUpdate =
   | BaseActionUpdate
@@ -104,15 +106,15 @@ export class ActionRunner {
     try {
       switch (action.type) {
         case 'shell': {
-          await this.#runShellAction(action);
+          await this.#runShellAction(actionId, action);
           break;
         }
         case 'file': {
-          await this.#runFileAction(action);
+          await this.#runFileAction(actionId, action);
           break;
         }
         case 'mcp-tool': {
-          await this.#runMCPToolAction(action);
+          await this.#runMCPToolAction(actionId, action);
           break;
         }
       }
@@ -126,7 +128,7 @@ export class ActionRunner {
     }
   }
 
-  async #runShellAction(action: ActionState) {
+  async #runShellAction(actionId: string, action: ActionState) {
     if (action.type !== 'shell') {
       unreachable('Expected shell action');
     }
@@ -141,49 +143,87 @@ export class ActionRunner {
       process.kill();
     });
 
+    // CRITICAL: Capture command output for AI feedback
+    let output = '';
+    const decoder = new TextDecoder();
+    
     process.output.pipeTo(
       new WritableStream({
         write(data) {
-          // Data written to stream
+          const chunk = decoder.decode(data);
+          output += chunk;
+          // Also log to console for debugging
+          console.log('[ActionRunner Shell Output]:', chunk);
         },
       }),
     );
 
     const exitCode = await process.exit;
 
-    logger.debug(`Process terminated with code ${exitCode}`);
+    // Store the complete output in action result
+    const result = `Command: ${action.content}\nExit Code: ${exitCode}\nOutput:\n${output.trim()}`;
+    this.#updateAction(actionId, { result });
+
+    logger.debug(`Process terminated with code ${exitCode}`, { output: output.trim() });
   }
 
-  async #runFileAction(action: ActionState) {
+  async #runFileAction(actionId: string, action: ActionState) {
     if (action.type !== 'file') {
       unreachable('Expected file action');
     }
 
     const webcontainer = await this.#webcontainer;
 
-    let folder = nodePath.dirname(action.filePath);
+    // CRITICAL: Ensure file is written to WORK_DIR for proper integration
+    // Convert relative paths to absolute paths within WORK_DIR
+    let absoluteFilePath = action.filePath;
+    if (!absoluteFilePath.startsWith('/')) {
+      absoluteFilePath = nodePath.join(WORK_DIR, action.filePath);
+    }
+    
+    // Ensure the path is within WORK_DIR (security check)
+    if (!absoluteFilePath.startsWith(WORK_DIR)) {
+      absoluteFilePath = nodePath.join(WORK_DIR, nodePath.basename(action.filePath));
+      logger.warn(`File path ${action.filePath} was outside WORK_DIR, relocated to ${absoluteFilePath}`);
+    }
+
+    let folder = nodePath.dirname(absoluteFilePath);
 
     // remove trailing slashes
     folder = folder.replace(/\/+$/g, '');
 
-    if (folder !== '.') {
+    let result = '';
+
+    if (folder !== WORK_DIR) {
       try {
         await webcontainer.fs.mkdir(folder, { recursive: true });
+        result += `Created directory: ${folder}\n`;
         logger.debug('Created folder', folder);
       } catch (error) {
+        result += `Failed to create directory: ${folder} - ${error}\n`;
         logger.error('Failed to create folder\n\n', error);
       }
     }
 
     try {
-      await webcontainer.fs.writeFile(action.filePath, action.content);
-      logger.debug(`File written ${action.filePath}`);
+      await webcontainer.fs.writeFile(absoluteFilePath, action.content);
+      result += `Successfully wrote file: ${absoluteFilePath} (${action.content.length} characters)`;
+      logger.debug(`File written ${absoluteFilePath}`);
+
+      // File watcher will automatically detect and add the file to the store
+      // Workbench will auto-show when files are detected via the store subscription
+      logger.debug(`File will be detected by file watcher: ${absoluteFilePath}`);
+
     } catch (error) {
+      result += `Failed to write file: ${absoluteFilePath} - ${error}`;
       logger.error('Failed to write file\n\n', error);
     }
+
+    // Store the file operation result
+    this.#updateAction(actionId, { result: result.trim() });
   }
 
-  async #runMCPToolAction(action: ActionState) {
+  async #runMCPToolAction(actionId: string, action: ActionState) {
     if (action.type !== 'mcp-tool') {
       unreachable('Expected MCP tool action');
     }
@@ -199,14 +239,18 @@ export class ActionRunner {
       );
 
       if (result.success) {
+        const toolResult = `MCP Tool: ${action.serverName}.${action.toolName}\nArgs: ${JSON.stringify(args)}\nResult: ${JSON.stringify(result.data)}`;
+        this.#updateAction(actionId, { result: toolResult });
         logger.debug(`MCP tool executed successfully: ${action.serverName}.${action.toolName}`);
-        // Store result for potential use in subsequent actions
-        // This could be enhanced to pass results between actions
       } else {
+        const errorResult = `MCP Tool: ${action.serverName}.${action.toolName}\nArgs: ${JSON.stringify(args)}\nError: ${result.error}`;
+        this.#updateAction(actionId, { result: errorResult });
         logger.error(`MCP tool failed: ${result.error}`);
         throw new Error(result.error || 'MCP tool execution failed');
       }
     } catch (error) {
+      const errorResult = `MCP Tool: ${action.serverName}.${action.toolName}\nError: ${error instanceof Error ? error.message : String(error)}`;
+      this.#updateAction(actionId, { result: errorResult });
       logger.error('Failed to execute MCP tool\n\n', error);
       throw error;
     }

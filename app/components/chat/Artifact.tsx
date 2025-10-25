@@ -132,12 +132,29 @@ const actionVariants = {
 };
 
 const ActionList = memo(({ actions }: ActionListProps) => {
+  const [expandedActions, setExpandedActions] = useState<Set<number>>(new Set());
+
+  const toggleExpanded = useCallback((index: number) => {
+    setExpandedActions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  }, []);
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
       <ul className="list-none space-y-2.5">
         {actions.map((action, index) => {
           const { status, type, content } = action;
           const isLast = index === actions.length - 1;
+          const isExpanded = expandedActions.has(index);
+          const hasResult = action.result && action.result.trim().length > 0;
+          const isCompleted = status === 'complete' || status === 'failed' || status === 'aborted';
 
           return (
             <motion.li
@@ -150,7 +167,15 @@ const ActionList = memo(({ actions }: ActionListProps) => {
                 ease: cubicEasingFn,
               }}
             >
-              <div className="flex items-center gap-1.5 text-sm">
+              <div 
+                className={classNames(
+                  "flex items-center gap-1.5 text-sm",
+                  {
+                    "cursor-pointer hover:bg-bolt-elements-artifacts-inlineCode-background/50 rounded px-2 py-1 -mx-2 -my-1 transition-colors": hasResult && isCompleted
+                  }
+                )}
+                onClick={hasResult && isCompleted ? () => toggleExpanded(index) : undefined}
+              >
                 <div className={classNames('text-lg', getIconColor(action.status))}>
                   {status === 'running' ? (
                     <div className="i-svg-spinners:90-ring-with-bg"></div>
@@ -162,27 +187,82 @@ const ActionList = memo(({ actions }: ActionListProps) => {
                     <div className="i-ph:x"></div>
                   ) : null}
                 </div>
-                {type === 'file' ? (
+                
+                <div className="flex-1 flex items-center justify-between">
                   <div>
-                    Create{' '}
-                    <code className="bg-bolt-elements-artifacts-inlineCode-background text-bolt-elements-artifacts-inlineCode-text px-1.5 py-1 rounded-md">
-                      {action.filePath}
-                    </code>
+                    {type === 'file' ? (
+                      <div>
+                        {status === 'complete' ? 'Created' : status === 'running' ? 'Creating' : 'Create'}{' '}
+                        <code className="bg-bolt-elements-artifacts-inlineCode-background text-bolt-elements-artifacts-inlineCode-text px-1.5 py-1 rounded-md">
+                          {action.filePath}
+                        </code>
+                      </div>
+                    ) : type === 'shell' ? (
+                      <div>
+                        {status === 'complete' ? 'Executed' : status === 'running' ? 'Executing' : 'Execute'} command
+                      </div>
+                    ) : type === 'mcp-tool' ? (
+                      <div>
+                        {status === 'complete' ? 'Called' : status === 'running' ? 'Calling' : 'Call'} MCP tool{' '}
+                        <code className="bg-bolt-elements-artifacts-inlineCode-background text-bolt-elements-artifacts-inlineCode-text px-1.5 py-1 rounded-md">
+                          {(() => {
+                            try {
+                              const toolData = JSON.parse(content);
+                              return toolData.tool || 'unknown';
+                            } catch {
+                              return 'unknown';
+                            }
+                          })()}
+                        </code>
+                      </div>
+                    ) : null}
                   </div>
-                ) : type === 'shell' ? (
-                  <div className="flex items-center w-full min-h-[28px]">
-                    <span className="flex-1">Run command</span>
-                  </div>
-                ) : null}
+                  
+                  {hasResult && isCompleted && (
+                    <div className={classNames('text-xs transition-transform duration-200', {
+                      'rotate-180': isExpanded
+                    })}>
+                      <div className="i-ph:caret-down"></div>
+                    </div>
+                  )}
+                </div>
               </div>
+              
+              {/* Command display for shell commands */}
               {type === 'shell' && (
                 <ShellCodeBlock
                   classsName={classNames('mt-1', {
-                    'mb-3.5': !isLast,
+                    'mb-3.5': !isLast && !isExpanded,
                   })}
                   code={content}
                 />
               )}
+
+              {/* Expandable result section */}
+              <AnimatePresence>
+                {isExpanded && hasResult && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: cubicEasingFn }}
+                    className="overflow-hidden"
+                  >
+                    <div className={classNames('mt-2 border-l-2 border-bolt-elements-artifacts-borderColor pl-3', {
+                      'mb-3.5': !isLast,
+                    })}>
+                      <div className="text-xs text-bolt-elements-textSecondary mb-1 font-medium">
+                        {type === 'shell' ? 'Command Output:' : 
+                         type === 'file' ? 'File Operation Result:' : 
+                         type === 'mcp-tool' ? 'Tool Result:' : 'Result:'}
+                      </div>
+                      <div className="bg-bolt-elements-artifacts-inlineCode-background text-bolt-elements-artifacts-inlineCode-text p-3 rounded-md text-xs font-mono whitespace-pre-wrap max-h-60 overflow-y-auto">
+                        {action.result}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.li>
           );
         })}

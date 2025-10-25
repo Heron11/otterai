@@ -135,7 +135,7 @@ export const EditorPanel = memo(
                   Files
                 </PanelHeader>
                 <FileTree
-                  className="h-full"
+                  className="flex-1 min-h-0"
                   files={files}
                   hideRoot
                   unsavedFiles={unsavedFiles}

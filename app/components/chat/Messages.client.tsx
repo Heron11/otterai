@@ -74,16 +74,24 @@ const MessageItem = memo(({
 export const Messages = memo(React.forwardRef<HTMLDivElement, MessagesProps>((props: MessagesProps, ref) => {
   const { id, isStreaming = false, messages = [] } = props;
 
+  // Filter out hidden tool result messages
+  const visibleMessages = messages.filter(message => {
+    if (message.role === 'user' && typeof message.content === 'string') {
+      return !message.content.startsWith('__TOOL_RESULTS_HIDDEN__');
+    }
+    return true;
+  });
+
   return (
     <div id={id} ref={ref} className={props.className}>
-      {messages.length > 0
-        ? messages.map((message, index) => (
+      {visibleMessages.length > 0
+        ? visibleMessages.map((message, index) => (
             <MessageItem
               key={message.id || `message-${index}`}
               message={message}
               index={index}
               isFirst={index === 0}
-              isLast={index === messages.length - 1}
+              isLast={index === visibleMessages.length - 1}
               isStreaming={isStreaming}
             />
           ))

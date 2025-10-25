@@ -20,6 +20,7 @@ import type { UploadedImage } from './ImageUploadButton';
 import { fetchLocalTemplateFiles } from '~/lib/utils/github.client';
 import { webcontainer } from '~/lib/webcontainer';
 import { WORK_DIR } from '~/utils/constants';
+import { normalizeToRelativePath } from '~/lib/utils/path';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -96,6 +97,8 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
   const [chatStarted, setChatStarted] = useState(initialMessages.length > 0);
   const [templateInitialized, setTemplateInitialized] = useState(false);
   const [isInitializingTemplate, setIsInitializingTemplate] = useState(false);
+  const [projectFilesLoaded, setProjectFilesLoaded] = useState(false);
+  const [isLoadingProjectFiles, setIsLoadingProjectFiles] = useState(false);
   const initializationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { showChat } = useStore(chatStore);
@@ -141,20 +144,91 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
         toast.error('There was an error processing your request');
       }
     },
-    onFinish: async () => {
+    onFinish: async (message) => {
       logger.debug('Finished streaming');
       
-      // Sync to server for authenticated users
+      // CRITICAL: Wait for actions to complete, then send results back to AI
+      try {
+        const messageId = message.id;
+        
+        // Wait a moment for actions to be parsed and queued
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Check if there are any actions for this message
+        const artifact = workbenchStore.artifacts.get()[messageId];
+        if (artifact && artifact.runner) {
+          const actions = artifact.runner.actions.get();
+          const actionEntries = Object.entries(actions);
+          
+          if (actionEntries.length > 0) {
+            console.log('[AI Tool Results] Found', actionEntries.length, 'actions, waiting for completion...');
+            
+            // Wait for all actions to complete (with timeout)
+            const maxWaitTime = 30000; // 30 seconds max
+            const startTime = Date.now();
+            
+            let allCompleted = false;
+            while (!allCompleted && (Date.now() - startTime) < maxWaitTime) {
+              const currentActions = artifact.runner.actions.get();
+              const actionStatuses = Object.values(currentActions);
+              
+              allCompleted = actionStatuses.every(action => 
+                action.status === 'complete' || action.status === 'failed' || action.status === 'aborted'
+              );
+              
+              if (!allCompleted) {
+                await new Promise(resolve => setTimeout(resolve, 500)); // Check every 500ms
+              }
+            }
+            
+            if (allCompleted) {
+              const completedActions = workbenchStore.getCompletedActionResults(messageId);
+              
+              if (completedActions.length > 0) {
+                console.log('[AI Tool Results] All actions completed! Sending results to AI behind the scenes...');
+                
+                // Send tool results back to AI for continuation with a special marker to hide from UI
+                const toolResultsSummary = completedActions.map(action => 
+                  `Tool: ${action.toolName}\nResult: ${action.result}`
+                ).join('\n\n');
+                
+                // Use append with a special marker that we can filter out in the UI
+                await append({
+                  role: 'user',
+                  content: `__TOOL_RESULTS_HIDDEN__\n[TOOL RESULTS]\n${toolResultsSummary}\n\nPlease continue your response based on these tool execution results.`
+                });
+                
+                return; // Don't continue with normal sync if we're continuing the AI conversation
+              }
+            } else {
+              console.log('[AI Tool Results] Timeout waiting for actions to complete');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[AI Tool Results] Error processing tool results:', error);
+        // Continue with normal flow if tool result processing fails
+      }
+      
+      // Normal sync to server for authenticated users (only if not continuing AI conversation)
       if (isAuthenticated) {
-        // Wait a moment for all file writes to complete
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Wait longer for file watcher to detect AI-created files
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         const files = workbenchStore.files.get();
         const currentChatId = chatId.get();
         const projectName = workbenchStore.firstArtifact?.title || templateData?.template?.name || 'Untitled Project';
         
+        console.log('[Project Sync] Checking sync conditions:', {
+          currentChatId,
+          fileCount: Object.keys(files).length,
+          projectName,
+          hasFiles: Object.keys(files).length > 0
+        });
+        
         // Only sync if we have files and a chat ID
         if (currentChatId && Object.keys(files).length > 0) {
+          console.log('[Project Sync] Starting sync...', { fileCount: Object.keys(files).length });
           syncProjectToServer({
             chatId: currentChatId,
             projectName,
@@ -163,6 +237,8 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
             logger.error('Background project sync failed:', error);
             // Don't show error to user - still saved locally in IndexedDB
           });
+        } else {
+          console.log('[Project Sync] Skipping sync - no files or chat ID');
         }
       }
     },
@@ -198,6 +274,11 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
         sessionStorage.removeItem(`template-msg-sent-${templateData.templateId}`);
         sessionStorage.removeItem(`template-toast-${templateData.templateId}`);
         sessionStorage.removeItem(`template-success-${templateData.templateId}`);
+      }
+      // Clear project files session storage as well
+      const currentChatId = chatId.get();
+      if (currentChatId) {
+        sessionStorage.removeItem(`project-files-${currentChatId}`);
       }
     };
   }, [templateData?.templateId]);
@@ -267,6 +348,11 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
             setChatStarted(true);
           }
 
+          // CRITICAL: Clear workbench store before loading new template
+          // This prevents file accumulation and nested directory structures
+          workbenchStore.files.set({});
+          console.log('[Template Init] Cleared workbench store for fresh template load');
+
           // Show workbench immediately with loading state
           workbenchStore.setShowWorkbench(true);
           workbenchStore.setIsLoadingFiles(true);
@@ -291,11 +377,22 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
             console.log('Successfully fetched', templateFiles.length, 'LOCAL template files');
           } catch (error) {
             console.error('Failed to fetch local template files:', error);
-            throw new Error(`Cannot load template: ${error.message || 'Local template fetch failed'}`);
+            throw new Error(`Cannot load template: ${error instanceof Error ? error.message : 'Local template fetch failed'}`);
           }
 
           // Wait for WebContainer to be ready
           const container = await webcontainer;
+
+          // CRITICAL: Clear WebContainer working directory to prevent file accumulation
+          try {
+            console.log('[Template Init] Clearing WebContainer working directory...');
+            await container.fs.rm(WORK_DIR, { recursive: true, force: true });
+            await container.fs.mkdir(WORK_DIR, { recursive: true });
+            console.log('[Template Init] WebContainer working directory cleared and recreated');
+          } catch (error) {
+            console.warn('[Template Init] Failed to clear WebContainer directory:', error);
+            // Continue anyway - the directory might not exist yet
+          }
 
           // Write files to the working directory AND sync to workbench store
           // This ensures both WebContainer and AI have access to the files
@@ -315,13 +412,17 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
                 await container.fs.writeFile(fullPath, file.content);
                 console.log(`[Template Init] Wrote file: ${fullPath}`);
 
-                // IMPORTANT: Also add to workbench store for immediate AI context
-                // This ensures the AI can see the files without waiting for file watcher
-                workbenchStore.files.setKey(file.path, {
-                  type: 'file',
-                  content: file.content,
-                  isBinary: false
-                });
+                    // IMPORTANT: Also add to workbench store for immediate AI context
+                    // This ensures the AI can see the files without waiting for file watcher
+                    // Use normalized relative path for consistency with file watcher
+                    const relativePath = normalizeToRelativePath(file.path);
+                    if (relativePath) {
+                      workbenchStore.files.setKey(relativePath, {
+                        type: 'file',
+                        content: file.content,
+                        isBinary: false
+                      });
+                    }
               } catch (error) {
                 console.warn(`[Template Init] Failed to write file ${file.path}:`, error);
               }
@@ -369,7 +470,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
 
         } catch (error) {
           console.error('Failed to initialize template:', error);
-          const errorMessage = error.message || 'Unknown error occurred';
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
           
           if (errorMessage.includes('GitHub fetch failed') || errorMessage.includes('No files found')) {
             toast.error(`Failed to load real files from GitHub: ${errorMessage}. Please try a different template.`);
@@ -398,6 +499,144 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
     initializeTemplate();
 
   }, [templateData?.templateId]); // Only depend on templateId to prevent re-runs
+
+  // Load existing project files when opening a project (not a template)
+  useEffect(() => {
+    // Early return conditions
+    if (
+      !isAuthenticated ||
+      !isLoaded ||
+      projectFilesLoaded ||
+      isLoadingProjectFiles ||
+      templateData?.hasTemplate || // Skip if this is a template
+      initialMessages.length === 0  // Skip if no chat history (new chat)
+    ) {
+      return;
+    }
+
+    const currentChatId = chatId.get();
+    if (!currentChatId) {
+      return;
+    }
+
+    // Check if we already processed this project
+    const projectKey = `project-files-${currentChatId}`;
+    if (sessionStorage.getItem(projectKey)) {
+      console.log('[Project Files] Already loaded for chat:', currentChatId);
+      setProjectFilesLoaded(true);
+      return;
+    }
+
+    console.log('[Project Files] Loading files for existing project, chatId:', currentChatId);
+    setIsLoadingProjectFiles(true);
+
+    const loadProjectFiles = async () => {
+      try {
+        // Call API to get project files by chatId
+        const response = await fetch(`/api/project-files?chatId=${currentChatId}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            // No project found for this chat - this is fine for new chats
+            console.log('[Project Files] No project found for chat:', currentChatId);
+            setProjectFilesLoaded(true);
+            return;
+          }
+          
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' })) as { error?: string };
+          throw new Error(errorData.error || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json() as { 
+          success: boolean; 
+          projectId: string; 
+          projectName: string; 
+          files: Record<string, string>; 
+          count: number; 
+        };
+        console.log(`[Project Files] Loaded ${data.count} files for project: ${data.projectName}`);
+
+        if (data.files && Object.keys(data.files).length > 0) {
+          // CRITICAL: Clear workbench store before loading project files
+          // This prevents file accumulation and nested directory structures
+          workbenchStore.files.set({});
+          console.log('[Project Files] Cleared workbench store for fresh project load');
+
+          // Show workbench and loading state
+          workbenchStore.setShowWorkbench(true);
+          workbenchStore.setIsLoadingFiles(true);
+          
+          toast.info(`Loading project: ${data.projectName}...`);
+
+          // Wait for WebContainer to be ready
+          const container = await webcontainer;
+
+          // CRITICAL: Clear WebContainer working directory to prevent file accumulation
+          try {
+            console.log('[Project Files] Clearing WebContainer working directory...');
+            await container.fs.rm(WORK_DIR, { recursive: true, force: true });
+            await container.fs.mkdir(WORK_DIR, { recursive: true });
+            console.log('[Project Files] WebContainer working directory cleared and recreated');
+          } catch (error) {
+            console.warn('[Project Files] Failed to clear WebContainer directory:', error);
+            // Continue anyway - the directory might not exist yet
+          }
+
+          // Write files to the working directory AND sync to workbench store
+          for (const [filePath, content] of Object.entries(data.files)) {
+            try {
+              // Create the full path in the working directory
+              const fullPath = `${WORK_DIR}/${filePath}`;
+              
+              // Create directory structure if needed
+              const dirPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+              if (dirPath !== WORK_DIR) {
+                await container.fs.mkdir(dirPath, { recursive: true });
+              }
+              
+              // Write the file to the working directory
+              await container.fs.writeFile(fullPath, content as string);
+              console.log(`[Project Files] Wrote file: ${fullPath}`);
+
+              // IMPORTANT: Also add to workbench store for immediate AI context
+              // Use normalized relative path for consistency with file watcher
+              const relativePath = normalizeToRelativePath(filePath);
+              if (relativePath) {
+                workbenchStore.files.setKey(relativePath, {
+                  type: 'file',
+                  content: content as string,
+                  isBinary: false
+                });
+              }
+            } catch (error) {
+              console.warn(`[Project Files] Failed to write file ${filePath}:`, error);
+            }
+          }
+
+          // Give a moment for file watcher to sync, then clear loading state
+          await new Promise(resolve => setTimeout(resolve, 500));
+          workbenchStore.setIsLoadingFiles(false);
+          
+          toast.success(`Project "${data.projectName}" loaded successfully!`);
+          console.log(`[Project Files] Files in workbench store:`, Object.keys(workbenchStore.files.get()).length);
+        }
+
+        setProjectFilesLoaded(true);
+        sessionStorage.setItem(projectKey, 'true');
+
+      } catch (error) {
+        console.error('Failed to load project files:', error);
+        toast.error(`Failed to load project files: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setProjectFilesLoaded(true); // Mark as attempted to prevent retries
+        workbenchStore.setIsLoadingFiles(false);
+      } finally {
+        setIsLoadingProjectFiles(false);
+      }
+    };
+
+    loadProjectFiles();
+
+  }, [isAuthenticated, isLoaded, initialMessages.length, chatId.get()]); // Depend on auth state and chat history
 
   // Reset sign in modal when authentication state changes
   useEffect(() => {
@@ -502,7 +741,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
         setShowSignInModal(true);
       }
     }
-  }, [pendingMessage, isLoaded, isAuthenticated]);
+  }, [pendingMessage, isLoaded, isAuthenticated]); // Remove sendMessage from dependencies to prevent circular reference
 
   const sendMessage = useCallback(async (_event: React.UIEvent, messageInput?: string) => {
     const _input = messageInput || input;
@@ -515,6 +754,25 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
     if (!isLoaded || !isAuthenticated) {
       setShowSignInModal(true);
       return;
+    }
+
+    // CRITICAL: Clear workbench when starting a fresh chat (not template, not existing project)
+    // This prevents files from previous sessions persisting in the workbench
+    if (!chatStarted && !templateData?.hasTemplate && !projectFilesLoaded) {
+      console.log('[Fresh Chat] Clearing workbench and WebContainer for new chat session');
+      workbenchStore.files.set({});
+      workbenchStore.setShowWorkbench(false); // Hide workbench for fresh chats initially
+      
+      // Also clear WebContainer working directory to ensure clean state
+      try {
+        const container = await webcontainer;
+        await container.fs.rm(WORK_DIR, { recursive: true, force: true });
+        await container.fs.mkdir(WORK_DIR, { recursive: true });
+        console.log('[Fresh Chat] WebContainer working directory cleared');
+      } catch (error) {
+        console.warn('[Fresh Chat] Failed to clear WebContainer directory:', error);
+        // Don't fail the message send if WebContainer clearing fails
+      }
     }
 
     /**
@@ -575,7 +833,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
     setInput('');
     resetEnhancer();
     textareaRef.current?.blur();
-  }, [input, isLoading, isLoaded, isAuthenticated, append, setInput, resetEnhancer, runAnimation, uploadedImages]);
+  }, [input, isLoading, isLoaded, isAuthenticated, append, setInput, resetEnhancer, runAnimation, uploadedImages, chatStarted, templateData, projectFilesLoaded]);
 
   const [messageRef, scrollRef] = useSnapScroll();
 
