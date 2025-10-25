@@ -30,6 +30,7 @@ interface EditorPanelProps {
   editorDocument?: EditorDocument;
   selectedFile?: string | undefined;
   isStreaming?: boolean;
+  isLoadingFiles?: boolean;
   onEditorChange?: OnEditorChange;
   onEditorScroll?: OnEditorScroll;
   onFileSelect?: (value?: string) => void;
@@ -50,6 +51,7 @@ export const EditorPanel = memo(
     editorDocument,
     selectedFile,
     isStreaming,
+    isLoadingFiles,
     onFileSelect,
     onEditorChange,
     onEditorScroll,
@@ -140,6 +142,7 @@ export const EditorPanel = memo(
                   rootFolder={WORK_DIR}
                   selectedFile={selectedFile}
                   onFileSelect={onFileSelect}
+                  isLoading={isLoadingFiles}
                 />
               </div>
             </Panel>

@@ -17,9 +17,8 @@ import { BaseChat } from './BaseChat';
 import { syncProjectToServer } from '~/lib/services/project-sync.client';
 import { useSearchParams } from '@remix-run/react';
 import type { UploadedImage } from './ImageUploadButton';
-import { convertToWebContainerFormat } from '~/lib/utils/github.client';
+import { convertToWebContainerFormat, fetchGithubRepoFiles, generateFallbackFiles } from '~/lib/utils/github.client';
 import { webcontainer } from '~/lib/webcontainer';
-import { createProjectFromTemplate } from '~/lib/services/project-creation.client';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -171,6 +170,22 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
     }
   }, [messages.length, chatStarted]);
 
+  // Cleanup timeout on unmount and clear session flags
+  useEffect(() => {
+    return () => {
+      if (initializationTimeoutRef.current) {
+        clearTimeout(initializationTimeoutRef.current);
+      }
+      // Clear session storage when component unmounts to allow fresh initialization next time
+      if (templateData?.templateId) {
+        sessionStorage.removeItem(`template-init-${templateData.templateId}`);
+        sessionStorage.removeItem(`template-msg-sent-${templateData.templateId}`);
+        sessionStorage.removeItem(`template-toast-${templateData.templateId}`);
+        sessionStorage.removeItem(`template-success-${templateData.templateId}`);
+      }
+    };
+  }, [templateData?.templateId]);
+
   useEffect(() => {
     parseMessages(messages, isLoading);
 
@@ -179,15 +194,14 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
     }
   }, [messages, isLoading, parseMessages, storeMessageHistory, initialMessages.length]);
 
-  // Handle template initialization (with infinite loop prevention)
+  // Handle template initialization with client-side file fetching
   useEffect(() => {
     // Early return conditions to prevent infinite loops
     if (
-      !templateData?.hasTemplate || 
-      !templateData.templateFiles || 
+      !templateData?.hasTemplate ||
       !templateData.templateId ||
-      !append || 
-      templateInitialized || 
+      !append ||
+      templateInitialized ||
       isInitializingTemplate ||
       initialMessages.length > 0
     ) {
@@ -212,56 +226,23 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
           const timeout = setTimeout(() => {
             reject(new Error('Template initialization timeout'));
           }, 30000); // 30 second timeout
-          
+
           initializationTimeoutRef.current = timeout;
         });
 
         const initPromise = (async () => {
-          // Only show toast if not already shown
-          const toastKey = `template-toast-${templateData.templateId}`;
-          if (!sessionStorage.getItem(toastKey)) {
-            toast.info(`Loading template: ${templateData.template.name}...`);
-            sessionStorage.setItem(toastKey, 'true');
-          }
-          
-          // Convert GitHub files to WebContainer format
-          const fileTree = convertToWebContainerFormat(templateData.templateFiles);
-          
-          // Wait for WebContainer to be ready
-          const container = await webcontainer;
-          
-          // Mount the file system
-          await container.mount(fileTree);
-          
-          // Show workbench
-          workbenchStore.setShowWorkbench(true);
-          
-          // Create project from template (only if authenticated)
-          // TODO: Implement project creation API route first
-          // if (isAuthenticated) {
-          //   await createProjectFromTemplate({
-          //     templateId: templateData.templateId,
-          //     templateName: templateData.template.name,
-          //     files: fileTree,
-          //     userId: 'current-user'
-          //   });
-          // }
-          
-          // Mark as initialized BEFORE sending message
-          setTemplateInitialized(true);
-          
-          // Send initial message immediately to transition to chat interface
+          // Send initial "Hello" message immediately to transition UI
           const sessionKey = `template-msg-sent-${templateData.templateId}`;
           if (!sessionStorage.getItem(sessionKey)) {
             console.log('[Template Init] Sending initial template message');
             sessionStorage.setItem(sessionKey, 'true');
-            
+
             // Send a simple message to start the chat and transition the UI
-            append({ 
-              role: 'user', 
-              content: 'Hello' 
+            append({
+              role: 'user',
+              content: 'Hello'
             });
-            
+
             // Set chat started after sending the message
             setTimeout(() => {
               setChatStarted(true);
@@ -269,8 +250,50 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
           } else {
             setChatStarted(true);
           }
-          
-          // Only show success toast once
+
+          // Show workbench immediately with loading state
+          workbenchStore.setShowWorkbench(true);
+          workbenchStore.setIsLoadingFiles(true);
+
+          // Show loading toast
+          const toastKey = `template-toast-${templateData.templateId}`;
+          if (!sessionStorage.getItem(toastKey)) {
+            toast.info(`Loading template files: ${templateData.template.name}...`);
+            sessionStorage.setItem(toastKey, 'true');
+          }
+
+          // Fetch template files from GitHub (client-side)
+          let templateFiles;
+          try {
+            console.log('Fetching template files from:', templateData.template.githubUrl);
+            templateFiles = await fetchGithubRepoFiles(templateData.template.githubUrl);
+            
+            if (!templateFiles || templateFiles.length === 0) {
+              throw new Error('No files fetched from repository');
+            }
+            
+            console.log('Successfully fetched', templateFiles.length, 'files from GitHub');
+          } catch (error) {
+            console.warn('Failed to fetch from GitHub, using placeholder files:', error);
+            templateFiles = generateFallbackFiles(templateData.template);
+          }
+
+          // Convert GitHub files to WebContainer format
+          const fileTree = convertToWebContainerFormat(templateFiles);
+
+          // Wait for WebContainer to be ready
+          const container = await webcontainer;
+
+          // Mount the file system
+          await container.mount(fileTree);
+
+          // Clear loading state
+          workbenchStore.setIsLoadingFiles(false);
+
+          // Mark as initialized
+          setTemplateInitialized(true);
+
+          // Show success toast
           const successKey = `template-success-${templateData.templateId}`;
           if (!sessionStorage.getItem(successKey)) {
             toast.success(`Template "${templateData.template.name}" loaded successfully!`);
@@ -280,11 +303,12 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
 
         // Race between initialization and timeout
         await Promise.race([initPromise, timeoutPromise]);
-        
+
       } catch (error) {
         console.error('Failed to initialize template:', error);
         toast.error('Failed to load template. You can still start from scratch.');
         setTemplateInitialized(true); // Mark as attempted to prevent retries
+        workbenchStore.setIsLoadingFiles(false); // Clear loading state on error
       } finally {
         setIsInitializingTemplate(false);
         if (initializationTimeoutRef.current) {

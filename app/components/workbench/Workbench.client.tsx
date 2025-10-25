@@ -65,6 +65,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
   const unsavedFiles = useStore(workbenchStore.unsavedFiles);
   const files = useStore(workbenchStore.files);
   const selectedView = useStore(workbenchStore.currentView);
+  const isLoadingFiles = useStore(workbenchStore.isLoadingFiles);
   const { isSignedIn } = useUser();
   const [isSaving, setIsSaving] = useState(false);
 
@@ -230,6 +231,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                   <EditorPanel
                     editorDocument={currentDocument}
                     isStreaming={isStreaming}
+                    isLoadingFiles={isLoadingFiles}
                     selectedFile={selectedFile}
                     files={files}
                     unsavedFiles={unsavedFiles}
