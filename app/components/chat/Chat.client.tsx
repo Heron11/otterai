@@ -17,8 +17,9 @@ import { BaseChat } from './BaseChat';
 import { syncProjectToServer } from '~/lib/services/project-sync.client';
 import { useSearchParams } from '@remix-run/react';
 import type { UploadedImage } from './ImageUploadButton';
-import { convertToWebContainerFormat, fetchGithubRepoFiles, generateFallbackFiles } from '~/lib/utils/github.client';
+import { fetchGithubRepoFiles, generateFallbackFiles } from '~/lib/utils/github.client';
 import { webcontainer } from '~/lib/webcontainer';
+import { WORK_DIR } from '~/utils/constants';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -278,14 +279,31 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
             templateFiles = generateFallbackFiles(templateData.template);
           }
 
-          // Convert GitHub files to WebContainer format
-          const fileTree = convertToWebContainerFormat(templateFiles);
-
           // Wait for WebContainer to be ready
           const container = await webcontainer;
 
-          // Mount the file system
-          await container.mount(fileTree);
+          // Write files to the working directory (not mount to root)
+          // This ensures the AI can see and interact with the files
+          for (const file of templateFiles) {
+            if (file.type === 'file') {
+              try {
+                // Create the full path in the working directory
+                const fullPath = `${WORK_DIR}/${file.path}`;
+                
+                // Create directory structure if needed
+                const dirPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+                if (dirPath !== WORK_DIR) {
+                  await container.fs.mkdir(dirPath, { recursive: true });
+                }
+                
+                // Write the file to the working directory
+                await container.fs.writeFile(fullPath, file.content);
+                console.log(`[Template Init] Wrote file: ${fullPath}`);
+              } catch (error) {
+                console.warn(`[Template Init] Failed to write file ${file.path}:`, error);
+              }
+            }
+          }
 
           // Clear loading state
           workbenchStore.setIsLoadingFiles(false);
