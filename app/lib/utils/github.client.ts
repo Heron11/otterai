@@ -12,33 +12,32 @@ export interface GitHubFile {
 // Files are now written directly to working directory via WebContainer.fs.writeFile()
 
 /**
- * Fetch GitHub repository files from client-side
- * This calls our server API endpoint to avoid CORS issues
- * ONLY REAL FILES - No fallbacks to fake files!
+ * Fetch local template files from server filesystem
+ * This reads templates from the local /templates directory
  */
-export async function fetchGithubRepoFiles(githubUrl: string): Promise<GitHubFile[]> {
-  console.log('🔄 Fetching REAL files from GitHub:', githubUrl);
+export async function fetchLocalTemplateFiles(templatePath: string): Promise<GitHubFile[]> {
+  console.log('🔄 Fetching LOCAL template files from:', templatePath);
   
-  const response = await fetch('/api/fetch-github-repo', {
+  const response = await fetch('/api/fetch-local-template', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ githubUrl }),
+    body: JSON.stringify({ templatePath }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`GitHub fetch failed (${response.status}): ${errorText || response.statusText}`);
+    throw new Error(`Local template fetch failed (${response.status}): ${errorText || response.statusText}`);
   }
 
   const files = await response.json();
   
   if (!Array.isArray(files) || files.length === 0) {
-    throw new Error('No files found in GitHub repository');
+    throw new Error('No files found in local template directory');
   }
 
-  console.log('✅ Successfully fetched', files.length, 'REAL files from GitHub');
+  console.log('✅ Successfully fetched', files.length, 'LOCAL template files');
   return files;
 }
 

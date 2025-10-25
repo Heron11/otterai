@@ -17,7 +17,7 @@ import { BaseChat } from './BaseChat';
 import { syncProjectToServer } from '~/lib/services/project-sync.client';
 import { useSearchParams } from '@remix-run/react';
 import type { UploadedImage } from './ImageUploadButton';
-import { fetchGithubRepoFiles } from '~/lib/utils/github.client';
+import { fetchLocalTemplateFiles } from '~/lib/utils/github.client';
 import { webcontainer } from '~/lib/webcontainer';
 import { WORK_DIR } from '~/utils/constants';
 
@@ -263,20 +263,20 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
             sessionStorage.setItem(toastKey, 'true');
           }
 
-          // Fetch template files from GitHub (client-side) - REAL FILES ONLY
+          // Fetch template files from local filesystem - REAL FILES ONLY
           let templateFiles;
           try {
-            console.log('Fetching template files from:', templateData.template.githubUrl);
-            templateFiles = await fetchGithubRepoFiles(templateData.template.githubUrl);
+            console.log('Fetching template files from local path:', templateData.template.localPath);
+            templateFiles = await fetchLocalTemplateFiles(templateData.template.localPath);
             
             if (!templateFiles || templateFiles.length === 0) {
-              throw new Error('No files fetched from repository');
+              throw new Error('No files found in template directory');
             }
             
-            console.log('Successfully fetched', templateFiles.length, 'REAL files from GitHub');
+            console.log('Successfully fetched', templateFiles.length, 'LOCAL template files');
           } catch (error) {
-            console.error('Failed to fetch real files from GitHub:', error);
-            throw new Error(`Cannot load template: ${error.message || 'GitHub fetch failed'}`);
+            console.error('Failed to fetch local template files:', error);
+            throw new Error(`Cannot load template: ${error.message || 'Local template fetch failed'}`);
           }
 
           // Wait for WebContainer to be ready

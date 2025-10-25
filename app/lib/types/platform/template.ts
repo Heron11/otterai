@@ -29,7 +29,7 @@ export interface Template {
   name: string;
   description: string;
   longDescription?: string;
-  githubUrl: string;
+  localPath: string;
   thumbnailUrl?: string;
   category: TemplateCategory;
   tags: string[];
