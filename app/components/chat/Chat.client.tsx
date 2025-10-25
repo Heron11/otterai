@@ -116,6 +116,21 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
 
   const { messages, isLoading, input, handleInputChange, setInput, stop, append } = useChat({
     api: '/api/chat',
+    body: {
+      chatId: chatId.get(),
+      uploadedImages,
+      // Pass current files to the API for AI context
+      files: useMemo(() => {
+        const files = workbenchStore.files.get();
+        const fileContents: Record<string, string> = {};
+        for (const [path, dirent] of Object.entries(files)) {
+          if (dirent?.type === 'file' && !dirent.isBinary) {
+            fileContents[path] = dirent.content;
+          }
+        }
+        return fileContents;
+      }, [workbenchStore.files.get()]),
+    },
     onError: async (error) => {
       logger.error('Request failed\n\n', error);
       
@@ -136,7 +151,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
         
         const files = workbenchStore.files.get();
         const currentChatId = chatId.get();
-        const projectName = workbenchStore.firstArtifact?.title || 'Untitled Project';
+        const projectName = workbenchStore.firstArtifact?.title || templateData?.template?.name || 'Untitled Project';
         
         // Only sync if we have files and a chat ID
         if (currentChatId && Object.keys(files).length > 0) {
@@ -328,6 +343,24 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
           if (!sessionStorage.getItem(successKey)) {
             toast.success(`Template "${templateData.template.name}" loaded successfully!`);
             sessionStorage.setItem(successKey, 'true');
+          }
+
+          // Save template project to database for authenticated users
+          if (isAuthenticated) {
+            const currentChatId = chatId.get();
+            const files = workbenchStore.files.get();
+            
+            if (currentChatId && Object.keys(files).length > 0) {
+              console.log('[Template Init] Saving template project to database...');
+              syncProjectToServer({
+                chatId: currentChatId,
+                projectName: templateData.template.name,
+                files,
+              }).catch((error) => {
+                console.error('[Template Init] Failed to save project:', error);
+                // Don't show error to user - still saved locally
+              });
+            }
           }
         })();
 

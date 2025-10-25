@@ -28,14 +28,19 @@ interface Message {
 
 export type Messages = Message[];
 
-export type StreamingOptions = Omit<Parameters<typeof _streamText>[0], 'model'>;
+export type StreamingOptions = Omit<Parameters<typeof _streamText>[0], 'model'> & {
+  cwd?: string;
+  files?: Record<string, string>;
+};
 
 export function streamText(messages: Messages, env: Env, options?: StreamingOptions) {
+  const { cwd, files, ...restOptions } = options || {};
+  
   return _streamText({
     model: getAnthropicModel(getAPIKey(env)),
-    system: getSystemPrompt(),
+    system: getSystemPrompt(cwd, files),
     maxTokens: MAX_TOKENS,
     messages: convertToCoreMessages(messages as any),
-    ...options,
+    ...restOptions,
   });
 }

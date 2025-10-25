@@ -20,7 +20,12 @@ async function chatAction(args: ActionFunctionArgs) {
   const { logUsage } = await import('~/lib/.server/credits/usage');
 
   const { context, request } = args;
-  const { messages } = await request.json<{ messages: Messages }>();
+  const { messages, chatId, uploadedImages, files } = await request.json<{ 
+    messages: Messages;
+    chatId?: string;
+    uploadedImages?: any[];
+    files?: Record<string, string>;
+  }>();
 
   // Check if user is authenticated and has credits
   const userId = await getOptionalUserId(args);
@@ -60,7 +65,7 @@ async function chatAction(args: ActionFunctionArgs) {
 
   try {
     const options: StreamingOptions = {
-      toolChoice: 'none',
+      toolChoice: 'auto', // Enable AI tools for file operations
       onFinish: async ({ text: content, finishReason }) => {
         if (finishReason !== 'length') {
           return stream.close();
@@ -75,13 +80,22 @@ async function chatAction(args: ActionFunctionArgs) {
         messages.push({ role: 'assistant', content });
         messages.push({ role: 'user', content: CONTINUE_PROMPT });
 
-        const result = await streamText(messages, context.cloudflare.env, options);
+        const result = await streamText(messages, context.cloudflare.env, {
+          ...options,
+          cwd: '/home/project',
+          files: files || {},
+        });
 
         return stream.switchSource(result.toAIStream());
       },
     };
 
-    const result = await streamText(messages, context.cloudflare.env, options);
+    const result = await streamText(messages, context.cloudflare.env, {
+      ...options,
+      // Pass file context to the AI
+      cwd: '/home/project',
+      files: files || {},
+    });
 
     stream.switchSource(result.toAIStream());
 
