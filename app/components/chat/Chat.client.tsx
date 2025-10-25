@@ -282,8 +282,8 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
           // Wait for WebContainer to be ready
           const container = await webcontainer;
 
-          // Write files to the working directory (not mount to root)
-          // This ensures the AI can see and interact with the files
+          // Write files to the working directory AND sync to workbench store
+          // This ensures both WebContainer and AI have access to the files
           for (const file of templateFiles) {
             if (file.type === 'file') {
               try {
@@ -299,14 +299,26 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory, templateDa
                 // Write the file to the working directory
                 await container.fs.writeFile(fullPath, file.content);
                 console.log(`[Template Init] Wrote file: ${fullPath}`);
+
+                // IMPORTANT: Also add to workbench store for immediate AI context
+                // This ensures the AI can see the files without waiting for file watcher
+                workbenchStore.files.setKey(file.path, {
+                  type: 'file',
+                  content: file.content,
+                  isBinary: false
+                });
               } catch (error) {
                 console.warn(`[Template Init] Failed to write file ${file.path}:`, error);
               }
             }
           }
 
-          // Clear loading state
+          // Give a moment for file watcher to sync, then clear loading state
+          await new Promise(resolve => setTimeout(resolve, 500));
           workbenchStore.setIsLoadingFiles(false);
+          
+          // Log final file count for debugging
+          console.log(`[Template Init] Files in workbench store:`, Object.keys(workbenchStore.files.get()).length);
 
           // Mark as initialized
           setTemplateInitialized(true);
