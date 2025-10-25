@@ -10,7 +10,9 @@ interface ProjectCardProps {
 export function ProjectCard({ project, onDelete }: ProjectCardProps) {
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (onDelete && window.confirm('Are you sure you want to delete this project?')) {
+    e.stopPropagation();
+    
+    if (onDelete && window.confirm(`Are you sure you want to delete "${project.name}"?\n\nThis action cannot be undone.`)) {
       onDelete(project.id);
     }
   };
@@ -24,7 +26,7 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
       {onDelete && (
         <button
           onClick={handleDelete}
-          className="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 p-1.5 text-neutral-500 dark:text-neutral-300 hover:text-red-500 dark:hover:text-red-400 transition-all duration-200 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 backdrop-blur-sm"
+          className="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 p-2 bg-white/90 dark:bg-neutral-800/90 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-red-50 hover:border-red-300 hover:text-red-600 dark:hover:bg-red-950/80 dark:hover:border-red-800 dark:hover:text-red-400 transition-all duration-200 rounded-lg shadow-sm hover:shadow-md backdrop-blur-sm"
           title="Delete project"
         >
           <svg className="w-4 h-4" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">

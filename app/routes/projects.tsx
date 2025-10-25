@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, useFetcher } from '@remix-run/react';
+import { useState } from 'react';
+import { toast } from 'react-toastify';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
 import { requireAuth } from '~/lib/.server/auth/clerk.server';
@@ -26,7 +28,52 @@ export async function loader(args: LoaderFunctionArgs) {
 
 export default function ProjectsPage() {
   const { projects } = useLoaderData<typeof loader>();
-  const activeProjects = projects.filter(p => p.status === 'active');
+  const [localProjects, setLocalProjects] = useState(projects.filter(p => p.status === 'active'));
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (deletingId) return; // Prevent multiple deletes at once
+    
+    setDeletingId(projectId);
+    
+    try {
+      console.log(`Deleting project: ${projectId}`);
+      
+      // Call delete API
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Try to parse JSON response
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('Failed to parse response as JSON:', parseError);
+        data = { error: 'Invalid response from server' };
+      }
+
+      console.log('Delete response:', response.status, data);
+
+      if (!response.ok) {
+        throw new Error(data.error || data.details || `Server error: ${response.status}`);
+      }
+
+      // Remove from UI after successful deletion
+      setLocalProjects(prev => prev.filter(p => p.id !== projectId));
+      toast.success('Project deleted successfully');
+      
+      console.log(`Project ${projectId} deleted successfully`);
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete project');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <PlatformLayout>
@@ -37,12 +84,13 @@ export default function ProjectsPage() {
               My Projects
             </h1>
             <p className="text-lg text-bolt-elements-textSecondary">
-              {activeProjects.length} active {activeProjects.length === 1 ? 'project' : 'projects'}
+              {localProjects.length} active {localProjects.length === 1 ? 'project' : 'projects'}
             </p>
           </div>
 
           <ProjectGrid
-            projects={activeProjects}
+            projects={localProjects}
+            onDeleteProject={handleDeleteProject}
             emptyMessage="No projects yet. Create your first project to get started!"
           />
         </div>
