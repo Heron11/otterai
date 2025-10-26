@@ -14,7 +14,7 @@ import { createScopedLogger, renderLogger } from '~/utils/logger';
 import { useAuth } from '~/lib/hooks/useAuth';
 import { SignInModal } from '~/components/auth/SignInModal';
 import { BaseChat } from './BaseChat';
-import { syncProjectToServer } from '~/lib/services/project-sync.client';
+import { syncProjectToServer } from '~/lib/services/project-sync-v2.client';
 import { useSearchParams } from '@remix-run/react';
 import type { UploadedImage } from './ImageUploadButton';
 
@@ -80,6 +80,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
 
   const [chatStarted, setChatStarted] = useState(initialMessages.length > 0);
+  const [projectName, setProjectName] = useState<string | null>(null);
 
   const { showChat } = useStore(chatStore);
 
@@ -161,9 +162,40 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
   const TEXTAREA_MAX_HEIGHT = chatStarted ? 400 : 200;
 
+  // Initialize chat state based on context
+  useEffect(() => {
+    async function handleChatInitialization() {
+      const { getCurrentProject } = await import('~/lib/stores/project-context');
+      const projectContext = getCurrentProject();
+      
+      // Only act if this is truly a fresh chat (no initial messages, not loading from history)
+      if (initialMessages.length === 0) {
+        if (projectContext) {
+          // Project loaded - set chat as started immediately
+          setChatStarted(true);
+          chatStore.setKey('started', true);
+          setProjectName(projectContext.projectName);
+        } else {
+          // No project context - clear workbench for a fresh start
+          workbenchStore.clearForNewChat();
+        }
+      }
+    }
+
+    handleChatInitialization();
+  }, [initialMessages.length]);
+
   useEffect(() => {
     chatStore.setKey('started', initialMessages.length > 0);
-  }, []);
+  }, [initialMessages.length]);
+
+  // Update chatStarted when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      setChatStarted(true);
+      chatStore.setKey('started', true);
+    }
+  }, [messages.length]);
 
   useEffect(() => {
     parseMessages(messages, isLoading);
@@ -366,6 +398,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
         uploadedImages={uploadedImages}
         onImagesSelected={handleImagesSelected}
         onRemoveImage={handleRemoveImage}
+        projectName={projectName}
       />
       
       <SignInModal 

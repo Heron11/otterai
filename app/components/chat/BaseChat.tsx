@@ -83,6 +83,7 @@ interface BaseChatProps {
   uploadedImages?: UploadedImage[];
   onImagesSelected?: (images: UploadedImage[]) => void;
   onRemoveImage?: (index: number) => void;
+  projectName?: string | null;
 }
 
 const EXAMPLE_PROMPTS = [
@@ -245,6 +246,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       uploadedImages = [],
       onImagesSelected,
       onRemoveImage,
+      projectName,
     },
     ref,
   ) => {
@@ -319,12 +321,39 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               <ClientOnly>
                 {() => {
                   return chatStarted ? (
-                    <Messages
-                      ref={messageRef}
-                      className="flex flex-col w-full flex-1 max-w-chat px-4 pb-6 mx-auto z-1"
-                      messages={messages}
-                      isStreaming={isStreaming}
-                    />
+                    <>
+                      {messages && messages.length > 0 ? (
+                        <Messages
+                          ref={messageRef}
+                          className="flex flex-col w-full flex-1 max-w-chat px-4 pb-6 mx-auto z-1"
+                          messages={messages}
+                          isStreaming={isStreaming}
+                        />
+                      ) : (
+                        <div className="flex flex-col w-full flex-1 max-w-chat px-4 pb-6 mx-auto z-1 items-center justify-center">
+                          <div className="text-center space-y-4 max-w-md">
+                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#e86b47] to-[#d45a36] rounded-2xl mb-4 shadow-lg">
+                              <img 
+                                src="/lightmodeavatar.svg" 
+                                alt="OtterAI" 
+                                className="w-10 h-10"
+                              />
+                            </div>
+                            {projectName && (
+                              <h2 className="text-2xl font-bold text-bolt-elements-textPrimary">
+                                {projectName}
+                              </h2>
+                            )}
+                            <p className="text-bolt-elements-textSecondary text-lg">
+                              Ready to work on your project
+                            </p>
+                            <p className="text-bolt-elements-textTertiary text-sm">
+                              What would you like to build or modify?
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : null;
                 }}
               </ClientOnly>

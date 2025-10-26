@@ -13,42 +13,54 @@ import { json } from '@remix-run/cloudflare';
  * Load all files for a project from R2
  */
 export async function loader({ params, context, ...args }: LoaderFunctionArgs) {
-  // Import server-only modules inside the function
-  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
-  const { getDatabase, queryFirst } = await import('~/lib/.server/db/client');
-  const { getProjectFiles } = await import('~/lib/.server/storage/r2');
+  try {
+    // Import server-only modules inside the function
+    const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+    const { getDatabase, queryFirst } = await import('~/lib/.server/db/client');
+    const { getProjectFiles } = await import('~/lib/.server/storage/r2');
 
-  const auth = await requireAuth(args);
-  const { projectId } = params;
+    const auth = await requireAuth({ ...args, params, context });
+    const { projectId } = params;
 
-  if (!projectId) {
-    return json({ error: 'Project ID is required' }, { status: 400 });
+    if (!projectId) {
+      return json({ error: 'Project ID is required' }, { status: 400 });
+    }
+
+    const db = getDatabase(context.cloudflare.env);
+    const bucket = context.cloudflare.env.R2_BUCKET;
+
+    if (!bucket) {
+      console.error('R2_BUCKET is not configured');
+      return json({ error: 'Storage not configured' }, { status: 500 });
+    }
+
+    // Verify user owns this project
+    const project = await queryFirst<{ user_id: string }>(
+      db,
+      'SELECT user_id FROM projects WHERE id = ? AND user_id = ?',
+      projectId,
+      auth.userId
+    );
+
+    if (!project) {
+      return json({ error: 'Project not found' }, { status: 404 });
+    }
+
+    // Load files from R2
+    const files = await getProjectFiles(bucket, projectId);
+
+    return json({
+      success: true,
+      projectId,
+      files,
+      count: Object.keys(files).length,
+    });
+  } catch (error) {
+    console.error('Error loading project files:', error);
+    return json({ 
+      error: 'Failed to load project files'
+    }, { status: 500 });
   }
-
-  const db = getDatabase(context.cloudflare.env);
-  const bucket = context.cloudflare.env.R2_BUCKET;
-
-  // Verify user owns this project
-  const project = await queryFirst<{ user_id: string }>(
-    db,
-    'SELECT user_id FROM projects WHERE id = ? AND user_id = ?',
-    projectId,
-    auth.userId
-  );
-
-  if (!project) {
-    return json({ error: 'Project not found' }, { status: 404 });
-  }
-
-  // Load files from R2
-  const files = await getProjectFiles(bucket, projectId);
-
-  return json({
-    success: true,
-    projectId,
-    files,
-    count: Object.keys(files).length,
-  });
 }
 
 /**
@@ -56,12 +68,13 @@ export async function loader({ params, context, ...args }: LoaderFunctionArgs) {
  * Save/update files for a project
  */
 export async function action({ request, params, context, ...args }: ActionFunctionArgs) {
-  // Import server-only modules inside the function
-  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
-  const { getDatabase, queryFirst } = await import('~/lib/.server/db/client');
-  const { saveFiles } = await import('~/lib/.server/storage/r2');
+  try {
+    // Import server-only modules inside the function
+    const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+    const { getDatabase, queryFirst, execute } = await import('~/lib/.server/db/client');
+    const { saveFiles, getFileKey } = await import('~/lib/.server/storage/r2');
 
-  const auth = await requireAuth(args);
+    const auth = await requireAuth({ ...args, request, params, context });
   const { projectId } = params;
 
   if (!projectId) {
@@ -149,6 +162,12 @@ export async function action({ request, params, context, ...args }: ActionFuncti
     failed: result.failed,
     totalSize,
   });
+  } catch (error) {
+    console.error('Error saving project files:', error);
+    return json({ 
+      error: 'Failed to save project files'
+    }, { status: 500 });
+  }
 }
 
 /**

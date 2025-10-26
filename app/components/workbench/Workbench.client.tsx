@@ -17,7 +17,7 @@ import { renderLogger } from '~/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
 import { chatId } from '~/lib/persistence';
-import { syncProjectToServer } from '~/lib/services/project-sync.client';
+import { syncProjectToServer } from '~/lib/services/project-sync-v2.client';
 import { useUser } from '@clerk/remix';
 
 interface WorkspaceProps {

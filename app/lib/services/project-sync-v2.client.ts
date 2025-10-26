@@ -1,10 +1,11 @@
 /**
- * Project Sync Service (Client-side)
- * Handles syncing workbench state to server (D1 + R2)
+ * Project Sync Service V2 (Client-side)
+ * Handles syncing workbench state to server with project context support
  */
 
 import type { FileMap } from '~/lib/stores/files';
 import { createScopedLogger } from '~/utils/logger';
+import { getCurrentProject } from '~/lib/stores/project-context';
 
 /**
  * Security: Validate and normalize file path to prevent directory traversal attacks
@@ -48,26 +49,22 @@ function validateFilePath(filePath: string): string | null {
   return normalizedPath;
 }
 
-const logger = createScopedLogger('ProjectSync');
+const logger = createScopedLogger('ProjectSyncV2');
 
 interface SyncProjectData {
-  chatId: string;
+  chatId?: string;
   projectName: string;
   files: FileMap;
 }
 
 /**
  * Sync current project state to server
- * Called after AI completes generating code
+ * Uses project context if available, falls back to chat-based sync
  */
 export async function syncProjectToServer(data: SyncProjectData): Promise<void> {
   try {
-    logger.debug('Syncing project to server...', {
-      chatId: data.chatId,
-      name: data.projectName,
-      fileCount: Object.keys(data.files).length,
-    });
-
+    const projectContext = getCurrentProject();
+    
     // Convert FileMap to simple string record (only include actual files)
     // Also normalize paths to remove /home/project prefix
     const fileContents: Record<string, string> = {};
@@ -83,34 +80,65 @@ export async function syncProjectToServer(data: SyncProjectData): Promise<void> 
       }
     }
 
-    // Call sync API
-    const response = await fetch('/api/projects/sync', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    // If we have project context, use direct project sync
+    if (projectContext) {
+      logger.debug('Syncing to project...', {
+        projectId: projectContext.projectId,
+        fileCount: Object.keys(fileContents).length,
+      });
+
+      const response = await fetch(`/api/projects/${projectContext.projectId}/files`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          files: fileContents,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Sync failed');
+      }
+
+      logger.debug('Project synced successfully', {
+        projectId: projectContext.projectId,
+      });
+    } else {
+      // Fall back to chat-based sync (legacy behavior)
+      logger.debug('Syncing via chat (no project context)...', {
         chatId: data.chatId,
-        projectName: data.projectName,
-        files: fileContents,
-      }),
-    });
+        fileCount: Object.keys(fileContents).length,
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Sync failed');
+      if (!data.chatId) {
+        logger.warn('No project context or chat ID available for sync');
+        return;
+      }
+
+      const response = await fetch('/api/projects/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatId: data.chatId,
+          projectName: data.projectName,
+          files: fileContents,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Sync failed');
+      }
+
+      logger.debug('Project synced successfully via chat');
     }
-
-    const result = await response.json();
-    
-    logger.debug('Project synced successfully', {
-      projectId: result.projectId,
-      fileCount: result.fileCount,
-    });
   } catch (error) {
     logger.error('Failed to sync project to server:', error);
     throw error;
   }
 }
-
 

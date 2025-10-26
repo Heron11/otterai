@@ -36,6 +36,9 @@ export class WorkbenchStore {
   unsavedFiles: WritableAtom<Set<string>> = import.meta.hot?.data.unsavedFiles ?? atom(new Set<string>());
   modifiedFiles = new Set<string>();
   artifactIdList: string[] = [];
+  
+  // Track current project to detect switches
+  #currentProjectId: string | null = null;
 
   constructor() {
     if (import.meta.hot) {
@@ -267,9 +270,168 @@ export class WorkbenchStore {
     artifact.runner.runAction(data);
   }
 
+  /**
+   * Reset workbench to clean state
+   * Clears all artifacts, files, and state
+   */
+  async resetWorkbench() {
+    // Clear artifacts
+    this.artifacts.set({});
+    this.artifactIdList = [];
+    
+    // Hide workbench
+    this.showWorkbench.set(false);
+    
+    // Clear unsaved files
+    this.unsavedFiles.set(new Set());
+    this.modifiedFiles.clear();
+    
+    // Reset view to code
+    this.currentView.set('code');
+    
+    // Clear current project ID
+    this.#currentProjectId = null;
+    
+    // Clear WebContainer filesystem
+    try {
+      const webcontainerInstance = await webcontainer;
+      const WORK_DIR = '/home/project';
+      
+      // List all files in the work directory
+      const files = await webcontainerInstance.fs.readdir(WORK_DIR, { withFileTypes: true });
+      
+      // Delete all files and directories
+      for (const file of files) {
+        try {
+          const fullPath = `${WORK_DIR}/${file.name}`;
+          if (file.isDirectory()) {
+            await webcontainerInstance.fs.rm(fullPath, { recursive: true, force: true });
+          } else {
+            await webcontainerInstance.fs.rm(fullPath, { force: true });
+          }
+        } catch (err) {
+          // Ignore errors for individual file deletions
+          console.warn(`Failed to delete ${file.name}:`, err);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to clear WebContainer filesystem:', error);
+    }
+  }
+
+  /**
+   * Load project files directly into the workbench
+   * Bypasses message parser and artifact system
+   * Automatically clears workbench if switching projects
+   */
+  async loadProjectFiles(files: Record<string, string>, projectName: string, projectId: string) {
+    // Check if we're switching projects
+    if (this.#currentProjectId && this.#currentProjectId !== projectId) {
+      await this.resetWorkbench();
+    }
+    
+    // Set current project ID
+    this.#currentProjectId = projectId;
+    
+    const webcontainerInstance = await webcontainer;
+    
+    // Create a pseudo-artifact for the project to maintain compatibility
+    const artifactId = `project-${Date.now()}`;
+    const messageId = `msg-${Date.now()}`;
+    
+    this.artifactIdList.push(messageId);
+    this.artifacts.setKey(messageId, {
+      id: artifactId,
+      title: projectName,
+      closed: false,
+      runner: new ActionRunner(webcontainer),
+    });
+
+    // Write all files to WebContainer
+    const WORK_DIR = '/home/project';
+    for (const [filePath, content] of Object.entries(files)) {
+      try {
+        // Security: Validate and normalize file path to prevent directory traversal
+        const normalizedPath = this.#validateAndNormalizePath(filePath);
+        if (!normalizedPath) {
+          console.warn(`Skipping invalid file path: ${filePath}`);
+          continue;
+        }
+        
+        // Build full path
+        const fullPath = `${WORK_DIR}/${normalizedPath}`;
+        const dirPath = fullPath.split('/').slice(0, -1).join('/');
+        
+        if (dirPath && dirPath !== WORK_DIR) {
+          await webcontainerInstance.fs.mkdir(dirPath, { recursive: true });
+        }
+
+        // Write file
+        await webcontainerInstance.fs.writeFile(fullPath, content);
+      } catch (error) {
+        console.error(`Failed to load file ${filePath}:`, error);
+      }
+    }
+
+    // Show workbench
+    this.showWorkbench.set(true);
+  }
+  
+  /**
+   * Check if workbench should be cleared for a fresh start
+   * Call this when starting a new chat (not from a project)
+   */
+  async clearForNewChat() {
+    if (this.#currentProjectId !== null || this.filesCount > 0) {
+      await this.resetWorkbench();
+    }
+  }
+
   #getArtifact(id: string) {
     const artifacts = this.artifacts.get();
     return artifacts[id];
+  }
+
+  /**
+   * Security: Validate and normalize file path to prevent directory traversal attacks
+   * @param filePath - The file path to validate
+   * @returns Normalized path or null if invalid
+   */
+  #validateAndNormalizePath(filePath: string): string | null {
+    if (!filePath || typeof filePath !== 'string') {
+      return null;
+    }
+
+    // Remove leading slash and /home/project prefix if present
+    let normalizedPath = filePath.replace(/^\//, '');
+    if (normalizedPath.startsWith('home/project/')) {
+      normalizedPath = normalizedPath.substring('home/project/'.length);
+    }
+
+    // Security: Prevent directory traversal attacks
+    if (normalizedPath.includes('..') || normalizedPath.includes('~')) {
+      return null;
+    }
+
+    // Security: Prevent absolute paths
+    if (normalizedPath.startsWith('/')) {
+      return null;
+    }
+
+    // Security: Prevent control characters and dangerous patterns
+    if (/[\x00-\x1f\x7f-\x9f]/.test(normalizedPath)) {
+      return null;
+    }
+
+    // Security: Limit path length to prevent DoS
+    if (normalizedPath.length > 1000) {
+      return null;
+    }
+
+    // Normalize path separators and remove redundant parts
+    normalizedPath = normalizedPath.replace(/\/+/g, '/').replace(/\/$/, '');
+    
+    return normalizedPath;
   }
 }
 
