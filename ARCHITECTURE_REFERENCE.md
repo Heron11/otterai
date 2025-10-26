@@ -261,7 +261,7 @@ App (root.tsx)
 
 **1. Props (Parent → Child)**
 ```typescript
-<TemplateCard template={template} onSelect={handleSelect} />
+<ProjectCard project={project} onDelete={handleDelete} />
 ```
 
 **2. Stores (Global State)**

@@ -292,7 +292,6 @@ const user = useStore(userStore);
 
 **Templates for Common Tasks:**
 - New page: `app/routes/dashboard.tsx`
-- New component: `app/components/platform/templates/TemplateCard.tsx`
 - New store: `app/lib/stores/platform/auth.ts`
 - New type: `app/lib/types/platform/user.ts`
 

@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { useEffect } from 'react';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
-import { TemplateGrid } from '~/components/platform/templates/TemplateGrid';
 import { requireAuth } from '~/lib/.server/auth/clerk.server';
 import { getDatabase } from '~/lib/.server/db/client';
 import { getUserProfile, getUserCredits } from '~/lib/.server/users/queries';
@@ -170,6 +169,7 @@ export default function DashboardPage() {
             <ProjectGrid
               projects={recentProjects}
               emptyMessage="No projects yet. Create your first project to get started!"
+              showSettings={true}
             />
           </motion.div>
 
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                 </svg>
               </Link>
             </div>
-            <TemplateGrid templates={featuredTemplates} />
+            <ProjectGrid projects={featuredTemplates} showSettings={false} />
           </motion.div>
         </div>
       </div>

@@ -42,7 +42,13 @@ export default function PublicTemplatesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent');
 
-  const filteredProjects = publicProjects.filter(project =>
+  // Combine all projects (public + featured) and remove duplicates
+  const allProjects = [...publicProjects, ...featuredProjects];
+  const uniqueProjects = allProjects.filter((project, index, self) => 
+    index === self.findIndex(p => p.id === project.id)
+  );
+
+  const filteredProjects = uniqueProjects.filter(project =>
     project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (project.description && project.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -62,10 +68,10 @@ export default function PublicTemplatesPage() {
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-bolt-elements-textPrimary mb-4">
-              Public Templates
+              Templates
             </h1>
             <p className="text-lg text-bolt-elements-textSecondary max-w-2xl mx-auto">
-              Discover and clone amazing projects created by the OtterAI community. 
+              Discover and clone {uniqueProjects.length} amazing projects created by the OtterAI community. 
               Find inspiration for your next project or share your own creations.
             </p>
           </div>

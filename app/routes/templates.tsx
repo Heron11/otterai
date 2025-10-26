@@ -100,6 +100,7 @@ export default function TemplatesPage() {
             <ProjectGrid 
               projects={filteredTemplates} 
               emptyMessage="No public templates available yet. Be the first to share a project!"
+              showSettings={false}
             />
           </motion.div>
         </div>

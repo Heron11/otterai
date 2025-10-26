@@ -7,7 +7,7 @@ import { Link, useNavigate } from '@remix-run/react';
 import { PlatformNav } from '~/components/platform/layout/PlatformNav';
 import { FloatingUser } from '~/components/platform/layout/FloatingUser';
 import { BuildAnimationLoader } from '~/components/platform/LottieLoader';
-import { TemplateCard } from '~/components/platform/templates/TemplateCard';
+import { ProjectCard } from '~/components/platform/projects/ProjectCard';
 import { getDatabase } from '~/lib/.server/db/client';
 import { getFeaturedProjects } from '~/lib/.server/projects/queries';
 
@@ -408,11 +408,12 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 transform-gpu"
+                className="flex gap-6 overflow-x-auto pb-4 mb-12 transform-gpu scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+                style={{ scrollbarWidth: 'thin' }}
               >
-                {featuredTemplates.slice(0, 3).map((template) => (
-                  <div key={template.id} className="transform-gpu">
-                    <TemplateCard template={template} />
+                {featuredTemplates.slice(0, 6).map((project) => (
+                  <div key={project.id} className="flex-shrink-0 transform-gpu">
+                    <ProjectCard project={project} showSettings={false} />
                   </div>
                 ))}
               </motion.div>

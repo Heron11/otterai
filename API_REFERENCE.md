@@ -230,53 +230,6 @@ interface PlatformLayoutProps {
 <Footer />
 ```
 
-### Template Components
-
-#### `<TemplateCard>`
-**Location:** `app/components/platform/templates/TemplateCard.tsx`
-
-```typescript
-interface TemplateCardProps {
-  template: Template;
-}
-
-// Usage
-<TemplateCard template={template} />
-```
-
-#### `<TemplateGrid>`
-**Location:** `app/components/platform/templates/TemplateGrid.tsx`
-
-```typescript
-interface TemplateGridProps {
-  templates: Template[];
-  emptyMessage?: string;
-}
-
-// Usage
-<TemplateGrid 
-  templates={filteredTemplates}
-  emptyMessage="No templates found"
-/>
-```
-
-#### `<TemplateFilters>`
-**Location:** `app/components/platform/templates/TemplateFilters.tsx`
-
-```typescript
-interface TemplateFiltersProps {
-  onSearchChange: (search: string) => void;
-  onCategoryChange: (category: TemplateCategory | undefined) => void;
-  onFrameworkChange: (framework: TemplateFramework | undefined) => void;
-}
-
-// Usage
-<TemplateFilters
-  onSearchChange={setSearch}
-  onCategoryChange={setCategory}
-  onFrameworkChange={setFramework}
-/>
-```
 
 ### Project Components
 

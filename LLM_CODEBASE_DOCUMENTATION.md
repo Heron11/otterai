@@ -281,9 +281,9 @@ All platform features use mock data for development:
 ### 2. Component Development
 ```typescript
 // Platform components follow this pattern:
-export function TemplateCard({ template }: TemplateCardProps) {
+export function ProjectCard({ project }: ProjectCardProps) {
   const { canAccessTemplate } = useSubscription();
-  const hasAccess = canAccessTemplate(template.requiredTier);
+  const hasAccess = canAccessTemplate(project.requiredTier);
   
   return (
     <div className="group bg-white dark:bg-bg-2 border border-border-primary rounded-xl overflow-hidden">
