@@ -8,6 +8,32 @@ import { queryFirst, queryAll, execute } from '../db/client';
 import type { Project } from '~/lib/types/platform/project';
 
 /**
+ * Helper function to map database row to Project object
+ */
+function mapRowToProject(row: any): Project {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    name: row.name,
+    description: row.description || '',
+    templateId: row.template_id,
+    templateName: row.template_name,
+    chatId: row.chat_id,
+    status: row.status,
+    lastModified: new Date(row.updated_at),
+    createdAt: new Date(row.created_at),
+    previewUrl: row.preview_url,
+    visibility: row.visibility,
+    snapshotId: row.snapshot_id,
+    snapshotCreatedAt: row.snapshot_created_at ? new Date(row.snapshot_created_at) : undefined,
+    snapshotVersion: row.snapshot_version,
+    viewCount: row.view_count,
+    cloneCount: row.clone_count,
+    iconUrl: row.icon_url,
+  };
+}
+
+/**
  * Get all active projects for a user
  */
 export async function getUserProjects(
@@ -22,19 +48,7 @@ export async function getUserProjects(
     userId
   );
 
-  return rows.map(row => ({
-    id: row.id,
-    userId: row.user_id,
-    name: row.name,
-    description: row.description || '',
-    templateId: row.template_id,
-    templateName: row.template_name,
-    chatId: row.chat_id,
-    status: row.status,
-    lastModified: new Date(row.updated_at),
-    createdAt: new Date(row.created_at),
-    previewUrl: row.preview_url,
-  }));
+  return rows.map(mapRowToProject);
 }
 
 /**
@@ -55,19 +69,7 @@ export async function getRecentProjects(
     limit
   );
 
-  return rows.map(row => ({
-    id: row.id,
-    userId: row.user_id,
-    name: row.name,
-    description: row.description || '',
-    templateId: row.template_id,
-    templateName: row.template_name,
-    chatId: row.chat_id,
-    status: row.status,
-    lastModified: new Date(row.updated_at),
-    createdAt: new Date(row.created_at),
-    previewUrl: row.preview_url,
-  }));
+  return rows.map(mapRowToProject);
 }
 
 /**
@@ -89,18 +91,7 @@ export async function getProjectById(
     return null;
   }
 
-  return {
-    id: row.id,
-    userId: row.user_id,
-    name: row.name,
-    description: row.description || '',
-    templateId: row.template_id,
-    templateName: row.template_name,
-    status: row.status,
-    lastModified: new Date(row.updated_at),
-    createdAt: new Date(row.created_at),
-    previewUrl: row.preview_url,
-  };
+  return mapRowToProject(row);
 }
 
 /**
@@ -237,19 +228,7 @@ export async function getPublicTemplates(
   
   const rows = await queryAll<any>(db, query, ...params);
 
-  return rows.map(row => ({
-    id: row.id,
-    userId: row.user_id,
-    name: row.name,
-    description: row.description || '',
-    templateId: row.template_id,
-    templateName: row.template_name,
-    chatId: row.chat_id,
-    status: row.status,
-    lastModified: new Date(row.updated_at),
-    createdAt: new Date(row.created_at),
-    previewUrl: row.preview_url,
-  }));
+  return rows.map(mapRowToProject);
 }
 
 /**
@@ -269,18 +248,6 @@ export async function getFeaturedProjects(
     limit
   );
 
-  return rows.map(row => ({
-    id: row.id,
-    userId: row.user_id,
-    name: row.name,
-    description: row.description || '',
-    templateId: row.template_id,
-    templateName: row.template_name,
-    chatId: row.chat_id,
-    status: row.status,
-    lastModified: new Date(row.updated_at),
-    createdAt: new Date(row.created_at),
-    previewUrl: row.preview_url,
-  }));
+  return rows.map(mapRowToProject);
 }
 

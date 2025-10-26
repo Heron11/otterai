@@ -13,6 +13,13 @@ export interface Project {
   createdAt: Date;
   files?: ProjectFiles;
   previewUrl?: string;
+  visibility?: 'private' | 'public' | 'unlisted';
+  snapshotId?: string;
+  snapshotCreatedAt?: Date;
+  snapshotVersion?: number;
+  viewCount?: number;
+  cloneCount?: number;
+  iconUrl?: string;
 }
 
 export interface ProjectFiles {

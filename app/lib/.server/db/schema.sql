@@ -49,6 +49,9 @@ CREATE TABLE IF NOT EXISTS projects (
   visibility TEXT NOT NULL DEFAULT 'private', -- 'private' (owner only), 'public' (anyone can view & clone), 'unlisted' (link only)
   view_count INTEGER NOT NULL DEFAULT 0, -- Number of times viewed
   clone_count INTEGER NOT NULL DEFAULT 0, -- Number of times cloned/used
+  snapshot_id TEXT, -- ID of the public snapshot (if project is public)
+  snapshot_created_at TIMESTAMP, -- When the snapshot was created
+  snapshot_version INTEGER NOT NULL DEFAULT 1, -- Version number of the snapshot
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -82,6 +85,46 @@ CREATE TABLE IF NOT EXISTS project_files (
 CREATE INDEX IF NOT EXISTS idx_project_files_project ON project_files(project_id);
 CREATE INDEX IF NOT EXISTS idx_project_files_user ON project_files(user_id);
 CREATE INDEX IF NOT EXISTS idx_project_files_path ON project_files(project_id, file_path);
+
+-- Project snapshots table: stores frozen snapshots of public projects
+CREATE TABLE IF NOT EXISTS project_snapshots (
+  id TEXT PRIMARY KEY, -- snapshot_id
+  project_id TEXT NOT NULL, -- Original project ID
+  user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  template_id TEXT,
+  template_name TEXT,
+  r2_path TEXT NOT NULL, -- R2 storage path: snapshots/{snapshotId}/
+  file_count INTEGER NOT NULL DEFAULT 0,
+  total_size INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1, -- Snapshot version number
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Index for snapshot lookups
+CREATE INDEX IF NOT EXISTS idx_snapshots_project ON project_snapshots(project_id);
+CREATE INDEX IF NOT EXISTS idx_snapshots_user ON project_snapshots(user_id);
+CREATE INDEX IF NOT EXISTS idx_snapshots_created ON project_snapshots(created_at DESC);
+
+-- Snapshot files table: metadata for files in snapshots
+CREATE TABLE IF NOT EXISTS snapshot_files (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  snapshot_id TEXT NOT NULL,
+  file_path TEXT NOT NULL, -- Relative path within snapshot
+  r2_key TEXT NOT NULL, -- Full R2 key (e.g., 'snapshots/{id}/src/App.tsx')
+  file_size INTEGER NOT NULL DEFAULT 0,
+  content_type TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (snapshot_id) REFERENCES project_snapshots(id) ON DELETE CASCADE,
+  UNIQUE(snapshot_id, file_path)
+);
+
+-- Index for snapshot file lookups
+CREATE INDEX IF NOT EXISTS idx_snapshot_files_snapshot ON snapshot_files(snapshot_id);
+CREATE INDEX IF NOT EXISTS idx_snapshot_files_path ON snapshot_files(snapshot_id, file_path);
 
 -- Usage logs: tracks message usage per user for analytics
 CREATE TABLE IF NOT EXISTS usage_logs (
