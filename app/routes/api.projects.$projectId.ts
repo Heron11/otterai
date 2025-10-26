@@ -57,10 +57,21 @@ export async function action(args: ActionFunctionArgs) {
   if (method === 'PATCH') {
     try {
       const body = await request.json();
-      const { visibility } = body;
+      const { visibility, name, description } = body;
 
-      if (!visibility || !['private', 'public', 'unlisted'].includes(visibility)) {
+      // Validate visibility if provided
+      if (visibility && !['private', 'public', 'unlisted'].includes(visibility)) {
         throw new Response('Invalid visibility value', { status: 400 });
+      }
+
+      // Validate name if provided
+      if (name && (typeof name !== 'string' || name.trim().length === 0)) {
+        throw new Response('Invalid name value', { status: 400 });
+      }
+
+      // Validate description if provided
+      if (description && typeof description !== 'string') {
+        throw new Response('Invalid description value', { status: 400 });
       }
 
       // Check if project exists and belongs to user
@@ -75,24 +86,42 @@ export async function action(args: ActionFunctionArgs) {
         throw new Response('Project not found', { status: 404 });
       }
 
-      // Update project visibility and clear snapshot data if making private
-      if (visibility === 'private') {
-        await execute(
-          db,
-          'UPDATE projects SET visibility = ?, snapshot_id = NULL, snapshot_version = 1, snapshot_created_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-          visibility,
-          projectId,
-          userId
-        );
-      } else {
-        await execute(
-          db,
-          'UPDATE projects SET visibility = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-          visibility,
-          projectId,
-          userId
-        );
+      // Build dynamic update query based on provided fields
+      const updateFields = [];
+      const updateValues = [];
+
+      if (visibility !== undefined) {
+        updateFields.push('visibility = ?');
+        updateValues.push(visibility);
       }
+
+      if (name !== undefined) {
+        updateFields.push('name = ?');
+        updateValues.push(name.trim());
+      }
+
+      if (description !== undefined) {
+        updateFields.push('description = ?');
+        updateValues.push(description);
+      }
+
+      // Add updated_at timestamp
+      updateFields.push('updated_at = CURRENT_TIMESTAMP');
+
+      // Add WHERE clause parameters
+      updateValues.push(projectId, userId);
+
+      // Handle special case: clear snapshot data if making private
+      if (visibility === 'private') {
+        updateFields.push('snapshot_id = NULL', 'snapshot_version = 1', 'snapshot_created_at = NULL');
+      }
+
+      // Execute the update
+      await execute(
+        db,
+        `UPDATE projects SET ${updateFields.join(', ')} WHERE id = ? AND user_id = ?`,
+        ...updateValues
+      );
 
       // If making project public for the FIRST TIME, create initial snapshot
       if (visibility === 'public' && existingProject.visibility !== 'public') {

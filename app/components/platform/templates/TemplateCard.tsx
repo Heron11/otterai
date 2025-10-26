@@ -1,15 +1,23 @@
 import { Link } from '@remix-run/react';
 import { memo } from 'react';
 import type { Template } from '~/lib/types/platform/template';
+import type { Project } from '~/lib/types/platform/project';
 import { useSubscription } from '~/lib/hooks/platform/useSubscription';
 
 interface TemplateCardProps {
-  template: Template;
+  template: Template | Project;
 }
 
 export const TemplateCard = memo(function TemplateCard({ template }: TemplateCardProps) {
   const { canAccessTemplate } = useSubscription();
-  const hasAccess = canAccessTemplate(template.requiredTier);
+  
+  // Handle both Template and Project types - Projects don't have all Template fields
+  const requiredTier = 'requiredTier' in template ? template.requiredTier : 'free';
+  const framework = 'framework' in template ? template.framework : 'other';
+  const featured = 'featured' in template ? template.featured : false;
+  const usageCount = 'usageCount' in template ? template.usageCount : (template as any).cloneCount || 0;
+  const tags = 'tags' in template ? template.tags : [];
+  const hasAccess = canAccessTemplate(requiredTier);
 
   const getTierBadgeColor = (tier: string) => {
     switch (tier) {
@@ -40,27 +48,27 @@ export const TemplateCard = memo(function TemplateCard({ template }: TemplateCar
         ) : (
         <div className="w-full h-full flex items-center justify-center">
           <div className="text-6xl opacity-20 dark:opacity-30 group-hover:opacity-40 dark:group-hover:opacity-50 transition-opacity duration-500">
-              {template.framework === 'react' ? '⚛️' : 
-               template.framework === 'next' ? '▲' :
-               template.framework === 'vue' ? '🖖' :
-               template.framework === 'svelte' ? '🔥' :
-               template.framework === 'express' ? '🚀' :
-               template.framework === 'astro' ? '⭐' :
+              {framework === 'react' ? '⚛️' : 
+               framework === 'next' ? '▲' :
+               framework === 'vue' ? '🖖' :
+               framework === 'svelte' ? '🔥' :
+               framework === 'express' ? '🚀' :
+               framework === 'astro' ? '⭐' :
                '💻'}
             </div>
           </div>
         )}
         
         {/* Featured badge */}
-        {template.featured && (
+        {featured && (
           <div className="absolute top-4 left-4 px-3 py-1.5 bg-[#e86b47]/95 backdrop-blur-sm border border-[#e86b47]/30 rounded-lg text-xs font-semibold text-white shadow-sm">
             Featured
           </div>
         )}
         
         {/* Tier badge */}
-        <div className={`absolute top-4 right-4 px-3 py-1.5 border rounded-lg text-xs font-semibold backdrop-blur-sm shadow-sm ${getTierBadgeColor(template.requiredTier)}`}>
-          {template.requiredTier.charAt(0).toUpperCase() + template.requiredTier.slice(1)}
+        <div className={`absolute top-4 right-4 px-3 py-1.5 border rounded-lg text-xs font-semibold backdrop-blur-sm shadow-sm ${getTierBadgeColor(requiredTier)}`}>
+          {requiredTier.charAt(0).toUpperCase() + requiredTier.slice(1)}
         </div>
 
         {/* Hover Overlay */}
@@ -83,12 +91,12 @@ export const TemplateCard = memo(function TemplateCard({ template }: TemplateCar
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>{template.usageCount.toLocaleString()} uses</span>
+                <span>{usageCount.toLocaleString()} uses</span>
               </div>
               
               {/* Framework tags */}
               <div className="flex gap-1">
-                {template.tags.slice(0, 2).map((tag) => (
+                {tags.slice(0, 2).map((tag) => (
                   <span
                     key={tag}
                     className="px-2 py-0.5 bg-white/20 backdrop-blur-sm text-xs rounded text-white"
@@ -96,9 +104,9 @@ export const TemplateCard = memo(function TemplateCard({ template }: TemplateCar
                     {tag}
                   </span>
                 ))}
-                {template.tags.length > 2 && (
+                {tags.length > 2 && (
                   <span className="px-2 py-0.5 text-xs text-gray-300">
-                    +{template.tags.length - 2}
+                    +{tags.length - 2}
                   </span>
                 )}
               </div>
