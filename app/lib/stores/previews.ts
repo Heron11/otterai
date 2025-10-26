@@ -19,6 +19,14 @@ export class PreviewsStore {
     this.#init();
   }
 
+  /**
+   * Clear all previews - useful when switching projects
+   */
+  clearPreviews() {
+    this.#availablePreviews.clear();
+    this.previews.set([]);
+  }
+
   async #init() {
     let webcontainer: WebContainer | undefined;
     try {

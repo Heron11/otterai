@@ -292,6 +292,9 @@ export class WorkbenchStore {
     // Clear current project ID
     this.#currentProjectId = null;
     
+    // Clear previews to prevent showing old project content
+    this.#previewsStore.clearPreviews();
+    
     // Clear WebContainer filesystem
     try {
       const webcontainerInstance = await webcontainer;
