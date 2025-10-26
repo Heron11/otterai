@@ -4,10 +4,12 @@
  */
 
 import { type LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { getDatabase, queryFirst, queryAll } from '~/lib/.server/db/client';
-import { getSnapshotFiles } from '~/lib/.server/snapshots/snapshot-service';
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
+  // Import server-only modules inside the function
+  const { getDatabase, queryFirst, queryAll } = await import('~/lib/.server/db/client');
+  const { getSnapshotFiles } = await import('~/lib/.server/snapshots/snapshot-service');
+  
   const { snapshotId } = params;
   
   if (!snapshotId) {

@@ -1,8 +1,10 @@
 import { type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { getDatabase, queryAll } from '~/lib/.server/db/client';
 
 export async function loader({ context }: LoaderFunctionArgs) {
+  // Import server-only modules inside the function
+  const { getDatabase, queryAll } = await import('~/lib/.server/db/client');
+  
   const db = getDatabase(context.cloudflare.env);
   
   try {

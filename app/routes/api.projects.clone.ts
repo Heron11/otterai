@@ -1,8 +1,5 @@
 import { type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { getOptionalUserId } from '~/lib/.server/auth/clerk.server';
-import { getDatabase, queryFirst, execute, queryAll } from '~/lib/.server/db/client';
-import { getSnapshotFiles } from '~/lib/.server/snapshots/snapshot-service';
 import { nanoid } from 'nanoid';
 
 // Simple ID generator
@@ -11,6 +8,11 @@ function generateId() {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
+  // Import server-only modules inside the function
+  const { getOptionalUserId } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase, queryFirst, execute, queryAll } = await import('~/lib/.server/db/client');
+  const { getSnapshotFiles } = await import('~/lib/.server/snapshots/snapshot-service');
+  
   const userId = await getOptionalUserId({ context });
   if (!userId) {
     throw new Response('Unauthorized', { status: 401 });
