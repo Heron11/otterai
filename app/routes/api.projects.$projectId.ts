@@ -56,7 +56,7 @@ export async function action(args: ActionFunctionArgs) {
   // PATCH - Update project visibility
   if (method === 'PATCH') {
     try {
-      const body = await request.json();
+      const body = await request.json() as { visibility?: string; name?: string; description?: string };
       const { visibility, name, description } = body;
 
       // Validate visibility if provided
@@ -126,27 +126,24 @@ export async function action(args: ActionFunctionArgs) {
       // If making project public for the FIRST TIME, create initial snapshot
       if (visibility === 'public' && existingProject.visibility !== 'public') {
         try {
-          // Generate a new snapshot ID and version
-          const snapshotId = `snapshot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-          const snapshotVersion = Date.now();
-
-          // Update the project with snapshot info
-          await execute(
+          // Import snapshot service
+          const { createProjectSnapshot } = await import('~/lib/.server/snapshots/snapshot-service');
+          
+          // Create the actual snapshot with all project files
+          const snapshot = await createProjectSnapshot(
             db,
-            'UPDATE projects SET snapshot_id = ?, snapshot_version = ?, snapshot_created_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-            snapshotId,
-            snapshotVersion,
             projectId,
-            userId
+            userId,
+            context.cloudflare.env.R2_BUCKET
           );
           
           return json({ 
             success: true, 
             visibility,
             snapshot: {
-              id: snapshotId,
-              version: snapshotVersion,
-              createdAt: new Date().toISOString()
+              id: snapshot.id,
+              version: snapshot.version,
+              createdAt: snapshot.createdAt.toISOString()
             }
           });
         } catch (error) {

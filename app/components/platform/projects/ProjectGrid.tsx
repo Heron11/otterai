@@ -8,9 +8,11 @@ interface ProjectGridProps {
   emptyMessage?: string;
   deletingProjects?: Set<string>;
   showSettings?: boolean;
+  onOpenModal?: (project: Project) => void;
+  useModal?: boolean;
 }
 
-export const ProjectGrid = memo(function ProjectGrid({ projects, onDeleteProject, emptyMessage = 'No projects yet', deletingProjects = new Set(), showSettings = true }: ProjectGridProps) {
+export const ProjectGrid = memo(function ProjectGrid({ projects, onDeleteProject, emptyMessage = 'No projects yet', deletingProjects = new Set(), showSettings = true, onOpenModal, useModal = false }: ProjectGridProps) {
   if (projects.length === 0) {
     return (
       <div className="text-center py-16">
@@ -35,6 +37,8 @@ export const ProjectGrid = memo(function ProjectGrid({ projects, onDeleteProject
           onDelete={onDeleteProject}
           isDeleting={deletingProjects.has(project.id)}
           showSettings={showSettings}
+          onOpenModal={onOpenModal}
+          useModal={useModal}
         />
       ))}
     </div>

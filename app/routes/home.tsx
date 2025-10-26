@@ -8,8 +8,10 @@ import { PlatformNav } from '~/components/platform/layout/PlatformNav';
 import { FloatingUser } from '~/components/platform/layout/FloatingUser';
 import { BuildAnimationLoader } from '~/components/platform/LottieLoader';
 import { ProjectCard } from '~/components/platform/projects/ProjectCard';
+import { TemplateInfoModal } from '~/components/platform/templates/TemplateInfoModal';
 import { getDatabase } from '~/lib/.server/db/client';
 import { getFeaturedProjects } from '~/lib/.server/projects/queries';
+import type { Project } from '~/lib/types/platform/project';
 
 export const meta: MetaFunction = () => {
   return [
@@ -31,6 +33,8 @@ export default function HomePage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const heroRef = useRef<HTMLElement>(null);
   const [query, setQuery] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<Project | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const placeholderPhrases = useMemo(() => [
     " local food delivery app",
@@ -51,6 +55,16 @@ export default function HomePage() {
       const maxHeight = 300;
       textareaRef.current.style.height = Math.min(scrollHeight, maxHeight) + 'px';
     }
+  };
+
+  const handleOpenModal = (template: Project) => {
+    setSelectedTemplate(template);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedTemplate(null);
   };
 
   useEffect(() => {
@@ -151,7 +165,7 @@ export default function HomePage() {
             aria-hidden="true"
             className="w-full h-full object-cover object-center blur-sm"
             loading="eager"
-            fetchpriority="high"
+            fetchPriority="high"
             decoding="async"
             width="1920"
             height="1080"
@@ -413,7 +427,12 @@ export default function HomePage() {
               >
                 {featuredTemplates.slice(0, 6).map((project) => (
                   <div key={project.id} className="flex-shrink-0 transform-gpu">
-                    <ProjectCard project={project} showSettings={false} />
+                    <ProjectCard 
+                      project={project as unknown as Project} 
+                      showSettings={false} 
+                      onOpenModal={handleOpenModal}
+                      useModal={true}
+                    />
                   </div>
                 ))}
               </motion.div>
@@ -553,6 +572,15 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Template Info Modal */}
+      {selectedTemplate && (
+        <TemplateInfoModal
+          template={selectedTemplate}
+          isOpen={showModal}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

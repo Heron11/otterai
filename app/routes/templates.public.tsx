@@ -3,7 +3,7 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link } from '@remix-run/react';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { format } from 'date-fns';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface PublicProject {
   id: string;
@@ -170,6 +170,36 @@ interface PublicTemplateCardProps {
 
 function PublicTemplateCard({ project }: PublicTemplateCardProps) {
   const [isCloning, setIsCloning] = useState(false);
+  const [viewCount, setViewCount] = useState(project.view_count || 0);
+
+  // Track view when component mounts (template is displayed)
+  useEffect(() => {
+    const trackView = async () => {
+      try {
+        const response = await fetch('/api/projects/increment-view', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            projectId: project.id
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setViewCount(prev => prev + 1);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to track view:', error);
+        // Don't show error to user, just fail silently
+      }
+    };
+
+    trackView();
+  }, [project.id]);
 
   const handleClone = async () => {
     setIsCloning(true);
@@ -251,7 +281,7 @@ function PublicTemplateCard({ project }: PublicTemplateCardProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            <span>{project.view_count || 0}</span>
+            <span>{viewCount}</span>
           </div>
           <div className="flex items-center gap-1">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

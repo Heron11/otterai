@@ -9,9 +9,11 @@ interface ProjectCardProps {
   onDelete?: (id: string) => void;
   isDeleting?: boolean;
   showSettings?: boolean;
+  onOpenModal?: (project: Project) => void;
+  useModal?: boolean;
 }
 
-export function ProjectCard({ project, onDelete, isDeleting = false, showSettings = true }: ProjectCardProps) {
+export function ProjectCard({ project, onDelete, isDeleting = false, showSettings = true, onOpenModal, useModal = false }: ProjectCardProps) {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -26,11 +28,23 @@ export function ProjectCard({ project, onDelete, isDeleting = false, showSetting
     setShowSettingsModal(true);
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (useModal && onOpenModal) {
+      e.preventDefault();
+      onOpenModal(project);
+    }
+  };
+
+  const CardWrapper = useModal ? 'div' : Link;
+  const cardProps = useModal 
+    ? { onClick: handleCardClick }
+    : { to: `/project/${project.id}` };
+
   return (
     <>
-      <Link
-        to={`/project/${project.id}`}
-        className={`group relative block aspect-square bg-white/80 dark:bg-white/5 backdrop-blur-sm border border-neutral-200/50 dark:border-white/10 rounded-2xl p-6 hover:border-[#e86b47]/30 hover:shadow-xl dark:hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden ${
+      <CardWrapper
+        {...cardProps}
+        className={`group relative block aspect-square bg-white/80 dark:bg-white/5 backdrop-blur-sm border border-neutral-200/50 dark:border-white/10 rounded-2xl p-6 hover:border-[#e86b47]/30 hover:shadow-xl dark:hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden cursor-pointer ${
           isDeleting ? 'opacity-50 pointer-events-none' : ''
         }`}
       >
@@ -136,7 +150,7 @@ export function ProjectCard({ project, onDelete, isDeleting = false, showSetting
         <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-[#e86b47]/5 to-transparent dark:from-[#e86b47]/10 dark:to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-500"></div>
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#e86b47]/5 dark:to-[#e86b47]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
-      </Link>
+      </CardWrapper>
 
       {/* Settings Modal */}
       <ProjectSettingsModal

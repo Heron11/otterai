@@ -5,8 +5,10 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
+import { TemplateInfoModal } from '~/components/platform/templates/TemplateInfoModal';
 import { getDatabase } from '~/lib/.server/db/client';
 import { getPublicTemplates } from '~/lib/.server/projects/queries';
+import type { Project } from '~/lib/types/platform/project';
 
 export const meta: MetaFunction = () => {
   return [
@@ -25,6 +27,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
 export default function TemplatesPage() {
   const { templates } = useLoaderData<typeof loader>();
   const [search, setSearch] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<Project | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -40,6 +44,16 @@ export default function TemplatesPage() {
       (template.description && template.description.toLowerCase().includes(searchLower))
     );
   }, [templates, search]);
+
+  const handleOpenModal = (template: Project) => {
+    setSelectedTemplate(template);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedTemplate(null);
+  };
 
   return (
     <PlatformLayout>
@@ -101,10 +115,21 @@ export default function TemplatesPage() {
               projects={filteredTemplates} 
               emptyMessage="No public templates available yet. Be the first to share a project!"
               showSettings={false}
+              onOpenModal={handleOpenModal}
+              useModal={true}
             />
           </motion.div>
         </div>
       </div>
+
+      {/* Template Info Modal */}
+      {selectedTemplate && (
+        <TemplateInfoModal
+          template={selectedTemplate as unknown as Project}
+          isOpen={showModal}
+          onClose={handleCloseModal}
+        />
+      )}
     </PlatformLayout>
   );
 }

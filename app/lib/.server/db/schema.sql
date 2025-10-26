@@ -142,6 +142,24 @@ CREATE TABLE IF NOT EXISTS usage_logs (
 CREATE INDEX IF NOT EXISTS idx_usage_user ON usage_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_usage_created ON usage_logs(user_id, created_at DESC);
 
+-- Project views table: tracks template views for analytics and rate limiting
+CREATE TABLE IF NOT EXISTS project_views (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id TEXT NOT NULL,
+  user_id TEXT, -- NULL for anonymous views
+  ip_address TEXT NOT NULL, -- For rate limiting anonymous users
+  viewed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Index for view analytics and rate limiting
+CREATE INDEX IF NOT EXISTS idx_project_views_project ON project_views(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_views_user ON project_views(user_id);
+CREATE INDEX IF NOT EXISTS idx_project_views_ip ON project_views(ip_address);
+CREATE INDEX IF NOT EXISTS idx_project_views_time ON project_views(viewed_at);
+CREATE INDEX IF NOT EXISTS idx_project_views_rate_limit ON project_views(user_id, ip_address, project_id, viewed_at);
+
 -- Templates table: curated templates (replacing mock data)
 CREATE TABLE IF NOT EXISTS templates (
   id TEXT PRIMARY KEY,

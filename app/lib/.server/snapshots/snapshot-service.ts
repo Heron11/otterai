@@ -121,8 +121,9 @@ export async function createProjectSnapshot(
         continue;
       }
 
-      // Create new key for snapshot
-      const snapshotKey = `${snapshotR2Path}/${file.file_path}`;
+      // Create new key for snapshot (remove leading slash from file path)
+      const normalizedFilePath = file.file_path.startsWith('/') ? file.file_path.slice(1) : file.file_path;
+      const snapshotKey = `${snapshotR2Path}/${normalizedFilePath}`;
       
       // Copy file to snapshot location
       await r2Bucket.put(snapshotKey, originalObject.body, {
@@ -134,7 +135,7 @@ export async function createProjectSnapshot(
       // Track file metadata
       snapshotFiles.push({
         snapshotId,
-        filePath: file.file_path,
+        filePath: normalizedFilePath,
         r2Key: snapshotKey,
         fileSize: file.file_size,
         contentType: file.content_type,
