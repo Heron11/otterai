@@ -1,5 +1,4 @@
 import type { PathWatcherEvent, WebContainer } from '@webcontainer/api';
-import { getEncoding } from 'istextorbinary';
 import { map, type MapStore } from 'nanostores';
 import { Buffer } from 'node:buffer';
 import * as nodePath from 'node:path';
@@ -12,6 +11,30 @@ import { unreachable } from '~/utils/unreachable';
 const logger = createScopedLogger('FilesStore');
 
 const utf8TextDecoder = new TextDecoder('utf8', { fatal: true });
+
+/**
+ * Simple binary detection for browser compatibility
+ * Checks for null bytes and other binary indicators
+ */
+function isBinaryBuffer(buffer: Uint8Array): boolean {
+  // Check for null bytes (common in binary files)
+  for (let i = 0; i < Math.min(buffer.length, 1000); i++) {
+    if (buffer[i] === 0) {
+      return true;
+    }
+  }
+  
+  // Check for high ASCII values (128-255) which are common in binary files
+  let highAsciiCount = 0;
+  for (let i = 0; i < Math.min(buffer.length, 1000); i++) {
+    if (buffer[i] > 127) {
+      highAsciiCount++;
+    }
+  }
+  
+  // If more than 30% of characters are high ASCII, likely binary
+  return highAsciiCount / Math.min(buffer.length, 1000) > 0.3;
+}
 
 export interface File {
   type: 'file';
@@ -207,7 +230,7 @@ function isBinaryFile(buffer: Uint8Array | undefined) {
     return false;
   }
 
-  return getEncoding(convertToBuffer(buffer), { chunkLength: 100 }) === 'binary';
+  return isBinaryBuffer(convertToBuffer(buffer));
 }
 
 /**

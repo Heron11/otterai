@@ -13,7 +13,7 @@ export default defineConfig((config) => {
     },
     plugins: [
       nodePolyfills({
-        include: ['path', 'buffer'],
+        include: ['path', 'buffer', 'fs', 'util', 'os', 'crypto'],
       }),
       config.mode !== 'test' && remixCloudflareDevProxy({ getLoadContext }),
       remixVitePlugin({
