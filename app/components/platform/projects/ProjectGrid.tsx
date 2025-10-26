@@ -6,9 +6,10 @@ interface ProjectGridProps {
   projects: Project[];
   onDeleteProject?: (id: string) => void;
   emptyMessage?: string;
+  deletingProjects?: Set<string>;
 }
 
-export const ProjectGrid = memo(function ProjectGrid({ projects, onDeleteProject, emptyMessage = 'No projects yet' }: ProjectGridProps) {
+export const ProjectGrid = memo(function ProjectGrid({ projects, onDeleteProject, emptyMessage = 'No projects yet', deletingProjects = new Set() }: ProjectGridProps) {
   if (projects.length === 0) {
     return (
       <div className="text-center py-16">
@@ -31,6 +32,7 @@ export const ProjectGrid = memo(function ProjectGrid({ projects, onDeleteProject
           key={project.id}
           project={project}
           onDelete={onDeleteProject}
+          isDeleting={deletingProjects.has(project.id)}
         />
       ))}
     </div>

@@ -5,9 +5,10 @@ import { format } from 'date-fns';
 interface ProjectCardProps {
   project: Project;
   onDelete?: (id: string) => void;
+  isDeleting?: boolean;
 }
 
-export function ProjectCard({ project, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, onDelete, isDeleting = false }: ProjectCardProps) {
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     if (onDelete && window.confirm('Are you sure you want to delete this project?')) {
@@ -18,19 +19,28 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
   return (
     <Link
       to={`/project/${project.id}`}
-      className="group relative block aspect-square bg-white/80 dark:bg-white/5 backdrop-blur-sm border border-neutral-200/50 dark:border-white/10 rounded-2xl p-6 hover:border-[#e86b47]/30 hover:shadow-xl dark:hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden"
+      className={`group relative block aspect-square bg-white/80 dark:bg-white/5 backdrop-blur-sm border border-neutral-200/50 dark:border-white/10 rounded-2xl p-6 hover:border-[#e86b47]/30 hover:shadow-xl dark:hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden ${
+        isDeleting ? 'opacity-50 pointer-events-none' : ''
+      }`}
     >
       {/* Delete button - top right corner */}
-      {onDelete && (
+      {onDelete && !isDeleting && (
         <button
           onClick={handleDelete}
-          className="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 p-1.5 text-neutral-500 dark:text-neutral-300 hover:text-red-500 dark:hover:text-red-400 transition-all duration-200 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 backdrop-blur-sm"
+          className="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 p-2 text-gray-400 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-all duration-200 rounded-lg bg-transparent hover:bg-red-50 dark:hover:bg-red-950/30 backdrop-blur-sm border border-transparent hover:border-red-200 dark:hover:border-red-800/50"
           title="Delete project"
         >
           <svg className="w-4 h-4" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" />
           </svg>
         </button>
+      )}
+
+      {/* Loading indicator when deleting */}
+      {isDeleting && (
+        <div className="absolute top-3 right-3 z-20 p-2">
+          <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
       )}
 
       <div className="relative z-10 h-full flex flex-col">
