@@ -2,10 +2,12 @@ import type { MetaFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { Link, useLoaderData } from '@remix-run/react';
 import { json } from '@remix-run/cloudflare';
 import { motion } from 'framer-motion';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
+import { TemplateInfoModal } from '~/components/platform/templates/TemplateInfoModal';
 import { TIER_LIMITS } from '~/lib/utils/tier-limits';
+import type { Project } from '~/lib/types/platform/project';
 
 export const meta: MetaFunction = () => {
   return [
@@ -57,11 +59,25 @@ export default function DashboardPage() {
   const { userProfile, creditInfo, recentProjects, featuredTemplates } = useLoaderData<typeof loader>();
   
   const tierLimits = userProfile ? TIER_LIMITS[userProfile.tier] : null;
+  
+  // Template modal state
+  const [selectedTemplate, setSelectedTemplate] = useState<Project | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
+
+  const handleOpenModal = (template: Project) => {
+    setSelectedTemplate(template);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedTemplate(null);
+  };
 
   return (
     <PlatformLayout>
@@ -213,10 +229,24 @@ export default function DashboardPage() {
                 </svg>
               </Link>
             </div>
-            <ProjectGrid projects={featuredTemplates} showSettings={false} />
+            <ProjectGrid 
+              projects={featuredTemplates} 
+              showSettings={false}
+              onOpenModal={handleOpenModal}
+              useModal={true}
+            />
           </motion.div>
         </div>
       </div>
+
+      {/* Template Info Modal */}
+      {selectedTemplate && (
+        <TemplateInfoModal
+          template={selectedTemplate as unknown as Project}
+          isOpen={showModal}
+          onClose={handleCloseModal}
+        />
+      )}
     </PlatformLayout>
   );
 }
