@@ -3,9 +3,6 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher } from '@remix-run/react';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
-import { requireAuth } from '~/lib/.server/auth/clerk.server';
-import { getDatabase, execute } from '~/lib/.server/db/client';
-import { getUserProjects } from '~/lib/.server/projects/queries';
 import { useState } from 'react';
 
 export const meta: MetaFunction = () => {

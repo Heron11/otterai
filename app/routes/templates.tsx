@@ -6,8 +6,6 @@ import { motion } from 'framer-motion';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
 import { TemplateInfoModal } from '~/components/platform/templates/TemplateInfoModal';
-import { getDatabase } from '~/lib/.server/db/client';
-import { getPublicTemplates } from '~/lib/.server/projects/queries';
 import type { Project } from '~/lib/types/platform/project';
 
 export const meta: MetaFunction = () => {
@@ -18,6 +16,10 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ context }: LoaderFunctionArgs) {
+  // Import server-only modules inside the function
+  const { getDatabase } = await import('~/lib/.server/db/client');
+  const { getPublicTemplates } = await import('~/lib/.server/projects/queries');
+  
   const db = getDatabase(context.cloudflare.env);
   const templates = await getPublicTemplates(db, 50); // Get up to 50 public projects
 

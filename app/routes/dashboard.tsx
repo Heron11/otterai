@@ -5,10 +5,6 @@ import { motion } from 'framer-motion';
 import { useEffect } from 'react';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { ProjectGrid } from '~/components/platform/projects/ProjectGrid';
-import { requireAuth } from '~/lib/.server/auth/clerk.server';
-import { getDatabase } from '~/lib/.server/db/client';
-import { getUserProfile, getUserCredits } from '~/lib/.server/users/queries';
-import { getRecentProjects, getFeaturedProjects } from '~/lib/.server/projects/queries';
 import { TIER_LIMITS } from '~/lib/utils/tier-limits';
 
 export const meta: MetaFunction = () => {
@@ -20,6 +16,13 @@ export const meta: MetaFunction = () => {
 
 export async function loader(args: LoaderFunctionArgs) {
   const { request, context } = args;
+  
+  // Import server-only modules inside the function
+  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase } = await import('~/lib/.server/db/client');
+  const { getUserProfile, getUserCredits } = await import('~/lib/.server/users/queries');
+  const { getRecentProjects, getFeaturedProjects } = await import('~/lib/.server/projects/queries');
+  
   const auth = await requireAuth(args);
   const db = getDatabase(context.cloudflare.env);
 
