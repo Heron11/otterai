@@ -11,7 +11,8 @@ interface TemplateInfoModalProps {
 
 export function TemplateInfoModal({ template, isOpen, onClose }: TemplateInfoModalProps) {
   const [isCloning, setIsCloning] = useState(false);
-  const [viewCount, setViewCount] = useState(template.view_count || 0);
+  // Use camelCase fields from Project (queries.ts) with a safe fallback
+  const [viewCount, setViewCount] = useState((template as any).viewCount ?? (template as any).view_count ?? 0);
 
   // Track view when modal opens
   useEffect(() => {
@@ -187,7 +188,7 @@ export function TemplateInfoModal({ template, isOpen, onClose }: TemplateInfoMod
                         <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Clones</span>
                       </div>
                       <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                        {template.clone_count || 0}
+                        {(template as any).cloneCount ?? (template as any).clone_count ?? 0}
                       </div>
                     </div>
 

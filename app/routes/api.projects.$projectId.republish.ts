@@ -1,7 +1,5 @@
 import { type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { getOptionalUserId } from '~/lib/.server/auth/clerk.server';
-import { getDatabase, queryFirst } from '~/lib/.server/db/client';
 
 export async function action(args: ActionFunctionArgs) {
   const { params, context } = args;
@@ -10,6 +8,10 @@ export async function action(args: ActionFunctionArgs) {
   if (!projectId) {
     throw new Response('Project ID is required', { status: 400 });
   }
+
+  // Import server-only modules inside the function
+  const { getOptionalUserId } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase, queryFirst } = await import('~/lib/.server/db/client');
 
   const userId = await getOptionalUserId(args);
   if (!userId) {

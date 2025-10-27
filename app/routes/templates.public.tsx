@@ -4,17 +4,13 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { PlatformLayout } from '~/components/platform/layout/PlatformLayout';
 import { format } from 'date-fns';
 import { useState, useEffect } from 'react';
+import type { Project } from '~/lib/types/platform/project';
 
-interface PublicProject {
-  id: string;
-  name: string;
-  description: string | null;
-  visibility: 'public' | 'private' | 'unlisted';
-  created_at: string;
-  updated_at: string;
-  view_count: number;
-  clone_count: number;
-}
+// Align with camelCase fields returned by /api/public-templates (via queries.ts)
+type PublicProject = Pick<
+  Project,
+  'id' | 'name' | 'description' | 'visibility' | 'viewCount' | 'cloneCount'
+> & { updatedAt?: any };
 
 interface LoaderData {
   publicProjects: PublicProject[];
@@ -55,9 +51,9 @@ export default function PublicTemplatesPage() {
 
   const sortedProjects = [...filteredProjects].sort((a, b) => {
     if (sortBy === 'recent') {
-      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      return new Date((b as any).updatedAt ?? 0).getTime() - new Date((a as any).updatedAt ?? 0).getTime();
     } else {
-      return (b.clone_count || 0) - (a.clone_count || 0);
+      return ((b.cloneCount as number) || 0) - ((a.cloneCount as number) || 0);
     }
   });
 
@@ -170,7 +166,7 @@ interface PublicTemplateCardProps {
 
 function PublicTemplateCard({ project }: PublicTemplateCardProps) {
   const [isCloning, setIsCloning] = useState(false);
-  const [viewCount, setViewCount] = useState(project.view_count || 0);
+  const [viewCount, setViewCount] = useState(project.viewCount || 0);
 
   // Track view when component mounts (template is displayed)
   useEffect(() => {
@@ -299,11 +295,11 @@ function PublicTemplateCard({ project }: PublicTemplateCardProps) {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
-            <span>{project.clone_count || 0}</span>
+            <span>{project.cloneCount || 0}</span>
           </div>
         </div>
         <span className="text-xs">
-          {format(new Date(project.updated_at), 'MMM d')}
+          {format(new Date((project as any).updatedAt ?? 0), 'MMM d')}
         </span>
       </div>
 

@@ -1,8 +1,6 @@
 import { type ActionFunctionArgs, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { nanoid } from 'nanoid';
-import { getOptionalUserId } from '~/lib/.server/auth/clerk.server';
-import { getDatabase, queryFirst, execute, queryAll } from '~/lib/.server/db/client';
 
 export async function loader(args: LoaderFunctionArgs) {
   const { params, context } = args;
@@ -11,6 +9,10 @@ export async function loader(args: LoaderFunctionArgs) {
   if (!projectId) {
     throw new Response('Project ID is required', { status: 400 });
   }
+
+  // Import server-only modules inside the function
+  const { getOptionalUserId } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase, queryFirst } = await import('~/lib/.server/db/client');
 
   const userId = await getOptionalUserId(args);
   if (!userId) {
@@ -49,6 +51,10 @@ export async function action(args: ActionFunctionArgs) {
   if (!projectId) {
     throw new Response('Project ID is required', { status: 400 });
   }
+
+  // Import server-only modules inside the function
+  const { getOptionalUserId } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase, queryFirst, execute } = await import('~/lib/.server/db/client');
 
   const userId = await getOptionalUserId(args);
   if (!userId) {
