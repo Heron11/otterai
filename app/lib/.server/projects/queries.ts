@@ -212,9 +212,30 @@ export async function getPublicTemplates(
   category?: string
 ): Promise<Project[]> {
   let query = `
-    SELECT * FROM projects 
-    WHERE visibility = 'public' 
-      AND status = 'active'
+    SELECT 
+      ps.id as snapshot_id,
+      ps.project_id,
+      ps.name,
+      ps.description,
+      ps.template_id,
+      ps.template_name,
+      ps.file_count,
+      ps.total_size,
+      ps.version,
+      ps.created_at,
+      p.view_count,
+      p.clone_count,
+      p.visibility,
+      p.status
+    FROM project_snapshots ps
+    JOIN projects p ON ps.project_id = p.id
+    WHERE p.visibility = 'public' 
+      AND p.status = 'active'
+      AND ps.version = (
+        SELECT MAX(ps2.version) 
+        FROM project_snapshots ps2 
+        WHERE ps2.project_id = ps.project_id
+      )
   `;
   
   const params: any[] = [];
@@ -223,12 +244,31 @@ export async function getPublicTemplates(
     // Future: add category field to projects or filter by tags
   }
   
-  query += ' ORDER BY clone_count DESC, view_count DESC LIMIT ?';
+  query += ' ORDER BY ps.created_at DESC LIMIT ?';
   params.push(limit);
   
   const rows = await queryAll<any>(db, query, ...params);
 
-  return rows.map(mapRowToProject);
+  return rows.map(row => ({
+    id: row.project_id,
+    userId: '', // Not needed for templates
+    name: row.name,
+    description: row.description,
+    templateId: row.template_id,
+    templateName: row.template_name,
+    status: row.status as 'active' | 'archived' | 'deleted',
+    files: {}, // Not needed for templates
+    previewUrl: undefined,
+    visibility: row.visibility as 'private' | 'public',
+    viewCount: row.view_count,
+    cloneCount: row.clone_count,
+    iconUrl: undefined,
+    fileCount: row.file_count,
+    totalSize: row.total_size,
+    createdAt: row.created_at,
+    updatedAt: row.created_at,
+    lastModified: row.created_at
+  }));
 }
 
 /**
@@ -240,14 +280,54 @@ export async function getFeaturedProjects(
 ): Promise<Project[]> {
   const rows = await queryAll<any>(
     db,
-    `SELECT * FROM projects 
-     WHERE visibility = 'public' 
-       AND status = 'active'
-     ORDER BY clone_count DESC, view_count DESC 
-     LIMIT ?`,
+    `SELECT 
+      ps.id as snapshot_id,
+      ps.project_id,
+      ps.name,
+      ps.description,
+      ps.template_id,
+      ps.template_name,
+      ps.file_count,
+      ps.total_size,
+      ps.version,
+      ps.created_at,
+      p.view_count,
+      p.clone_count,
+      p.visibility,
+      p.status
+    FROM project_snapshots ps
+    JOIN projects p ON ps.project_id = p.id
+    WHERE p.visibility = 'public' 
+      AND p.status = 'active'
+      AND ps.version = (
+        SELECT MAX(ps2.version) 
+        FROM project_snapshots ps2 
+        WHERE ps2.project_id = ps.project_id
+      )
+    ORDER BY p.clone_count DESC, p.view_count DESC 
+    LIMIT ?`,
     limit
   );
 
-  return rows.map(mapRowToProject);
+  return rows.map(row => ({
+    id: row.project_id,
+    userId: '', // Not needed for templates
+    name: row.name,
+    description: row.description,
+    templateId: row.template_id,
+    templateName: row.template_name,
+    status: row.status as 'active' | 'archived' | 'deleted',
+    files: {}, // Not needed for templates
+    previewUrl: undefined,
+    visibility: row.visibility as 'private' | 'public',
+    viewCount: row.view_count,
+    cloneCount: row.clone_count,
+    iconUrl: undefined,
+    fileCount: row.file_count,
+    totalSize: row.total_size,
+    createdAt: row.created_at,
+    updatedAt: row.created_at,
+    lastModified: row.created_at
+  }));
 }
 

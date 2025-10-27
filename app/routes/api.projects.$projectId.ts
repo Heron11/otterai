@@ -1,7 +1,8 @@
 import { type ActionFunctionArgs, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
+import { nanoid } from 'nanoid';
 import { getOptionalUserId } from '~/lib/.server/auth/clerk.server';
-import { getDatabase, queryFirst, execute } from '~/lib/.server/db/client';
+import { getDatabase, queryFirst, execute, queryAll } from '~/lib/.server/db/client';
 
 export async function loader(args: LoaderFunctionArgs) {
   const { params, context } = args;
@@ -17,6 +18,10 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   const db = getDatabase(context.cloudflare.env);
+  const r2Bucket = context.cloudflare.env.R2_BUCKET;
+  if (!r2Bucket) {
+    throw new Response('Storage not configured', { status: 500 });
+  }
   
   try {
     const project = await queryFirst(
@@ -52,6 +57,10 @@ export async function action(args: ActionFunctionArgs) {
 
   const method = request.method;
   const db = getDatabase(context.cloudflare.env);
+  const r2Bucket = context.cloudflare.env.R2_BUCKET;
+  if (!r2Bucket) {
+    throw new Response('Storage not configured', { status: 500 });
+  }
 
   // PATCH - Update project visibility
   if (method === 'PATCH') {
@@ -123,7 +132,7 @@ export async function action(args: ActionFunctionArgs) {
         ...updateValues
       );
 
-      // If making project public for the FIRST TIME, create initial snapshot
+      // If making project public for the FIRST TIME, create snapshot
       if (visibility === 'public' && existingProject.visibility !== 'public') {
         try {
           // Import snapshot service
@@ -134,7 +143,7 @@ export async function action(args: ActionFunctionArgs) {
             db,
             projectId,
             userId,
-            context.cloudflare.env.R2_BUCKET
+            r2Bucket
           );
           
           return json({ 

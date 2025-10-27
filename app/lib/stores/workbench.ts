@@ -5,6 +5,7 @@ import type { ActionCallbackData, ArtifactCallbackData } from '~/lib/runtime/mes
 import { webcontainer } from '~/lib/webcontainer';
 import type { ITerminal } from '~/types/terminal';
 import { unreachable } from '~/utils/unreachable';
+import { WORK_DIR } from '~/utils/constants';
 import { EditorStore } from './editor';
 import { FilesStore, type FileMap } from './files';
 import { PreviewsStore } from './previews';
@@ -298,29 +299,39 @@ export class WorkbenchStore {
     // Clear WebContainer filesystem
     try {
       const webcontainerInstance = await webcontainer;
-      const WORK_DIR = '/home/project';
+      
+      // Debug: Log the actual workdir from WebContainer
+      console.log('WebContainer workdir:', webcontainerInstance.workdir);
+      console.log('Expected WORK_DIR:', WORK_DIR);
+      console.log('Are they equal?', webcontainerInstance.workdir === WORK_DIR);
+      
+      // Use the actual workdir from WebContainer instead of our constant
+      const actualWorkDir = webcontainerInstance.workdir;
       
       // Check if the work directory exists before trying to read it
+      // Use relative path '.' since WebContainer methods expect paths relative to workdir
       try {
-        await webcontainerInstance.fs.readdir(WORK_DIR, { withFileTypes: true });
+        console.log('Attempting to readdir with relative path: "."');
+        await webcontainerInstance.fs.readdir('.', { withFileTypes: true });
       } catch (readError) {
         // If the directory doesn't exist or can't be read, create it
         console.warn('Work directory not accessible, creating fresh directory:', readError);
-        await webcontainerInstance.fs.mkdir(WORK_DIR, { recursive: true });
+        console.log('Attempting to create directory with relative path: "."');
+        await webcontainerInstance.fs.mkdir('.', { recursive: true });
         return; // Exit early since directory is now clean
       }
       
-      // List all files in the work directory
-      const files = await webcontainerInstance.fs.readdir(WORK_DIR, { withFileTypes: true });
+      // List all files in the work directory using relative path
+      const files = await webcontainerInstance.fs.readdir('.', { withFileTypes: true });
       
-      // Delete all files and directories
+      // Delete all files and directories using relative paths
       for (const file of files) {
         try {
-          const fullPath = `${WORK_DIR}/${file.name}`;
+          const relativePath = file.name; // Use relative path from workdir
           if (file.isDirectory()) {
-            await webcontainerInstance.fs.rm(fullPath, { recursive: true, force: true });
+            await webcontainerInstance.fs.rm(relativePath, { recursive: true, force: true });
           } else {
-            await webcontainerInstance.fs.rm(fullPath, { force: true });
+            await webcontainerInstance.fs.rm(relativePath, { force: true });
           }
         } catch (err) {
           // Ignore errors for individual file deletions
@@ -349,10 +360,20 @@ export class WorkbenchStore {
     
     const webcontainerInstance = await webcontainer;
     
+    // Debug: Log the actual workdir from WebContainer
+    console.log('WebContainer workdir for loading:', webcontainerInstance.workdir);
+    console.log('Expected WORK_DIR:', WORK_DIR);
+    console.log('Are they equal?', webcontainerInstance.workdir === WORK_DIR);
+    console.log('Files to load:', Object.keys(files));
+    
+    // Use the actual workdir from WebContainer instead of our constant
+    const actualWorkDir = webcontainerInstance.workdir;
+    
     // Ensure the work directory exists
-    const WORK_DIR = '/home/project';
     try {
-      await webcontainerInstance.fs.mkdir(WORK_DIR, { recursive: true });
+      console.log('Creating work directory with relative path: "."');
+      await webcontainerInstance.fs.mkdir('.', { recursive: true });
+      console.log('Work directory created successfully');
     } catch (error) {
       console.error('Failed to create work directory:', error);
       throw new Error('Failed to initialize project workspace');
@@ -374,6 +395,8 @@ export class WorkbenchStore {
     let successCount = 0;
     let errorCount = 0;
     
+    console.log(`Starting to write ${Object.keys(files).length} files to WebContainer`);
+    
     for (const [filePath, content] of Object.entries(files)) {
       try {
         // Security: Validate and normalize file path to prevent directory traversal
@@ -384,17 +407,21 @@ export class WorkbenchStore {
           continue;
         }
         
-        // Build full path
-        const fullPath = `${WORK_DIR}/${normalizedPath}`;
-        const dirPath = fullPath.split('/').slice(0, -1).join('/');
+        // Build relative path for WebContainer (no workdir prefix needed)
+        const relativePath = normalizedPath;
+        const dirPath = relativePath.split('/').slice(0, -1).join('/');
         
-        // Create directory if needed
-        if (dirPath && dirPath !== WORK_DIR) {
+        console.log(`Writing file: ${filePath} -> ${normalizedPath} -> ${relativePath}`);
+        
+        // Create directory if needed (use relative path)
+        if (dirPath) {
+          console.log(`Creating directory: ${dirPath}`);
           await webcontainerInstance.fs.mkdir(dirPath, { recursive: true });
         }
 
-        // Write file
-        await webcontainerInstance.fs.writeFile(fullPath, content);
+        // Write file using relative path
+        console.log(`Writing file content to: ${relativePath}`);
+        await webcontainerInstance.fs.writeFile(relativePath, content);
         successCount++;
       } catch (error) {
         console.error(`Failed to load file ${filePath}:`, error);

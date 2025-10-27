@@ -12,7 +12,6 @@ export async function action(args: ActionFunctionArgs) {
   // Import server-only modules inside the function
   const { getOptionalUserId } = await import('~/lib/.server/auth/clerk.server');
   const { getDatabase, queryFirst, execute, queryAll } = await import('~/lib/.server/db/client');
-  const { getSnapshotFiles } = await import('~/lib/.server/snapshots/snapshot-service');
   
   // Ensure Clerk can read the session by passing the original args
   const userId = await getOptionalUserId(args);
@@ -20,7 +19,7 @@ export async function action(args: ActionFunctionArgs) {
     throw new Response('Unauthorized', { status: 401 });
   }
 
-  const body = await request.json();
+  const body = await request.json() as { sourceProjectId: string; newProjectName: string };
   const { sourceProjectId, newProjectName } = body;
 
   if (!sourceProjectId || !newProjectName) {
@@ -35,7 +34,6 @@ export async function action(args: ActionFunctionArgs) {
   
   try {
     // Rate limiting: Check recent clones by this user
-    // More generous limits for development
     const isDevelopment = process.env.NODE_ENV === 'development' || context.cloudflare.env.ENVIRONMENT === 'development';
     const disableRateLimit = context.cloudflare.env.DISABLE_RATE_LIMIT === 'true';
     
@@ -58,6 +56,17 @@ export async function action(args: ActionFunctionArgs) {
       }
     }
 
+    // Get the source project
+    const sourceProject = await queryFirst<any>(
+      db,
+      `SELECT * FROM projects WHERE id = ? AND visibility = 'public' AND status = 'active'`,
+      sourceProjectId
+    );
+
+    if (!sourceProject) {
+      throw new Response('Template not found or not available', { status: 404 });
+    }
+
     // Get the latest snapshot for the public project
     const snapshot = await queryFirst<any>(
       db,
@@ -71,11 +80,22 @@ export async function action(args: ActionFunctionArgs) {
     );
 
     if (!snapshot) {
-      throw new Response('Template not found or not available', { status: 404 });
+      throw new Response('Template snapshot not found', { status: 404 });
     }
 
     // Get snapshot files
-    const snapshotFiles = await getSnapshotFiles(db, snapshot.id);
+    const snapshotFiles = await queryAll<any>(
+      db,
+      `SELECT * FROM snapshot_files WHERE snapshot_id = ?`,
+      snapshot.id
+    );
+
+    if (snapshotFiles.length === 0) {
+      throw new Response('Template has no files to copy', { status: 404 });
+    }
+
+    console.log(`Cloning template ${sourceProjectId} with ${snapshotFiles.length} files from snapshot ${snapshot.id}`);
+    console.log('Snapshot files:', snapshotFiles.map(f => ({ path: f.file_path, r2_key: f.r2_key })));
 
     // Create new project
     const newProjectId = generateId();
@@ -89,7 +109,7 @@ export async function action(args: ActionFunctionArgs) {
       newProjectId,
       userId,
       newProjectName,
-      `Cloned from ${snapshot.project_name}`,
+      `Cloned from ${sourceProject.name}`,
       'private', // Cloned projects start as private
       newR2Path,
       now,
@@ -98,7 +118,7 @@ export async function action(args: ActionFunctionArgs) {
       0, // clone_count
       'active', // status
       snapshotFiles.length,
-      snapshot.total_size,
+      snapshotFiles.reduce((sum, file) => sum + file.file_size, 0),
       sourceProjectId, // template_id
       snapshot.project_name // template_name
     );
@@ -107,18 +127,27 @@ export async function action(args: ActionFunctionArgs) {
     let copiedFiles = 0;
     for (const file of snapshotFiles) {
       try {
-        // Read file from snapshot location
-        const snapshotObject = await r2Bucket.get(file.r2Key);
-        if (!snapshotObject) {
-          console.warn('Snapshot file not found in R2');
+        // Read file from source project location
+        const sourceObject = await r2Bucket.get(file.r2_key);
+        if (!sourceObject) {
+          console.warn('Source file not found in R2:', file.r2_key);
           continue;
         }
 
+        // Normalize path (remove any leading slash) to ensure consistent keys
+        const normalizedFilePath = file.file_path?.startsWith('/')
+          ? file.file_path.slice(1)
+          : file.file_path;
+
         // Write to new project location
-        const newR2Key = `${newR2Path}/${file.filePath}`;
-        await r2Bucket.put(newR2Key, snapshotObject.body, {
+        const newR2Key = `${newR2Path}/${normalizedFilePath}`;
+
+        // Read the file body as an ArrayBuffer to avoid stream re-use issues
+        const body = await sourceObject.arrayBuffer();
+
+        await r2Bucket.put(newR2Key, body, {
           httpMetadata: {
-            contentType: file.contentType || 'text/plain',
+            contentType: file.content_type || 'text/plain',
           },
         });
 
@@ -129,10 +158,10 @@ export async function action(args: ActionFunctionArgs) {
            VALUES (?, ?, ?, ?, ?, ?)`,
           newProjectId,
           userId,
-          file.filePath,
+          normalizedFilePath,
           newR2Key,
-          file.fileSize,
-          file.contentType
+          file.file_size,
+          file.content_type
         );
 
         copiedFiles++;
@@ -152,7 +181,7 @@ export async function action(args: ActionFunctionArgs) {
     return json({ 
       success: true, 
       project: { id: newProjectId, name: newProjectName, created_at: now },
-      message: `Successfully cloned "${snapshot.project_name}" with ${copiedFiles} files`
+      message: `Successfully cloned "${sourceProject.name}" with ${copiedFiles} files`
     });
   } catch (error) {
     console.error('Error cloning template:', error);

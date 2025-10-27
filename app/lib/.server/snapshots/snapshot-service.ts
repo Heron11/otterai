@@ -134,7 +134,7 @@ export async function createProjectSnapshot(
       const originalObject = await r2Bucket.get(originalKey);
       
       if (!originalObject) {
-        console.warn('Snapshot file not found in R2');
+        console.warn(`Snapshot file not found in R2: ${originalKey}`);
         continue;
       }
 
@@ -146,10 +146,12 @@ export async function createProjectSnapshot(
         console.warn('Skipping sensitive file from snapshot:', normalizedFilePath);
         continue;
       }
+      
       const snapshotKey = `${snapshotR2Path}/${normalizedFilePath}`;
       
       // Copy file to snapshot location
-      await r2Bucket.put(snapshotKey, originalObject.body, {
+      const fileBody = await originalObject.arrayBuffer();
+      await r2Bucket.put(snapshotKey, fileBody, {
         httpMetadata: {
           contentType: file.content_type || 'text/plain',
         },
@@ -172,8 +174,7 @@ export async function createProjectSnapshot(
       }
     } catch (error) {
       // Best-effort: skip problematic files but continue snapshotting
-      console.error(`Failed to copy file to snapshot:`, error);
-      continue;
+      console.error(`Failed to snapshot file ${file.file_path} (${file.r2_key}):`, error);
     }
   }
 

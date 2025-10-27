@@ -47,7 +47,7 @@ export function ProjectSettingsModal({ project, isOpen, onClose }: ProjectSettin
     }
   };
 
-  const handleVisibilityChange = async (newVisibility: 'private' | 'public' | 'unlisted') => {
+  const handleVisibilityChange = async (newVisibility: 'private' | 'public') => {
     setVisibility(newVisibility);
     setIsUpdating(true);
     
@@ -374,21 +374,6 @@ export function ProjectSettingsModal({ project, isOpen, onClose }: ProjectSettin
                   </div>
                 </label>
 
-                <label className="flex items-center p-4 border border-neutral-200/50 dark:border-white/10 rounded-xl hover:bg-[#e86b47]/5 dark:hover:bg-[#e86b47]/10 cursor-pointer transition-all duration-200 bg-white/80 dark:bg-white/5 backdrop-blur-sm">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="unlisted"
-                    checked={visibility === 'unlisted'}
-                    onChange={() => handleVisibilityChange('unlisted')}
-                    disabled={isUpdating}
-                    className="w-4 h-4 text-[#e86b47] border-neutral-300 dark:border-white/20 focus:ring-[#e86b47] focus:ring-2"
-                  />
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-text-primary dark:text-white">Unlisted</div>
-                    <div className="text-xs text-text-tertiary dark:text-white/50">Only people with the link can view this project</div>
-                  </div>
-                </label>
               </div>
 
               {/* Publishing Section - Only show for public projects */}

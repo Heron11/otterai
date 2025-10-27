@@ -145,14 +145,22 @@ export class FilesStore {
       return;
     }
 
+    // Use the actual WebContainer workdir for watching
+    const watchPath = `${webcontainer.workdir}/**`;
+    console.log('FilesStore watching path:', watchPath);
+    console.log('WebContainer workdir:', webcontainer.workdir);
+    console.log('WORK_DIR constant:', WORK_DIR);
+    
     webcontainer.internal.watchPaths(
-      { include: [`${WORK_DIR}/**`], exclude: ['**/node_modules', '.git'], includeContent: true },
+      { include: [watchPath], exclude: ['**/node_modules', '.git'], includeContent: true },
       bufferWatchEvents(100, this.#processEventBuffer.bind(this)),
     );
   }
 
   #processEventBuffer(events: Array<[events: PathWatcherEvent[]]>) {
     const watchEvents = events.flat(2);
+    
+    console.log(`FilesStore processing ${watchEvents.length} events:`, watchEvents.map(e => ({ type: e.type, path: e.path })));
 
     for (const { type, path, buffer } of watchEvents) {
       // remove any trailing slashes
@@ -179,6 +187,9 @@ export class FilesStore {
         case 'change': {
           if (type === 'add_file') {
             this.#size++;
+            console.log(`FilesStore: Adding file ${sanitizedPath}`);
+          } else {
+            console.log(`FilesStore: Changing file ${sanitizedPath}`);
           }
 
           let content = '';
@@ -195,6 +206,7 @@ export class FilesStore {
             content = this.#decodeFileContent(buffer);
           }
 
+          console.log(`FilesStore: Setting file ${sanitizedPath} with ${content.length} chars`);
           this.files.setKey(sanitizedPath, { type: 'file', content, isBinary });
 
           break;

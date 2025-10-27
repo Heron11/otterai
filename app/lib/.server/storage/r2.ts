@@ -113,22 +113,29 @@ export async function getProjectFiles(
 ): Promise<Record<string, string>> {
   try {
     const prefix = `projects/${projectId}/`;
+    console.log(`Getting project files for ${projectId} with prefix: ${prefix}`);
     const listed = await bucket.list({ prefix });
+    console.log(`Found ${listed.objects.length} objects in R2 for project ${projectId}`);
     
     const files: Record<string, string> = {};
     
     // Fetch all files in parallel
     await Promise.all(
       listed.objects.map(async (obj) => {
+        console.log(`Processing R2 object: ${obj.key}`);
         const content = await bucket.get(obj.key);
         if (content) {
           // Extract file path by removing the prefix
           const filePath = obj.key.substring(prefix.length);
+          console.log(`Extracted file path: ${filePath} from key: ${obj.key}`);
           files[filePath] = await content.text();
+        } else {
+          console.warn(`No content found for R2 object: ${obj.key}`);
         }
       })
     );
     
+    console.log(`Returning ${Object.keys(files).length} files for project ${projectId}:`, Object.keys(files));
     return files;
   } catch (error) {
     console.error('Error getting project files from R2:', error);

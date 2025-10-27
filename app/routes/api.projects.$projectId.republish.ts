@@ -4,7 +4,7 @@ import { getOptionalUserId } from '~/lib/.server/auth/clerk.server';
 import { getDatabase, queryFirst } from '~/lib/.server/db/client';
 
 export async function action(args: ActionFunctionArgs) {
-  const { params, request, context } = args;
+  const { params, context } = args;
   const { projectId } = params;
   
   if (!projectId) {
@@ -16,56 +16,58 @@ export async function action(args: ActionFunctionArgs) {
     throw new Response('Unauthorized', { status: 401 });
   }
 
-  const method = request.method;
   const db = getDatabase(context.cloudflare.env);
-
-  // POST - Create new snapshot for republishing
-  if (method === 'POST') {
-    try {
-      // Check if project exists and belongs to user
-      const project = await queryFirst(
-        db,
-        'SELECT id, name, visibility FROM projects WHERE id = ? AND user_id = ?',
-        projectId,
-        userId
-      );
-
-      if (!project) {
-        throw new Response('Project not found', { status: 404 });
-      }
-
-      if (project.visibility !== 'public') {
-        throw new Response('Project must be public to republish', { status: 400 });
-      }
-
-      // Create a fresh snapshot (copies files into snapshots/ and records them)
-      const { createProjectSnapshot } = await import('~/lib/.server/snapshots/snapshot-service');
-      const r2 = context.cloudflare.env.R2_BUCKET;
-      if (!r2) {
-        throw new Response('Storage not configured', { status: 500 });
-      }
-
-      const snapshot = await createProjectSnapshot(db, projectId, userId, r2);
-
-      return json({ 
-        success: true, 
-        snapshot: {
-          id: snapshot.id,
-          version: snapshot.version,
-          createdAt: snapshot.createdAt.toISOString()
-        }
-      });
-    } catch (error) {
-      console.error('Error republishing project:', error);
-      
-      // If it's already a Response, re-throw it
-      if (error instanceof Response) {
-        throw error;
-      }
-      
-      throw new Response('Internal Server Error', { status: 500 });
-    }
+  const r2Bucket = context.cloudflare.env.R2_BUCKET;
+  if (!r2Bucket) {
+    throw new Response('Storage not configured', { status: 500 });
   }
+  
+  try {
+    // Check if project exists, belongs to user, and is public
+    const project = await queryFirst(
+      db,
+      'SELECT id, visibility FROM projects WHERE id = ? AND user_id = ?',
+      projectId,
+      userId
+    );
 
-  throw new Response('Method not allowed', { status: 405 });
+    if (!project) {
+      throw new Response('Project not found', { status: 404 });
+    }
+
+    if (project.visibility !== 'public') {
+      throw new Response('Project must be public to republish', { status: 400 });
+    }
+
+    // Import snapshot service
+    const { createProjectSnapshot } = await import('~/lib/.server/snapshots/snapshot-service');
+    
+    // Create a new snapshot (this will increment the version)
+    const snapshot = await createProjectSnapshot(
+      db,
+      projectId,
+      userId,
+      r2Bucket
+    );
+    
+    return json({ 
+      success: true, 
+      snapshot: {
+        id: snapshot.id,
+        version: snapshot.version,
+        fileCount: snapshot.fileCount,
+        totalSize: snapshot.totalSize,
+        createdAt: snapshot.createdAt.toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Error republishing project:', error);
+    
+    // If it's already a Response, re-throw it
+    if (error instanceof Response) {
+      throw error;
+    }
+    
+    throw new Response('Internal Server Error', { status: 500 });
+  }
 }

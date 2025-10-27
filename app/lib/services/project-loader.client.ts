@@ -51,7 +51,18 @@ export async function loadProjectFiles(projectId: string): Promise<Record<string
     logger.debug('Project files loaded successfully', {
       projectId: result.projectId,
       fileCount: result.count,
+      fileKeys: Object.keys(result.files),
     });
+
+    // Debug: Log first few files to see what we're getting
+    const fileEntries = Object.entries(result.files);
+    if (fileEntries.length > 0) {
+      logger.debug('Sample files:', fileEntries.slice(0, 3).map(([path, content]) => ({
+        path,
+        contentLength: content.length,
+        contentPreview: content.substring(0, 100)
+      })));
+    }
 
     return result.files;
   } catch (error) {
