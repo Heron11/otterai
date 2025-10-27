@@ -1,7 +1,7 @@
 import { type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { getOptionalUserId } from '~/lib/.server/auth/clerk.server';
-import { getDatabase, queryFirst, execute } from '~/lib/.server/db/client';
+import { getDatabase, queryFirst } from '~/lib/.server/db/client';
 
 export async function action(args: ActionFunctionArgs) {
   const { params, request, context } = args;
@@ -38,26 +38,21 @@ export async function action(args: ActionFunctionArgs) {
         throw new Response('Project must be public to republish', { status: 400 });
       }
 
-      // Generate a new snapshot ID and version
-      const snapshotId = `snapshot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const snapshotVersion = Date.now();
+      // Create a fresh snapshot (copies files into snapshots/ and records them)
+      const { createProjectSnapshot } = await import('~/lib/.server/snapshots/snapshot-service');
+      const r2 = context.cloudflare.env.R2_BUCKET;
+      if (!r2) {
+        throw new Response('Storage not configured', { status: 500 });
+      }
 
-      // Update the project with new snapshot info
-      await execute(
-        db,
-        'UPDATE projects SET snapshot_id = ?, snapshot_version = ?, snapshot_created_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-        snapshotId,
-        snapshotVersion,
-        projectId,
-        userId
-      );
+      const snapshot = await createProjectSnapshot(db, projectId, userId, r2);
 
       return json({ 
         success: true, 
         snapshot: {
-          id: snapshotId,
-          version: snapshotVersion,
-          createdAt: new Date().toISOString()
+          id: snapshot.id,
+          version: snapshot.version,
+          createdAt: snapshot.createdAt.toISOString()
         }
       });
     } catch (error) {

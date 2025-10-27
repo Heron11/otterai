@@ -60,17 +60,31 @@ export function TemplateInfoModal({ template, isOpen, onClose }: TemplateInfoMod
       });
 
       if (!response.ok) {
-        throw new Error('Failed to clone template');
+        let errorMessage = 'Failed to clone template';
+        
+        if (response.status === 429) {
+          errorMessage = 'Rate limit exceeded. Please wait a few minutes before cloning more templates.';
+        } else if (response.status === 404) {
+          errorMessage = 'Template not found or no longer available.';
+        } else if (response.status === 401) {
+          errorMessage = 'Please log in to clone templates.';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       
       // Close modal and redirect to the new project
       onClose();
-      window.location.href = `/project/${result.project.id}`;
+      
+      // Add a small delay to ensure the server has processed the clone
+      setTimeout(() => {
+        window.location.href = `/project/${result.project.id}`;
+      }, 500);
     } catch (error) {
       console.error('Error cloning template:', error);
-      alert('Failed to clone template. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to clone template. Please try again.');
     } finally {
       setIsCloning(false);
     }

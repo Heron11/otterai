@@ -7,13 +7,15 @@ function generateId() {
   return `proj_${nanoid()}`;
 }
 
-export async function action({ request, context }: ActionFunctionArgs) {
+export async function action(args: ActionFunctionArgs) {
+  const { request, context } = args;
   // Import server-only modules inside the function
   const { getOptionalUserId } = await import('~/lib/.server/auth/clerk.server');
   const { getDatabase, queryFirst, execute, queryAll } = await import('~/lib/.server/db/client');
   const { getSnapshotFiles } = await import('~/lib/.server/snapshots/snapshot-service');
   
-  const userId = await getOptionalUserId({ context });
+  // Ensure Clerk can read the session by passing the original args
+  const userId = await getOptionalUserId(args);
   if (!userId) {
     throw new Response('Unauthorized', { status: 401 });
   }
@@ -27,20 +29,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const db = getDatabase(context.cloudflare.env);
   const r2Bucket = context.cloudflare.env.R2_BUCKET;
+  if (!r2Bucket) {
+    throw new Response('Storage not configured', { status: 500 });
+  }
   
   try {
     // Rate limiting: Check recent clones by this user
-    const recentClones = await queryFirst<{ count: number }>(
-      db,
-      `SELECT COUNT(*) as count FROM projects 
-       WHERE user_id = ? AND created_at > datetime('now', '-5 minutes')`,
-      userId
-    );
+    // More generous limits for development
+    const isDevelopment = process.env.NODE_ENV === 'development' || context.cloudflare.env.ENVIRONMENT === 'development';
+    const disableRateLimit = context.cloudflare.env.DISABLE_RATE_LIMIT === 'true';
+    
+    if (!disableRateLimit) {
+      const maxClones = isDevelopment ? 10 : 3; // 10 clones per 5 minutes in dev, 3 in production
+      const timeWindow = isDevelopment ? 1 : 5; // 1 minute window in dev, 5 minutes in production
+      
+      const recentClones = await queryFirst<{ count: number }>(
+        db,
+        `SELECT COUNT(*) as count FROM projects 
+         WHERE user_id = ? AND created_at > datetime('now', '-${timeWindow} minutes')`,
+        userId
+      );
 
-    if (recentClones && recentClones.count >= 3) {
-      throw new Response('Rate limit exceeded. Please wait a few minutes before cloning more templates.', { 
-        status: 429 
-      });
+      if (recentClones && recentClones.count >= maxClones) {
+        const timeMessage = isDevelopment ? '1 minute' : '5 minutes';
+        throw new Response(`Rate limit exceeded. Please wait ${timeMessage} before cloning more templates.`, { 
+          status: 429 
+        });
+      }
     }
 
     // Get the latest snapshot for the public project
@@ -141,6 +156,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error('Error cloning template:', error);
+    if (error instanceof Response) {
+      throw error;
+    }
     throw new Response('Failed to clone template. Please try again.', { status: 500 });
   }
 }

@@ -41,6 +41,23 @@ export interface SnapshotFile {
   createdAt: Date;
 }
 
+// Denylist of sensitive files that should never be included in public snapshots
+const SENSITIVE_FILE_PATTERNS: RegExp[] = [
+  /(^|\/)\.env(\..*)?$/i,
+  /(^|\/)\.dev\.vars(\..*)?$/i,
+  /(^|\/)\.env\.local$/i,
+  /(^|\/)\.env\.production$/i,
+  /(^|\/)\.env\.development$/i,
+  /\.pem$/i,
+  /\.key$/i,
+  /(^|\/)\.ssh(\/|$)/i,
+  /(^|\/)secrets?\./i,
+];
+
+function isSensitiveFile(path: string): boolean {
+  return SENSITIVE_FILE_PATTERNS.some((re) => re.test(path));
+}
+
 /**
  * Create a snapshot of a project when it's made public
  */
@@ -106,7 +123,7 @@ export async function createProjectSnapshot(
     throw new Error(`Project has too many files to snapshot. Maximum ${MAX_FILES_PER_SNAPSHOT} files allowed.`);
   }
 
-  // Copy files to snapshot location in R2
+  // Copy files to snapshot location in R2 (best-effort)
   let totalSize = 0;
   const snapshotFiles: Omit<SnapshotFile, 'id' | 'createdAt'>[] = [];
 
@@ -123,6 +140,12 @@ export async function createProjectSnapshot(
 
       // Create new key for snapshot (remove leading slash from file path)
       const normalizedFilePath = file.file_path.startsWith('/') ? file.file_path.slice(1) : file.file_path;
+
+      // Skip sensitive files from snapshot
+      if (isSensitiveFile(normalizedFilePath)) {
+        console.warn('Skipping sensitive file from snapshot:', normalizedFilePath);
+        continue;
+      }
       const snapshotKey = `${snapshotR2Path}/${normalizedFilePath}`;
       
       // Copy file to snapshot location
@@ -148,9 +171,9 @@ export async function createProjectSnapshot(
         throw new Error(`Project is too large to snapshot. Maximum ${MAX_SNAPSHOT_SIZE / 1024 / 1024}MB allowed.`);
       }
     } catch (error) {
-      // Log error but don't expose details to client
+      // Best-effort: skip problematic files but continue snapshotting
       console.error(`Failed to copy file to snapshot:`, error);
-      throw new Error('Failed to create snapshot. Please try again.');
+      continue;
     }
   }
 
@@ -169,7 +192,7 @@ export async function createProjectSnapshot(
     project.template_id,
     project.template_name,
     snapshotR2Path,
-    projectFiles.length,
+    snapshotFiles.length,
     totalSize,
     version
   );

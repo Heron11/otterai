@@ -217,16 +217,28 @@ function PublicTemplateCard({ project }: PublicTemplateCardProps) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to clone project');
+        let errorMessage = 'Failed to clone project';
+        
+        if (response.status === 429) {
+          errorMessage = 'Rate limit exceeded. Please wait a few minutes before cloning more templates.';
+        } else if (response.status === 404) {
+          errorMessage = 'Template not found or no longer available.';
+        } else if (response.status === 401) {
+          errorMessage = 'Please log in to clone templates.';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       
-      // Redirect to the new project
-      window.location.href = `/project/${result.project.id}`;
+      // Add a small delay to ensure the server has processed the clone
+      setTimeout(() => {
+        window.location.href = `/project/${result.project.id}`;
+      }, 500);
     } catch (error) {
       console.error('Error cloning project:', error);
-      alert('Failed to clone project. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to clone project. Please try again.');
     } finally {
       setIsCloning(false);
     }

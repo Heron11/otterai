@@ -84,7 +84,10 @@ function ProjectWorkspace() {
         });
         
         // Reset workbench to clean state
-        workbenchStore.resetWorkbench();
+        await workbenchStore.resetWorkbench();
+
+        // Small delay to ensure WebContainer is fully ready
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         // Load project files from R2
         let files: Record<string, string>;

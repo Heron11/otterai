@@ -300,6 +300,16 @@ export class WorkbenchStore {
       const webcontainerInstance = await webcontainer;
       const WORK_DIR = '/home/project';
       
+      // Check if the work directory exists before trying to read it
+      try {
+        await webcontainerInstance.fs.readdir(WORK_DIR, { withFileTypes: true });
+      } catch (readError) {
+        // If the directory doesn't exist or can't be read, create it
+        console.warn('Work directory not accessible, creating fresh directory:', readError);
+        await webcontainerInstance.fs.mkdir(WORK_DIR, { recursive: true });
+        return; // Exit early since directory is now clean
+      }
+      
       // List all files in the work directory
       const files = await webcontainerInstance.fs.readdir(WORK_DIR, { withFileTypes: true });
       
@@ -319,6 +329,7 @@ export class WorkbenchStore {
       }
     } catch (error) {
       console.error('Failed to clear WebContainer filesystem:', error);
+      // Don't throw - this is a cleanup operation and shouldn't break the flow
     }
   }
 
@@ -338,6 +349,15 @@ export class WorkbenchStore {
     
     const webcontainerInstance = await webcontainer;
     
+    // Ensure the work directory exists
+    const WORK_DIR = '/home/project';
+    try {
+      await webcontainerInstance.fs.mkdir(WORK_DIR, { recursive: true });
+    } catch (error) {
+      console.error('Failed to create work directory:', error);
+      throw new Error('Failed to initialize project workspace');
+    }
+    
     // Create a pseudo-artifact for the project to maintain compatibility
     const artifactId = `project-${Date.now()}`;
     const messageId = `msg-${Date.now()}`;
@@ -351,13 +371,16 @@ export class WorkbenchStore {
     });
 
     // Write all files to WebContainer
-    const WORK_DIR = '/home/project';
+    let successCount = 0;
+    let errorCount = 0;
+    
     for (const [filePath, content] of Object.entries(files)) {
       try {
         // Security: Validate and normalize file path to prevent directory traversal
         const normalizedPath = this.#validateAndNormalizePath(filePath);
         if (!normalizedPath) {
           console.warn(`Skipping invalid file path: ${filePath}`);
+          errorCount++;
           continue;
         }
         
@@ -365,17 +388,23 @@ export class WorkbenchStore {
         const fullPath = `${WORK_DIR}/${normalizedPath}`;
         const dirPath = fullPath.split('/').slice(0, -1).join('/');
         
+        // Create directory if needed
         if (dirPath && dirPath !== WORK_DIR) {
           await webcontainerInstance.fs.mkdir(dirPath, { recursive: true });
         }
 
         // Write file
         await webcontainerInstance.fs.writeFile(fullPath, content);
+        successCount++;
       } catch (error) {
         console.error(`Failed to load file ${filePath}:`, error);
+        errorCount++;
       }
     }
 
+    // Log summary
+    console.log(`Project files loaded: ${successCount} successful, ${errorCount} failed`);
+    
     // Show workbench
     this.showWorkbench.set(true);
   }
