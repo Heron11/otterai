@@ -16,14 +16,21 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ context }: LoaderFunctionArgs) {
-  // Import server-only modules inside the function
-  const { getDatabase } = await import('~/lib/.server/db/client');
-  const { getPublicTemplates } = await import('~/lib/.server/projects/queries');
-  
-  const db = getDatabase(context.cloudflare.env);
-  const templates = await getPublicTemplates(db, 50); // Get up to 50 public projects
+  try {
+    // Import server-only modules inside the function
+    const { getDatabase } = await import('~/lib/.server/db/client');
+    const { getPublicTemplates } = await import('~/lib/.server/projects/queries');
+    
+    const db = getDatabase(context.cloudflare.env);
+    const templates = await getPublicTemplates(db, 50); // Get up to 50 public projects
 
-  return json({ templates });
+    console.log(`Templates loader: Found ${templates.length} templates`);
+    return json({ templates });
+  } catch (error) {
+    console.error('Templates loader error:', error);
+    // Return empty array instead of throwing to prevent page crash
+    return json({ templates: [] });
+  }
 }
 
 export default function TemplatesPage() {

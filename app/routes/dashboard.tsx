@@ -15,30 +15,42 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader(args: LoaderFunctionArgs) {
-  const { request, context } = args;
-  
-  // Import server-only modules inside the function
-  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
-  const { getDatabase } = await import('~/lib/.server/db/client');
-  const { getUserProfile, getUserCredits } = await import('~/lib/.server/users/queries');
-  const { getRecentProjects, getFeaturedProjects } = await import('~/lib/.server/projects/queries');
-  
-  const auth = await requireAuth(args);
-  const db = getDatabase(context.cloudflare.env);
+  try {
+    const { request, context } = args;
+    
+    // Import server-only modules inside the function
+    const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+    const { getDatabase } = await import('~/lib/.server/db/client');
+    const { getUserProfile, getUserCredits } = await import('~/lib/.server/users/queries');
+    const { getRecentProjects, getFeaturedProjects } = await import('~/lib/.server/projects/queries');
+    
+    const auth = await requireAuth(args);
+    const db = getDatabase(context.cloudflare.env);
 
-  const [userProfile, creditInfo, recentProjects, featuredTemplates] = await Promise.all([
-    getUserProfile(db, auth.userId!),
-    getUserCredits(db, auth.userId!),
-    getRecentProjects(db, auth.userId!, 4),
-    getFeaturedProjects(db, 3),
-  ]);
+    const [userProfile, creditInfo, recentProjects, featuredTemplates] = await Promise.all([
+      getUserProfile(db, auth.userId!),
+      getUserCredits(db, auth.userId!),
+      getRecentProjects(db, auth.userId!, 4),
+      getFeaturedProjects(db, 3),
+    ]);
 
-  return json({
-    userProfile,
-    creditInfo,
-    recentProjects,
-    featuredTemplates,
-  });
+    console.log(`Dashboard loader: User ${auth.userId}, ${recentProjects.length} recent projects, ${featuredTemplates.length} featured templates`);
+    return json({
+      userProfile,
+      creditInfo,
+      recentProjects,
+      featuredTemplates,
+    });
+  } catch (error) {
+    console.error('Dashboard loader error:', error);
+    // Return minimal data instead of throwing to prevent page crash
+    return json({
+      userProfile: null,
+      creditInfo: null,
+      recentProjects: [],
+      featuredTemplates: [],
+    });
+  }
 }
 
 export default function DashboardPage() {
