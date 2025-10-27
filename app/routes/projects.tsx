@@ -14,6 +14,12 @@ export const meta: MetaFunction = () => {
 
 export async function loader(args: LoaderFunctionArgs) {
   const { context } = args;
+  
+  // Import server-only modules inside the function
+  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase } = await import('~/lib/.server/db/client');
+  const { getUserProjects } = await import('~/lib/.server/projects/queries');
+  
   const auth = await requireAuth(args);
   const db = getDatabase(context.cloudflare.env);
 
@@ -24,6 +30,11 @@ export async function loader(args: LoaderFunctionArgs) {
 
 export async function action(args: ActionFunctionArgs) {
   const { request, context } = args;
+  
+  // Import server-only modules inside the function
+  const { requireAuth } = await import('~/lib/.server/auth/clerk.server');
+  const { getDatabase, execute } = await import('~/lib/.server/db/client');
+  
   const auth = await requireAuth(args);
   const db = getDatabase(context.cloudflare.env);
 
