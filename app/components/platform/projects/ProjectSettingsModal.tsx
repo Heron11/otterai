@@ -88,17 +88,18 @@ export function ProjectSettingsModal({ project, isOpen, onClose }: ProjectSettin
       });
 
       if (!response.ok) {
-        throw new Error('Failed to republish project');
+        const errorText = await response.text();
+        throw new Error(`Failed to republish project: ${errorText}`);
       }
 
       const result = await response.json();
       console.log('Project republished:', result);
       
-      // You could show a success message here
+      // Show success message
       alert(`Project republished successfully! New version: ${result.snapshot.version}`);
     } catch (error) {
       console.error('Error republishing project:', error);
-      alert('Failed to republish project. Please try again.');
+      alert(`Failed to republish project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsRepublishing(false);
     }

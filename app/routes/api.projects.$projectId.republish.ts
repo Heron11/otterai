@@ -21,6 +21,7 @@ export async function action(args: ActionFunctionArgs) {
   const db = getDatabase(context.cloudflare.env);
   const r2Bucket = context.cloudflare.env.R2_BUCKET;
   if (!r2Bucket) {
+    console.error('R2_BUCKET not configured in environment');
     throw new Response('Storage not configured', { status: 500 });
   }
   
@@ -44,6 +45,8 @@ export async function action(args: ActionFunctionArgs) {
     // Import snapshot service
     const { createProjectSnapshot } = await import('~/lib/.server/snapshots/snapshot-service');
     
+    console.log(`Creating snapshot for project ${projectId} by user ${userId}`);
+    
     // Create a new snapshot (this will increment the version)
     const snapshot = await createProjectSnapshot(
       db,
@@ -51,6 +54,8 @@ export async function action(args: ActionFunctionArgs) {
       userId,
       r2Bucket
     );
+    
+    console.log(`Successfully created snapshot ${snapshot.id} for project ${projectId}`);
     
     return json({ 
       success: true, 

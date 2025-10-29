@@ -118,9 +118,15 @@ export async function createProjectSnapshot(
     projectId
   );
 
+  console.log(`Found ${projectFiles.length} files for project ${projectId}`);
+
   // Check file count limit
   if (projectFiles.length > MAX_FILES_PER_SNAPSHOT) {
     throw new Error(`Project has too many files to snapshot. Maximum ${MAX_FILES_PER_SNAPSHOT} files allowed.`);
+  }
+
+  if (projectFiles.length === 0) {
+    console.warn(`Project ${projectId} has no files to snapshot`);
   }
 
   // Copy files to snapshot location in R2 (best-effort)
@@ -131,6 +137,8 @@ export async function createProjectSnapshot(
     try {
       // Read the original file from R2
       const originalKey = file.r2_key;
+      console.log(`Processing file: ${file.file_path} (R2 key: ${originalKey})`);
+      
       const originalObject = await r2Bucket.get(originalKey);
       
       if (!originalObject) {
@@ -323,6 +331,50 @@ export async function getLatestSnapshot(
     version: row.version,
     createdAt: new Date(row.created_at),
   };
+}
+
+/**
+ * Ensure all public projects have snapshots
+ * This is a utility function to fix projects that are public but missing snapshots
+ */
+export async function ensurePublicProjectsHaveSnapshots(
+  db: Database,
+  r2Bucket: R2Bucket
+): Promise<{ fixed: number; errors: string[] }> {
+  const errors: string[] = [];
+  let fixed = 0;
+  
+  try {
+    // Find public projects without snapshots
+    const projectsWithoutSnapshots = await queryAll<any>(
+      db,
+      `SELECT p.* FROM projects p 
+       LEFT JOIN project_snapshots ps ON p.id = ps.project_id 
+       WHERE p.visibility = 'public' 
+         AND p.status = 'active'
+         AND ps.id IS NULL`
+    );
+    
+    console.log(`Found ${projectsWithoutSnapshots.length} public projects without snapshots`);
+    
+    for (const project of projectsWithoutSnapshots) {
+      try {
+        console.log(`Creating missing snapshot for project ${project.id}`);
+        await createProjectSnapshot(db, project.id, project.user_id, r2Bucket);
+        fixed++;
+      } catch (error) {
+        const errorMsg = `Failed to create snapshot for project ${project.id}: ${error}`;
+        console.error(errorMsg);
+        errors.push(errorMsg);
+      }
+    }
+  } catch (error) {
+    const errorMsg = `Error finding projects without snapshots: ${error}`;
+    console.error(errorMsg);
+    errors.push(errorMsg);
+  }
+  
+  return { fixed, errors };
 }
 
 /**

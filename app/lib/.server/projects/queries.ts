@@ -205,6 +205,7 @@ export async function getUserProjectCount(
 /**
  * Get public projects as templates
  * Public projects = templates (can be cloned by anyone)
+ * Shows public projects even if they don't have snapshots yet
  */
 export async function getPublicTemplates(
   db: Database,
@@ -212,31 +213,34 @@ export async function getPublicTemplates(
   category?: string
 ): Promise<Project[]> {
   try {
+    // First, get all public projects
     let query = `
       SELECT 
-        ps.id as snapshot_id,
-        ps.project_id,
-        ps.name,
-        ps.description,
-        ps.template_id,
-        ps.template_name,
-        ps.file_count,
-        ps.total_size,
-        ps.version,
-        ps.created_at,
+        p.id as project_id,
+        p.name,
+        p.description,
+        p.template_id,
+        p.template_name,
+        p.file_count,
+        p.total_size,
         p.view_count,
         p.clone_count,
         p.visibility,
-        p.status
-      FROM project_snapshots ps
-      JOIN projects p ON ps.project_id = p.id
-      WHERE p.visibility = 'public' 
-        AND p.status = 'active'
+        p.status,
+        p.created_at,
+        p.updated_at,
+        ps.id as snapshot_id,
+        ps.version,
+        ps.created_at as snapshot_created_at
+      FROM projects p
+      LEFT JOIN project_snapshots ps ON p.id = ps.project_id 
         AND ps.version = (
           SELECT MAX(ps2.version) 
           FROM project_snapshots ps2 
-          WHERE ps2.project_id = ps.project_id
+          WHERE ps2.project_id = p.id
         )
+      WHERE p.visibility = 'public' 
+        AND p.status = 'active'
     `;
     
     const params: any[] = [];
@@ -245,7 +249,7 @@ export async function getPublicTemplates(
       // Future: add category field to projects or filter by tags
     }
     
-    query += ' ORDER BY ps.created_at DESC LIMIT ?';
+    query += ' ORDER BY COALESCE(ps.created_at, p.updated_at) DESC LIMIT ?';
     params.push(limit);
     
     const rows = await queryAll<any>(db, query, ...params);
@@ -264,11 +268,13 @@ export async function getPublicTemplates(
       viewCount: row.view_count,
       cloneCount: row.clone_count,
       iconUrl: undefined,
-      fileCount: row.file_count,
-      totalSize: row.total_size,
+      fileCount: row.file_count || 0,
+      totalSize: row.total_size || 0,
       createdAt: row.created_at,
-      updatedAt: row.created_at,
-      lastModified: row.created_at
+      updatedAt: row.updated_at || row.created_at,
+      lastModified: row.updated_at || row.created_at,
+      snapshotId: row.snapshot_id,
+      snapshotVersion: row.version
     }));
   } catch (error) {
     console.error('getPublicTemplates error:', error);

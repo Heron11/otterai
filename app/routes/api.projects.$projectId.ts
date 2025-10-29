@@ -141,6 +141,8 @@ export async function action(args: ActionFunctionArgs) {
       // If making project public for the FIRST TIME, create snapshot
       if (visibility === 'public' && existingProject.visibility !== 'public') {
         try {
+          console.log(`Making project ${projectId} public for the first time, creating snapshot`);
+          
           // Import snapshot service
           const { createProjectSnapshot } = await import('~/lib/.server/snapshots/snapshot-service');
           
@@ -152,6 +154,8 @@ export async function action(args: ActionFunctionArgs) {
             r2Bucket
           );
           
+          console.log(`Successfully created initial snapshot ${snapshot.id} for project ${projectId}`);
+          
           return json({ 
             success: true, 
             visibility,
@@ -162,12 +166,12 @@ export async function action(args: ActionFunctionArgs) {
             }
           });
         } catch (error) {
-          console.error('Failed to create snapshot:', error);
+          console.error(`Failed to create snapshot for project ${projectId}:`, error);
           // Still return success for visibility change, but log the error
           return json({ 
             success: true, 
             visibility,
-            warning: 'Project made public but snapshot creation failed'
+            warning: 'Project made public but snapshot creation failed. You can try republishing later.'
           });
         }
       }
